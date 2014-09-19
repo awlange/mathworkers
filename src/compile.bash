@@ -1,6 +1,9 @@
 #! /bin/bash
 
 # Concatenates all the JavaScript components into a single file
+cd components
 cat mathworkers_head.js \
+	util.js \
     vector.js \
     mathworkers_tail.js > ../mathworkers.js
+cd ..

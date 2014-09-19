@@ -7,6 +7,44 @@
 var MathWorkers = (function() {
 var MW = {};
 /**
+ * Internal utility functions
+ */
+var util = function() {}
+
+// Returns a typed array based on input. Possibilities:
+// input = integer length of the new array
+// input = typed array or ArrayBuffer to be copied
+// input = object, such as an Array
+util.newArray = function(type, input) {
+	switch (type) {
+		case "Int32":
+			return new Int32Array(input);
+		case "UInt32":
+			return new UInt32Array(input);
+		case "Float32":
+			return new Float64Array(input);		
+		case "Float64":
+			return new Float64Array(input);
+		default:
+			console.error("Invalid type for newArray.");
+			return null;
+	}
+}
+
+// So that it may be passed along to the worker
+var utilNewArrayAsString = "\nvar util = function() {}; util.newArray = " + util.newArray.toString();
+
+// Convert passed in function to a URL object, which can be passed to a Web Worker
+util.functionToURL = function(fn) {
+	// TODO: consider quickly minifying function somehow
+	var str = "self.onmessage = " + fn.toString() + utilNewArrayAsString;
+	var blob = new Blob([str], { type: "text/javascript" });
+	var URL = window.URL || window.webkitURL;
+	return URL.createObjectURL(blob);
+}
+
+
+/**
  *  Vector class
  */
 MW.Vector = function(type, length) {
@@ -34,7 +72,7 @@ MW.Vector = function(type, length) {
 			var tot = 0.0;
 			var xarr = x.getArray();
 			for (var i = 0; i < arr.length; ++i) {
-				tot += arr[i] * x.arr[i];
+				tot += arr[i] * xarr[i];
 			}
 			return tot; // not a Promise!
 		}
@@ -48,8 +86,9 @@ MW.Vector = function(type, length) {
 
 		    // Compute kernel
 			var computeKernel = util.functionToURL( function(event) {
-				var v = util.newArray(that.type, event.data.v);
-				var w = util.newArray(that.type, event.data.w);
+				var data = event.data;
+				var v = util.newArray(data.type, data.v);
+				var w = util.newArray(data.type, data.w);
 				var myDot = 0.0;
 				for (var i = 0; i < v.length; ++i) {
 					myDot += v[i] * w[i];
@@ -89,7 +128,7 @@ MW.Vector = function(type, length) {
 				var w = util.newArray(that.type, vecB.subarray(ifrom, ito));
 
 				// Post message to begin computation
-				wk.postMessage({v: v.buffer, w: w.buffer}, [v.buffer, w.buffer]);
+				wk.postMessage({v: v.buffer, w: w.buffer, type: that.type}, [v.buffer, w.buffer]);
 			}
 		});
 	}

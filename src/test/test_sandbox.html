@@ -1,0 +1,34 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <script src="../mathworkers.js"></script>
+	<script>
+		var MW = MathWorkers;
+
+		var type = "Float64";
+		var Nsize = 8000;
+
+		var v = new MW.Vector(type, Nsize);
+		var w = new MW.Vector(type, Nsize);
+		for (var i = 1; i <= Nsize; i++) {
+		  v.set(i, i / 10000.0);
+		  w.set(i, i / 30000.0);
+		  // v.set(i, i % 10);
+		  // w.set(i, i % 30);
+		}
+
+		var serialStart = window.performance.now();
+		console.log(v.dot(w));
+		console.log("serial: " + (window.performance.now() - serialStart));
+
+		var workerStart = window.performance.now();
+		v.dot(w, 2).then(function(result) {
+		        console.log("workers: " + (window.performance.now() - workerStart));
+		        console.log("Result: " + result);
+		});
+	</script>
+  </body>
+</html>

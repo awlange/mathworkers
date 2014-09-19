@@ -26,7 +26,7 @@ MW.Vector = function(type, length) {
 			var tot = 0.0;
 			var xarr = x.getArray();
 			for (var i = 0; i < arr.length; ++i) {
-				tot += arr[i] * x.arr[i];
+				tot += arr[i] * xarr[i];
 			}
 			return tot; // not a Promise!
 		}
@@ -40,8 +40,9 @@ MW.Vector = function(type, length) {
 
 		    // Compute kernel
 			var computeKernel = util.functionToURL( function(event) {
-				var v = util.newArray(that.type, event.data.v);
-				var w = util.newArray(that.type, event.data.w);
+				var data = event.data;
+				var v = util.newArray(data.type, data.v);
+				var w = util.newArray(data.type, data.w);
 				var myDot = 0.0;
 				for (var i = 0; i < v.length; ++i) {
 					myDot += v[i] * w[i];
@@ -81,7 +82,7 @@ MW.Vector = function(type, length) {
 				var w = util.newArray(that.type, vecB.subarray(ifrom, ito));
 
 				// Post message to begin computation
-				wk.postMessage({v: v.buffer, w: w.buffer}, [v.buffer, w.buffer]);
+				wk.postMessage({v: v.buffer, w: w.buffer, type: that.type}, [v.buffer, w.buffer]);
 			}
 		});
 	}
