@@ -4,6 +4,7 @@
 cd components
 cat mathworkers_head.js \
 	util.js \
+	thread.js \
     vector.js \
     matrix.js \
     mathworkers_tail.js > ../mathworkers.js

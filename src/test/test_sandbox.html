@@ -34,9 +34,12 @@
 		var MW = MathWorkers;
 
 		var type = "Float64";
-		var n = 2000;
+		var n = 3000;
 		var ncols = n;
 		var nrows = n;
+		var nWorkers = 2;
+
+		MW.ThreadPool(nWorkers); // start thread pool
 
 		var vec = new MW.Vector(type, ncols);
 		var mat = new MW.Matrix(type, nrows, ncols);
@@ -51,16 +54,23 @@
 		  	mat.setElement(i, i, 1.0);
 		}
 
-		var serialStart = window.performance.now();
-		var x = mat.timesVector(vec).getArray();
-		console.log("serial: " + (window.performance.now() - serialStart));
-		console.log(x);
+		console.log("sleeping... allow serial to start");
+		setTimeout( function(){
+			var serialStart = window.performance.now();
+			var x = mat.timesVector(vec).getArray();
+			console.log("serial: " + (window.performance.now() - serialStart));
+			console.log(x);
+		}, 1000);
 
-		var workerStart = window.performance.now();
-		mat.timesVector(vec, 1).then( function(result) {
-		        console.log("workers: " + (window.performance.now() - workerStart));
-		        console.log(result.getArray());
-		});
+		console.log("sleeping... allow workers to start");
+		setTimeout( function(){
+
+			var workerStart = window.performance.now();
+			mat.timesVector(vec, nWorkers).then( function(result) {
+			        console.log("workers: " + (window.performance.now() - workerStart));
+			        console.log(result.getArray());
+			});
+		}, 2000);
 	</script>
   </body>
 </html>

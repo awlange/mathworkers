@@ -65,33 +65,34 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 		// inherit from Promise
 		return new Promise(function(resolve) {
 
-		    // Compute kernel
-			var computeKernel = util.functionToURL( function(event) {
-				var data = event.data;
-				var mat = util.newTypedArray(data.type, data.mat);
-				var vec = util.newTypedArray(data.type, data.vec);
-				var len = data.rto - data.rfrom;
+		 //    // Compute kernel
+			// var computeKernel = util.functionToURL( function(event) {
+			// 	var data = event.data;
+			// 	var mat = util.newTypedArray(data.type, data.mat);
+			// 	var vec = util.newTypedArray(data.type, data.vec);
+			// 	var len = data.rto - data.rfrom;
 
-				var result = util.newTypedArray(data.type, len);
-				for (var i = 0; i < len; ++i) {
-					var tot = 0.0;
-					var incols = i * vec.length;
-					for (var j = 0; j < vec.length; ++j) {
-						tot += mat[incols + j] * vec[j];
-					}
-					result[i] = tot;
-				}
-				postMessage({
-					result: result.buffer, 
-					rfrom: data.rfrom,
-					rto: data.rto
-				}, [result.buffer]);
-				self.close();  // terminates the worker
-			});
+			// 	var result = util.newTypedArray(data.type, len);
+			// 	// for (var i = 0; i < len; ++i) {
+			// 	// 	var tot = 0.0;
+			// 	// 	var incols = i * vec.length;
+			// 	// 	for (var j = 0; j < vec.length; ++j) {
+			// 	// 		tot += mat[incols + j] * vec[j];
+			// 	// 	}
+			// 	// 	result[i] = tot;
+			// 	// }
+			// 	postMessage({
+			// 		result: result.buffer, 
+			// 		rfrom: data.rfrom,
+			// 		rto: data.rto
+			// 	}, [result.buffer]);
+			// 	self.close();  // terminates the worker
+			// });
 
 		    // Reduce kernel
 			var resultVector = new MW.Vector(that.type, that.nrows);
-			var nWorkersReported = 0;
+			// var nWorkersReported = 0;
+			var nWorkersReported = 1;  // master already reported?
 			var reduceKernel = function(event) {
 				var data = event.data;
 				var vec = util.newTypedArray(that.type, data.result); 
@@ -107,13 +108,16 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 			};
 
 			// Launch workers
-		    var div = that.nrows / nWorkers;
+		    var div = that.nrows / nWorkers;  // master?
 		    var rem = that.nrows % nWorkers;
 			for (var n = 0; n < nWorkers; ++n) {
 
 				// create workers, register the compute and reduce kernels
-				var wk = new Worker(computeKernel);
-				wk.onmessage = reduceKernel;
+				// var wk = new Worker(computeKernel);
+				// wk.onmessage = reduceKernel;
+
+				// set reduce kernel?
+				threadPool.getWorker(n).onmessage = reduceKernel;
 
 				// load balance
 				var rfrom = n * div;
@@ -122,19 +126,35 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 					rto += rem;  // simple minded way for now
 				}
 
-				// split up data to be sent
-				var mat = util.newTypedArray(that.type, typedArrayMat.subarray(rfrom * that.ncols, rto * that.ncols));
-				var vec = util.newTypedArray(that.type, typedArrayVec);
+				// master work
+				if (n == nWorkers-1) {
+					for (var i = rfrom; i < rto; ++i) {
+						var tot = 0.0;
+						var incols = i * typedArrayVec.length;
+						for (var j = 0; j < typedArrayVec.length; ++j) {
+							tot += typedArrayMat[incols + j] * typedArrayVec[j];
+						}
+						resultVector.setElement(i, tot);
+					}
+					if (nWorkers == 1) {
+						resolve(resultVector);
+					}
+				} else {
+					// split up data to be sent
+					var mat = util.newTypedArray(that.type, typedArrayMat.subarray(rfrom * that.ncols, rto * that.ncols));
+					var vec = util.newTypedArray(that.type, typedArrayVec);
 
-				// Post message to begin computation
-				wk.postMessage({
-					mat: mat.buffer, 
-					vec: vec.buffer, 
-					type: that.type,
-					rfrom: rfrom,
-					rto: rto
-				}, [mat.buffer, vec.buffer]);
+					// Post message to begin computation
+					threadPool.getWorker(n).postMessage({
+						mat: mat.buffer, 
+						vec: vec.buffer, 
+						type: that.type,
+						rfrom: rfrom,
+						rto: rto
+					}, [mat.buffer, vec.buffer]);
+				}
 			}
+
 		});
 	}
 }
