@@ -6,28 +6,60 @@
   <body>
     <script src="../mathworkers.js"></script>
 	<script>
+		// // Vector dot test
+		// var MW = MathWorkers;
+
+		// var type = "Float64";
+		// var Nsize = 8000;
+
+		// var v = new MW.Vector(type, Nsize);
+		// var w = new MW.Vector(type, Nsize);
+		// for (var i = 0; i < Nsize; i++) {
+		//   v.setElement(i, i / 10000.0);
+		//   w.setElement(i, i / 30000.0);
+		// }
+
+		// var serialStart = window.performance.now();
+		// console.log(v.dot(w));
+		// console.log("serial: " + (window.performance.now() - serialStart));
+
+		// var workerStart = window.performance.now();
+		// v.dot(w, 2).then(function(result) {
+		//         console.log("workers: " + (window.performance.now() - workerStart));
+		//         console.log("Result: " + result);
+		// });
+	</script>
+	<script>
+		// Matrix-Vector product test
 		var MW = MathWorkers;
 
 		var type = "Float64";
-		var Nsize = 8000;
+		var n = 2000;
+		var ncols = n;
+		var nrows = n;
 
-		var v = new MW.Vector(type, Nsize);
-		var w = new MW.Vector(type, Nsize);
-		for (var i = 1; i <= Nsize; i++) {
-		  v.set(i, i / 10000.0);
-		  w.set(i, i / 30000.0);
-		  // v.set(i, i % 10);
-		  // w.set(i, i % 30);
+		var vec = new MW.Vector(type, ncols);
+		var mat = new MW.Matrix(type, nrows, ncols);
+		for (var i = 0; i < ncols; i++) {
+		  	vec.setElement(i, i * 1.0 + 1.0);
+		}
+		for (var i = 0; i < nrows; i++) {
+		  	for (var j = 0; j < ncols; j++) {
+		  		// mat.setElement(i, j, (i + j) / 100.0);
+		  		mat.setElement(i, j, 0.0);
+		  	}
+		  	mat.setElement(i, i, 1.0);
 		}
 
 		var serialStart = window.performance.now();
-		console.log(v.dot(w));
+		var x = mat.timesVector(vec).getArray();
 		console.log("serial: " + (window.performance.now() - serialStart));
+		console.log(x);
 
 		var workerStart = window.performance.now();
-		v.dot(w, 2).then(function(result) {
+		mat.timesVector(vec, 1).then( function(result) {
 		        console.log("workers: " + (window.performance.now() - workerStart));
-		        console.log("Result: " + result);
+		        console.log(result.getArray());
 		});
 	</script>
   </body>

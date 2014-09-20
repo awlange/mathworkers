@@ -1,14 +1,21 @@
 /**
  *  Vector class
  */
-MW.Vector = function(type, length) {
+MW.Vector = function(type, input) {
 	var that = this;
 	this.type = type;
-	this.length = length;
 
-	var arr = util.newArray(type, length);
+	var arr = util.newTypedArray(type, input);
 
-	this.get = function(i) {
+	this.length = function() {
+		return arr.length;
+	}
+
+	this.getType = function() {
+		return that.type;
+	}
+
+	this.getElement = function(i) {
 		return arr[i];
 	}
 
@@ -16,33 +23,33 @@ MW.Vector = function(type, length) {
 		return arr;
 	}
 
-	this.set = function(i, val) {
+	this.setElement = function(i, val) {
 		arr[i] = val;
 	}
 
-	this.dot = function(x, nWorkers) {
+	this.dot = function(vecA, nWorkers) {
 		if (nWorkers === undefined || nWorkers < 1) {
 			// serial execution
 			var tot = 0.0;
-			var xarr = x.getArray();
+			var vecAarr = vecA.getArray();
 			for (var i = 0; i < arr.length; ++i) {
-				tot += arr[i] * xarr[i];
+				tot += arr[i] * vecAarr[i];
 			}
 			return tot; // not a Promise!
 		}
 		// parallel execution
-		return VectorVectorDot(arr, x.getArray(), nWorkers); // a Promise!
+		return VectorVectorDot(arr, vecA.getArray(), nWorkers); // a Promise!
 	}
 
-	function VectorVectorDot(vecA, vecB, nWorkers) {
+	function VectorVectorDot(typedArrayA, typedArrayB, nWorkers) {
 		// inherit from Promise
 		return new Promise(function(resolve) {
 
 		    // Compute kernel
 			var computeKernel = util.functionToURL( function(event) {
 				var data = event.data;
-				var v = util.newArray(data.type, data.v);
-				var w = util.newArray(data.type, data.w);
+				var v = util.newTypedArray(data.type, data.v);
+				var w = util.newTypedArray(data.type, data.w);
 				var myDot = 0.0;
 				for (var i = 0; i < v.length; ++i) {
 					myDot += v[i] * w[i];
@@ -63,10 +70,11 @@ MW.Vector = function(type, length) {
 			};
 
 			// Launch workers
-		    var div = vecA.length / (nWorkers);
-		    var rem = vecA.length % (nWorkers);
+		    var div = typedArrayA.length / nWorkers;
+		    var rem = typedArrayA.length % nWorkers;
 			for (var n = 0; n < nWorkers; ++n) {
-				// create workers and register the compute kernel
+
+				// create workers, register the compute and reduce kernels
 				var wk = new Worker(computeKernel);
 				wk.onmessage = reduceKernel;
 
@@ -78,11 +86,15 @@ MW.Vector = function(type, length) {
 				}
 
 				// split up data to be sent
-				var v = util.newArray(that.type, vecA.subarray(ifrom, ito));
-				var w = util.newArray(that.type, vecB.subarray(ifrom, ito));
+				var v = util.newTypedArray(that.type, typedArrayA.subarray(ifrom, ito));
+				var w = util.newTypedArray(that.type, typedArrayB.subarray(ifrom, ito));
 
 				// Post message to begin computation
-				wk.postMessage({v: v.buffer, w: w.buffer, type: that.type}, [v.buffer, w.buffer]);
+				wk.postMessage({
+					v: v.buffer, 
+					w: w.buffer, 
+					type: that.type
+				}, [v.buffer, w.buffer]);
 			}
 		});
 	}

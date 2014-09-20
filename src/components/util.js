@@ -7,7 +7,7 @@ var util = function() {}
 // input = integer length of the new array
 // input = typed array or ArrayBuffer to be copied
 // input = object, such as an Array
-util.newArray = function(type, input) {
+util.newTypedArray = function(type, input) {
 	switch (type) {
 		case "Int32":
 			return new Int32Array(input);
@@ -24,12 +24,12 @@ util.newArray = function(type, input) {
 }
 
 // So that it may be passed along to the worker
-var utilNewArrayAsString = "\nvar util = function() {}; util.newArray = " + util.newArray.toString();
+var utilNewTypedArrayAsString = "\nvar util = function() {}; util.newTypedArray = " + util.newTypedArray.toString();
 
 // Convert passed in function to a URL object, which can be passed to a Web Worker
 util.functionToURL = function(fn) {
 	// TODO: consider quickly minifying function somehow
-	var str = "self.onmessage = " + fn.toString() + utilNewArrayAsString;
+	var str = "self.onmessage = " + fn.toString() + utilNewTypedArrayAsString;
 	var blob = new Blob([str], { type: "text/javascript" });
 	var URL = window.URL || window.webkitURL;
 	return URL.createObjectURL(blob);
