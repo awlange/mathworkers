@@ -93,19 +93,18 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 			var resultVector = new MW.Vector(that.type, that.nrows);
 			// var nWorkersReported = 0;
 			var nWorkersReported = 1;  // master already reported?
-			var reduceKernel = function(event) {
-				var data = event.data;
-				var vec = util.newTypedArray(that.type, data.result); 
-				var len = data.rto - data.rfrom;
-				for (var i = 0; i < len; ++i) {
-					resultVector.setElement(data.rfrom + i, vec[i]);
-				}
-
-				nWorkersReported += 1;
-				if (nWorkersReported == nWorkers) {
-					resolve(resultVector);  // resolve the Promise!
-				}
-			};
+			// var reduceKernel = function(event) {
+			// 	var data = event.data;
+			// 	var vec = util.newTypedArray(that.type, data.result); 
+			// 	var len = data.rto - data.rfrom;
+			// 	for (var i = 0; i < len; ++i) {
+			// 		resultVector.setElement(data.rfrom + i, vec[i]);
+			// 	}
+			// 	nWorkersReported += 1;
+			// 	if (nWorkersReported == nWorkers) {
+			// 		resolve(resultVector);  // resolve the Promise!
+			// 	}
+			// };
 
 			// Launch workers
 		    var div = that.nrows / nWorkers;  // master?
@@ -115,9 +114,6 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 				// create workers, register the compute and reduce kernels
 				// var wk = new Worker(computeKernel);
 				// wk.onmessage = reduceKernel;
-
-				// set reduce kernel?
-				threadPool.getWorker(n).onmessage = reduceKernel;
 
 				// load balance
 				var rfrom = n * div;
@@ -140,6 +136,22 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 						resolve(resultVector);
 					}
 				} else {
+
+					var reduceKernel = function(event) {
+						var data = event.data;
+						var vec = util.newTypedArray(that.type, data.result); 
+						var len = data.rto - data.rfrom;
+						for (var i = 0; i < len; ++i) {
+							resultVector.setElement(data.rfrom + i, vec[i]);
+						}
+						nWorkersReported += 1;
+						if (nWorkersReported == nWorkers) {
+							resolve(resultVector);  // resolve the Promise!
+						}
+					};
+					// set reduce kernel
+					threadPool.getWorker(n).onmessage = reduceKernel;
+
 					// split up data to be sent
 					var mat = util.newTypedArray(that.type, typedArrayMat.subarray(rfrom * that.ncols, rto * that.ncols));
 					var vec = util.newTypedArray(that.type, typedArrayVec);

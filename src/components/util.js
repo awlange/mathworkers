@@ -36,6 +36,7 @@ util.functionToURL = function(fn) {
 	return URL.createObjectURL(blob);
 }
 
+
 util.workerScript = util.functionToURL( function(event) {
 	var data = event.data;
 	var mat = util.newTypedArray(data.type, data.mat);
@@ -59,5 +60,6 @@ util.workerScript = util.functionToURL( function(event) {
 	postMessage({});
 	//self.close();  // terminates the worker
 });
+
 
 

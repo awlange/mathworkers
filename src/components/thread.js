@@ -1,5 +1,7 @@
 /**
  *  Thread pool class to be initialized at start of program
+ *
+ *  TODO: Consider loading libraries via: importScripts()
  */
 var threadPool = function() {};
 

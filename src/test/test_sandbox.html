@@ -34,15 +34,15 @@
 		var MW = MathWorkers;
 
 		var type = "Float64";
-		var n = 3000;
+		var n = 2000;
 		var ncols = n;
 		var nrows = n;
 		var nWorkers = 2;
 
-		MW.ThreadPool(nWorkers); // start thread pool
+		MW.ThreadPool(nWorkers-1); // start thread pool
 
 		var vec = new MW.Vector(type, ncols);
-		var mat = new MW.Matrix(type, nrows, ncols);
+		var mat = new MW.Matrix(type, nrows, ncols, nWorkers-1);
 		for (var i = 0; i < ncols; i++) {
 		  	vec.setElement(i, i * 1.0 + 1.0);
 		}

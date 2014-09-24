@@ -44,6 +44,7 @@ util.functionToURL = function(fn) {
 	return URL.createObjectURL(blob);
 }
 
+
 util.workerScript = util.functionToURL( function(event) {
 	var data = event.data;
 	var mat = util.newTypedArray(data.type, data.mat);
@@ -67,6 +68,7 @@ util.workerScript = util.functionToURL( function(event) {
 	postMessage({});
 	//self.close();  // terminates the worker
 });
+
 
 
 /**
@@ -199,7 +201,7 @@ MW.Vector = function(type, input) {
  *
  *  Wraps a one-dimensional typed array
  */
-MW.Matrix = function(type, nrows, ncols, fromArray) {
+MW.Matrix = function(type, nrows, ncols, ncopies, fromArray) {
 	var that = this;
 	this.type = type;
 	this.nrows = nrows;
@@ -207,6 +209,11 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 
 	// builds the wrapped one-dimensional typed array based on dimensions
 	var mat = util.newTypedArray(type, nrows * ncols);
+	this.copies = []
+	for (var c = 0; c < ncopies; ++c) {
+		var copy = util.newTypedArray(type, nrows * ncols);
+		this.copies.push(copy);
+	}
 
 	// copy fromArray to mat if provided
 	if (fromArray !== undefined && fromArray instanceof Array) {
@@ -236,6 +243,9 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 
 	this.setElement = function(i, j, val) {
 		mat[i * that.nrows + j] = val;
+		for (var c = 0; c < ncopies; ++c) {
+			that.copies[c][i * that.nrows + j] = val;
+		}
 	}
 
 	this.timesVector = function(vecA, nWorkers) {
@@ -289,19 +299,18 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 			var resultVector = new MW.Vector(that.type, that.nrows);
 			// var nWorkersReported = 0;
 			var nWorkersReported = 1;  // master already reported?
-			var reduceKernel = function(event) {
-				var data = event.data;
-				var vec = util.newTypedArray(that.type, data.result); 
-				var len = data.rto - data.rfrom;
-				for (var i = 0; i < len; ++i) {
-					resultVector.setElement(data.rfrom + i, vec[i]);
-				}
-
-				nWorkersReported += 1;
-				if (nWorkersReported == nWorkers) {
-					resolve(resultVector);  // resolve the Promise!
-				}
-			};
+			// var reduceKernel = function(event) {
+			// 	var data = event.data;
+			// 	var vec = util.newTypedArray(that.type, data.result); 
+			// 	var len = data.rto - data.rfrom;
+			// 	for (var i = 0; i < len; ++i) {
+			// 		resultVector.setElement(data.rfrom + i, vec[i]);
+			// 	}
+			// 	nWorkersReported += 1;
+			// 	if (nWorkersReported == nWorkers) {
+			// 		resolve(resultVector);  // resolve the Promise!
+			// 	}
+			// };
 
 			// Launch workers
 		    var div = that.nrows / nWorkers;  // master?
@@ -311,9 +320,6 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 				// create workers, register the compute and reduce kernels
 				// var wk = new Worker(computeKernel);
 				// wk.onmessage = reduceKernel;
-
-				// set reduce kernel?
-				threadPool.getWorker(n).onmessage = reduceKernel;
 
 				// load balance
 				var rfrom = n * div;
@@ -336,9 +342,29 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 						resolve(resultVector);
 					}
 				} else {
+
+					var reduceKernel = function(event) {
+						var data = event.data;
+						var vec = util.newTypedArray(that.type, data.result); 
+						var len = data.rto - data.rfrom;
+						for (var i = 0; i < len; ++i) {
+							resultVector.setElement(data.rfrom + i, vec[i]);
+						}
+						nWorkersReported += 1;
+						if (nWorkersReported == nWorkers) {
+							resolve(resultVector);  // resolve the Promise!
+						}
+					};
+					// set reduce kernel
+					threadPool.getWorker(n).onmessage = reduceKernel;
+
 					// split up data to be sent
-					var mat = util.newTypedArray(that.type, typedArrayMat.subarray(rfrom * that.ncols, rto * that.ncols));
 					var vec = util.newTypedArray(that.type, typedArrayVec);
+					//var vec = new DataView(typedArrayVec.buffer);
+					// var mat = util.newTypedArray(that.type, typedArrayMat.subarray(rfrom * that.ncols, rto * that.ncols));
+					// var mat = new Float64Array((rto - rfrom) * that.ncols);
+					var mat = that.copies[n];
+
 
 					// Post message to begin computation
 					threadPool.getWorker(n).postMessage({
@@ -348,6 +374,12 @@ MW.Matrix = function(type, nrows, ncols, fromArray) {
 						rfrom: rfrom,
 						rto: rto
 					}, [mat.buffer, vec.buffer]);
+					// threadPool.getWorker(n).postMessage({
+					// 	vec: vec.buffer, 
+					// 	type: that.type,
+					// 	rfrom: rfrom,
+					// 	rto: rto
+					// }, [vec.buffer]);
 				}
 			}
 
