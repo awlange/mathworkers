@@ -10,34 +10,6 @@ var MathWorkers = (function() {
 var MW = {};
 
 /**
- *  MathWorker Pool 
- *  Does this need to be exposed to the web browser? I think not. Only coordindator, yes?
- */
-// MW.Pool = function(nWorkers, workerScriptName) {
-var pool = {};
-pool.create = function(nWorkersInput, workerScriptName) {
-
-	var pool = [];
-	for (var i = 0; i < nWorkersInput; ++i) {
-		var worker = new Worker(workerScriptName);
-		worker.postMessage({handle: "init", id: i, nWorkers: nWorkersInput});
-		pool.push(worker);
-	}
-
-	this.getNumWorkers = function() {
-		return pool.length;
-	}
-
-	this.getPool = function() {
-		return pool;
-	}
-
-	this.getWorker = function(workerId) {
-		return pool[workerId];
-	}
-}
-
-/**
  *  Logging controller
  *
  *  levels:
@@ -47,35 +19,37 @@ pool.create = function(nWorkersInput, workerScriptName) {
  *  > 2 = error + info + warning + debug
  */
 Logger = function() {
+	var name = "";
 	var level = 2;
 
-	this.setLevel = function(val) {
+	this.setLevel = function(nameInput, val) {
 		if (val !== undefined && val !== null) {
+			name = nameInput;
 			level = val;
 		}
 	}
 
 	this.error = function(message) {
 		if (level >= 1) {
-			console.log("ERROR: " + message);
+			console.error("ERROR:" + name + ": " + message);
 		}
 	}
 
 	this.info = function(message) {
 		if (level >= 1) {
-			console.log("INFO: " + message);
+			console.info("INFO:" + name + ": " + message);
 		}
 	}
 
 	this.warn = function(message) {
 		if (level >= 2) {
-			console.log("WARN: " + message);
+			console.warn("WARN:" + name + ": " + message);
 		}
 	}
 
 	this.debug = function(message) {
 		if (level >= 3) {
-			console.log("DEBUG: " + message);
+			console.log("DEBUG:" + name + ": " + message);
 		}
 	}
 }
@@ -122,15 +96,169 @@ function EventEmitter() {
 
 
 /**
- *  MathWorker for worker-side coding
+ *  MathWorker Pool 
+ *  Does this need to be exposed to the web browser? I think not. Only coordindator, yes?
  */
-MW.MathWorker = function(logLevel) {
+// MW.Pool = function(nWorkers, workerScriptName) {
+var pool = {};
+pool.create = function(nWorkersInput, workerScriptName, logLevel) {
+
+	var pool = [];
+	for (var i = 0; i < nWorkersInput; ++i) {
+		var worker = new Worker(workerScriptName);
+		worker.postMessage({handle: "init", id: i, 
+			nWorkers: nWorkersInput, logLevel: logLevel});
+		pool.push(worker);
+	}
+
+	this.getNumWorkers = function() {
+		return pool.length;
+	}
+
+	this.getPool = function() {
+		return pool;
+	}
+
+	this.getWorker = function(workerId) {
+		return pool[workerId];
+	}
+}
+
+
+/**
+ *  Coordinator for browser-side interface
+ */
+MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
+	var that = this;
+	var objectBuffer = {};
+	var logLevel = logLevel || 2;
+	log.setLevel("coord", logLevel);
+
+	// Create the worker pool, which starts the workers
+	pool.create(nWorkersInput, workerScriptName, logLevel);
+
+	this.getBuffer = function() {
+		return objectBuffer;
+	}
+
+	this.trigger = function(tag) {
+		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag});
+		}
+	}
+
+	// Route the message appropriately for the Worker
+ 	var onmessageHandler = function(event) {
+ 		var data = event.data;
+ 		switch (data.handle) {
+ 			case "workerReady":
+ 				handleWorkerReady();
+ 				break;
+ 			case "vectorSendToCoordinator":
+ 				handleVectorSendToCoordinator(data);
+ 				break;
+ 			case "vectorDot":
+ 				handleVectorDot(data);
+ 				break;
+ 			case "matrixSendToCoordinator":
+ 				handleMatrixSendToCoordinator(data);
+ 				break;
+ 			case "matrixVectorProduct":
+ 				handleMatrixVectorProduct(data);
+ 				break;
+ 			default:
+ 				log.error("Invalid Coordinator handle: " + data.handle);
+ 		}
+ 	}
+
+ 	// Register the above onmessageHandler for each worker in the pool
+ 	for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+ 		pool.getWorker(wk).onmessage = onmessageHandler;
+ 	}
+
+ 	// Reduction function variables
+ 	var nWorkersReported = 0;
+ 	var tot = 0.0;
+
+ 	var handleWorkerReady = function() {
+ 		nWorkersReported += 1;
+ 		if (nWorkersReported == pool.getNumWorkers()) {
+ 			that.emit("ready");
+ 			// reset for next message
+			nWorkersReported = 0;	
+ 		}
+ 	} 
+
+	var handleVectorDot = function(data) {
+		tot += data.dot;
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// save result to buffer and emit to the browser-side coordinator
+			objectBuffer = tot;
+			that.emit(data.tag);
+			// reset for next message
+			nWorkersReported = 0;
+			tot = 0.0;
+		}
+	}
+
+	// TODO: these should probably return Matrix and Vector objects
+	var handleVectorSendToCoordinator = function(data) {
+		objectBuffer = new Float64Array(data.vectorBuffer);
+		that.emit(data.tag);
+	}
+
+	var handleMatrixSendToCoordinator = function(data) {
+		objectBuffer = [];
+		for (var i = 0; i < data.nrows; ++i) {
+			objectBuffer.push(new Float64Array(data[i]));
+		}
+		that.emit(data.tag);
+	}
+
+	var vectorParts = {};
+	var handleMatrixVectorProduct = function(data) {
+		// Reduce the vector part from each worker
+		// Collect each worker's part into an array
+		var id = data.id;
+		vectorParts[id] = [];
+		vectorParts[id].push(new Float64Array(data.vectorPart));
+		tot += data.len;
+
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// build the full vector and save to buffer
+			var vec = new Float64Array(tot);
+			var offset = 0;
+			for (var i = 0; i < pool.getNumWorkers(); ++i) {
+				var part = vectorParts[i];
+				for (var j = 0; j < part.length; ++j) {
+					vec[offset + j] = part[j];
+				}
+				offset += part.length;
+			}
+			objectBuffer = vec;
+
+			// emit and reset
+			that.emit(data.tag);
+			nWorkersReported = 0;
+			tot = 0;
+			vectorParts = {};
+		}
+	}
+}
+MW.Coordinator.prototype = new EventEmitter();
+
+
+/**
+ *  MathWorker for worker-side interface
+ */
+MW.MathWorker = function() {
 	var that = this;
  	var id;
  	var nWorkers;
+ 	var logLevel = 2;
  	var triggers = {};
-
- 	log.setLevel(logLevel);
 
  	this.getId = function() {
  		return id;
@@ -148,14 +276,7 @@ MW.MathWorker = function(logLevel) {
 				handleInit(data);
 				break;
 			case "trigger":
-				if (data.tag in triggers) {
-					triggers[data.tag] = triggers[data.tag] || [];
-					triggers[data.tag].forEach( function(fn) {
-						fn.call(this);
-					});
-				} else {
-					log.error("Unregistered trigger tag: " + data.tag);
-				}
+				handleTrigger(data);
 				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
@@ -172,97 +293,31 @@ MW.MathWorker = function(logLevel) {
  	var handleInit = function(data) {
  		id = data.id;
  		nWorkers = data.nWorkers;
- 		log.info("Initialized MathWorker: " + id + " of " + nWorkers + " workers.");
+ 		log.setLevel("w" + id, data.logLevel);
+ 		log.debug("Initialized MathWorker: " + id + " of " + nWorkers + " workers.");
  		self.postMessage({handle: "workerReady"});
  	}
+
+ 	var handleTrigger = function(data) {
+		if (data.tag in triggers) {
+			triggers[data.tag] = triggers[data.tag] || [];
+			triggers[data.tag].forEach( function(fn) {
+				fn.call(this);
+			});
+		} else {
+			log.error("Unregistered trigger tag: " + data.tag);
+		}
+ 	}
 }
 
-
-/**
- *  Coordinator for browser-side coding
- */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
-	var that = this;
-	var objectBuffer = {};
-
-	log.setLevel(logLevel);
-
-	this.getBuffer = function() {
-		return objectBuffer;
-	}
-
-	this.trigger = function(tag) {
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag});
-		}
-	}
-
-	// Create pool after all the above
-	pool.create(nWorkersInput, workerScriptName);
-
-	// Route the message appropriately for the Worker
- 	var onmessageHandler = function(event) {
- 		var data = event.data;
- 		switch (data.handle) {
- 			case "workerReady":
- 				handleWorkerReady();
- 				break;
- 			case "vectorSendToCoordinator":
- 				handleVectorSendToCoordinator(data);
- 				break;
- 			case "vectorDot":
- 				handleVectorDot(data);
- 				break;
- 			default:
- 				log.error("Invalid Coordinator handle: " + data.handle);
- 		}
- 	}
-
- 	// Register the above onmessage switches for each worker in the pool
- 	for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
- 		pool.getWorker(wk).onmessage = onmessageHandler;
- 	}
-
- 	// Reduction function variables
- 	var nWorkersReported = 0;
- 	var dot = 0.0;
-
- 	var handleWorkerReady = function() {
- 		nWorkersReported += 1;
- 		if (nWorkersReported == pool.getNumWorkers()) {
- 			that.emit("ready");
- 			// reset for next message
-			nWorkersReported = 0;	
- 		}
- 	} 
-
-	var handleVectorDot = function(data) {
-		dot += data.dot;
-		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
-			// save result to buffer and emit to the browser-side coordinator
-			objectBuffer = dot;
-			that.emit(data.tag);
-			// reset for next message
-			nWorkersReported = 0;
-			dot = 0.0;
-		}
-	}
-
-	var handleVectorSendToCoordinator = function(data) {
-		objectBuffer = data.vectorBuffer;
-		that.emit(data.tag);
-	}
-}
-MW.Coordinator.prototype = new EventEmitter();
 
 /**
  *  Vector class
  */
 MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	var that = this;
-	var id = mathWorkerId;
-	var nWorkers = nWorkersInput;
+	var id = mathWorkerId || 0;
+	var nWorkers = nWorkersInput || 1;
 	var v = new Float64Array(size);
 
 	this.length = size;
@@ -275,7 +330,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		v[i] = val;
 	}
 
-	this.getArray = function() {
+	this.getVector = function() {
 		return v;
 	}
 
@@ -288,14 +343,75 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	}
 
 	this.dot = function(w, tag) {
-		var obj = util.loadBalance(size, nWorkers, id);
+		var lb = util.loadBalance(size, nWorkers, id);
 		var tot = 0.0;
-		for (var i = obj.ifrom; i < obj.ito; ++i) {
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
 		self.postMessage({handle: "vectorDot", tag: tag, dot: tot});
 	}
 }
+
+/**
+ *  Matrix class
+ */
+MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
+	var that = this;
+	var id = mathWorkerId;
+	var nWorkers = nWorkersInput;
+	this.nrows = nrows;
+	this.ncols = ncols;
+
+	var A = [];
+	for (var r = 0; r < nrows; ++r) {
+		A.push(new Float64Array(ncols));
+	}
+
+	this.get = function(i, j) {
+		return A[i][j];
+	}
+
+	this.set = function(i, j, val) {
+		A[i][j] = val;
+	}
+
+	this.getRow = function(i) {
+		return A[i];
+	}
+
+	this.getMatrix = function() {
+		return A;
+	}
+
+	this.sendToCoordinator = function(tag) {
+		// only id 0 does the sending actually
+		if (id == 0) {
+			var matObject = {handle: "matrixSendToCoordinator", tag: tag, nrows: that.nrows};
+			var matBufferList = [];
+			for (var i = 0; i < that.nrows; ++i) {
+				matObject[i] = A[i].buffer;
+				matBufferList.push(A[i].buffer);
+			}
+
+			self.postMessage(matObject, matBufferList);
+		}
+	}
+
+	this.timesVector = function(v, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var w = new Float64Array(lb.ito - lb.ifrom);
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.ncols; ++j) {
+				tot += A[i][j] * v.get(j);
+			}
+			w[i] = tot;
+		}
+		self.postMessage({handle: "matrixVectorProduct", tag: tag, id: id,
+			len: w.length, vectorPart: w.buffer}, [w.buffer]);
+	}
+}
+
 
 return MW;
 }());

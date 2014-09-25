@@ -7,10 +7,41 @@ MW.on("hello", function() {
 });
 
 MW.on("go", function() {
-	var v = new MathWorkers.Vector(10, MW.getId(), MW.getNumWorkers());
+	var v = new MathWorkers.Vector(4, MW.getId(), MW.getNumWorkers());
 	for (var i = 0; i < v.length; ++i) {
 		v.set(i, i * 1.0);
 	}
 	v.dot(v, "dot1");
 });
 
+MW.on("sendV", function() {
+	var v = new MathWorkers.Vector(10, MW.getId(), MW.getNumWorkers());
+	for (var i = 0; i < v.length; ++i) {
+		v.set(i, i * 1.0);
+	}
+	v.sendToCoordinator("sentV");
+});
+
+MW.on("sendMat", function() {
+	var A = new MathWorkers.Matrix(3, 3, MW.getId(), MW.getNumWorkers());
+	for (var i = 0; i < 3; ++i) {
+		for (var j = 0; j < 3; ++j) {
+			A.set(i, j, 0.0);
+		}
+		A.set(i, i, 1.0);
+	}
+	A.sendToCoordinator("sentMat");
+});
+
+MW.on("MatVec", function() {
+	var v = new MathWorkers.Vector(3, MW.getId(), MW.getNumWorkers());
+	var A = new MathWorkers.Matrix(3, 3, MW.getId(), MW.getNumWorkers());
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, (i+1) * 1.0);
+		for (var j = 0; j < 3; ++j) {
+			A.set(i, j, 0.0);
+		}
+		A.set(i, i, 1.0);
+	}
+	A.timesVector(v, "computedMatVec");
+});
