@@ -11,19 +11,66 @@
   		<ul>
   			<li class="underline">Test Name <div class="underline">Test Result</div></li>
   			<br>
+
+  			<li>dot<div id="dot" class="pending">pending</div></li>
+  			<li>plus<div id="plus" class="pending">pending</div></li>
   			<li>hello<div id="hello" class="pending">pending</div></li>
+  			<li>sendVectorToCoordinator<div id="sendVectorToCoordinator" class="pending">pending</div></li>
+  			<li>vectorDot<div id="vectorDot" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
   		<script src="../mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
-		<script>
+ 		<script>
+/*
+ * Serial tests
+ */
+var MWs = MathWorkers;
+var UT = UnitTester;
+var serialTests = [];
 
+serialTests.push( function() {
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, i * 1.0);
+		w.set(i, i * 2.0);
+	}
+	var dot = v.dot(w);
+	var T = new UT.Tester("dot");
+	T.doubleEqual(10.0, dot);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, i * 1.0);
+		w.set(i, i * 2.0);
+	}
+	var plus = v.plus(w);
+	var T = new UT.Tester("plus");
+	var expected = new MWs.Vector();
+	expected.fromArray([0.0, 3.0, 6.0]);
+	T.vectorEqual(expected, plus);
+	T.passed();
+});
+
+serialTests.forEach( function(fn) {
+	fn.call(this);
+});
+		</script>
+		<script>
+/*
+ * MathWorker tests
+ */
 var crd = new MathWorkers.Coordinator(1, "test_w1_work.js", 3);
 var UT = UnitTester;
 
 crd.on("ready", function() {
-	crd.trigger("run");
+	crd.trigger("run_hello");
 });
 
 crd.on("hello", function() {
@@ -31,8 +78,28 @@ crd.on("hello", function() {
 	var T = new UT.Tester("hello");
 	T.equal("Hello from worker 0 of 1 workers.", messageList[0]);
 	T.passed();
+
+	crd.trigger("run_sendVectorToCoordinator");
 });
 
+crd.on("sendVectorToCoordinator", function() {
+	var recv = crd.getBuffer();
+	var T = new UT.Tester("sendVectorToCoordinator");
+	T.equal(5, recv.length);
+	for (var i = 0; i < 5; ++i) {
+		T.doubleEqual(recv.get(i), i * 1.0);
+	}
+	T.passed();
+
+	crd.trigger("run_vectorDot");
+});
+
+crd.on("vectorDot", function() {
+	var recv = crd.getBuffer();
+	var T = new UT.Tester("vectorDot");
+	T.doubleEqual(66.66666666666, recv);
+	T.passed();
+});
 
 		</script>
   	</body>

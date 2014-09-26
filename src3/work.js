@@ -11,7 +11,7 @@ MW.on("go", function() {
 	for (var i = 0; i < v.length; ++i) {
 		v.set(i, i * 1.0);
 	}
-	v.dot(v, "dot1");
+	v.wkDot(v, "dot1");
 });
 
 MW.on("sendV", function() {

@@ -30,6 +30,14 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		that.length = w.length;
 	}
 
+	this.fromArray = function(arr) {
+		v = new Float64Array(arr.length);
+		for (var i = 0; i < arr.length; ++i) {
+			v[i] = arr[i];
+		}
+		that.length = arr.length;
+	}
+
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
@@ -39,13 +47,53 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		}
 	}
 
-	this.dot = function(w, tag) {
+	this.dot = function(w) {
+		var tot = 0.0;
+		for (var i = 0; i < that.length; ++i) {
+			tot += v[i] * w.get(i);
+		}
+		return tot;
+	}
+
+	this.wkDot = function(w, tag) {
 		var time = util.getTime();
-		var lb = util.loadBalance(size, nWorkers, id);
+		var lb = util.loadBalance(that.length, nWorkers, id);
 		var tot = 0.0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
 		self.postMessage({handle: "vectorDot", tag: tag, time: time, dot: tot});
+	}
+
+	this.plus = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] + w.get(i));
+		}
+		return result;
+	}
+
+	this.minus = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] - w.get(i));
+		}
+		return result;
+	}
+
+	this.times = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] * w.get(i));
+		}
+		return result;
+	}
+
+	this.dividedBy = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] / w.get(i));
+		}
+		return result;
 	}
 }
