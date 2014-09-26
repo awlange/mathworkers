@@ -7,18 +7,17 @@
   	<script src="mathworkers.js"></script>
 	<script>
 
-var coordinator = new MathWorkers.Coordinator(2, "work.js", 3);
+var coordinator = new MathWorkers.Coordinator(1, "work.js", 1);
 
 coordinator.on("ready", function() {
 	coordinator.trigger("hello");
 	coordinator.trigger("go");
-	console.time("dot1");
 });
 
 coordinator.on("dot1", function() {
 	var dot = coordinator.getBuffer();
 	console.log(dot);
-	console.timeEnd("dot1");
+	console.log(coordinator.getWallTime());
 	coordinator.trigger("sendV");
 });
 
@@ -36,7 +35,8 @@ coordinator.on("sentMat", function() {
 
 coordinator.on("computedMatVec", function() {
 	var recv = coordinator.getBuffer();
-	console.log(recv);
+	console.log(coordinator.getWallTime());
+	//console.log(recv);
 });
 
 

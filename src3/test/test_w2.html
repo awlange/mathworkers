@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Multiple Threads Unit Tests</title>
+		<link href="./test.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Multiple Thread Unit Tests</h1>
+  		<ul>
+  			<li class="underline">Test Name <div class="underline">Test Result</div></li>
+  			<br>
+  			<li>hello<div id="hello" class="pending">pending</div></li>
+  		</ul>
+
+  		<!-- Scripts to run test below (being loose with the indentation) -->
+  		<script src="../mathworkers.js"></script>
+  		<script src="unit_tester.js"></script>
+		<script>
+
+var crd = new MathWorkers.Coordinator(2, "test_w1_work.js", 3);
+var UT = UnitTester;
+
+crd.on("ready", function() {
+	crd.trigger("run");
+});
+
+crd.on("hello", function() {
+	var messageList = crd.getMessages();
+	var T = new UT.Tester("hello");
+	T.equal("Hello from worker 0 of 2 workers.", messageList[0]);
+	T.equal("Hello from worker 1 of 2 workers.", messageList[1]);
+	T.passed();
+});
+
+
+		</script>
+  	</body>
+</html>

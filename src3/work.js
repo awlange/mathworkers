@@ -34,11 +34,12 @@ MW.on("sendMat", function() {
 });
 
 MW.on("MatVec", function() {
-	var v = new MathWorkers.Vector(3, MW.getId(), MW.getNumWorkers());
-	var A = new MathWorkers.Matrix(3, 3, MW.getId(), MW.getNumWorkers());
-	for (var i = 0; i < 3; ++i) {
+	var n = 2000;
+	var v = new MathWorkers.Vector(n, MW.getId(), MW.getNumWorkers());
+	var A = new MathWorkers.Matrix(n, n, MW.getId(), MW.getNumWorkers());
+	for (var i = 0; i < n; ++i) {
 		v.set(i, (i+1) * 1.0);
-		for (var j = 0; j < 3; ++j) {
+		for (var j = 0; j < n; ++j) {
 			A.set(i, j, 0.0);
 		}
 		A.set(i, i, 1.0);
