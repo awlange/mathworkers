@@ -45,14 +45,32 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
  				break;
- 			case "vectorDot":
+ 			case "vectorPlus":
+ 				handleVectorParts(data);
+ 				break;
+ 			case "vectorMinus":
+ 				handleVectorParts(data);
+ 				break;
+ 			case "vectorTimes":
+ 				handleVectorParts(data);
+ 				break;
+ 			case "vectorDividedBy":
+ 				handleVectorParts(data);
+ 				break;
+ 			case "vectorScale":
+ 				handleVectorParts(data);
+ 				break;
+ 			case "vectorApply":
+ 				handleVectorParts(data);
+ 				break;
+  			case "vectorDot":
  				handleVectorDot(data);
  				break;
  			case "matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
  				break;
  			case "matrixVectorProduct":
- 				handleMatrixVectorProduct(data);
+ 				handleVectorParts(data);
  				break;
  			default:
  				log.error("Invalid Coordinator handle: " + data.handle);
@@ -69,6 +87,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	// Reduction function variables
  	var nWorkersReported = 0;
  	var tot = 0.0;
+ 	var vectorParts = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -124,8 +143,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		that.emit(data.tag);
 	}
 
-	var vectorParts = {};
-	var handleMatrixVectorProduct = function(data) {
+	var handleVectorParts = function(data) {
 		// Reduce the vector part from each worker
 		// Collect each worker's part into an array
 		var id = data.id;
@@ -135,16 +153,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// build the full vector and save to buffer
-			var vec = new Float64Array(tot);
-			var offset = 0;
-			for (var i = 0; i < pool.getNumWorkers(); ++i) {
-				for (var j = 0; j < vectorParts[i].length; ++j) {
-					vec[offset + j] = vectorParts[i][j];
-				}
-				offset += vectorParts[i].length;
-			}
 			objectBuffer = new MW.Vector();
-			objectBuffer.setVector(vec);
+			objectBuffer.setVector(buildVectorFromParts(vectorParts, tot));
 
 			// walltime
 			walltime = util.deltaTime(data.time);
@@ -155,6 +165,18 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			tot = 0;
 			vectorParts = {};
 		}
+	}
+
+	var buildVectorFromParts = function(vectorParts, totalLength) {
+		var vec = new Float64Array(totalLength);
+		var offset = 0;
+		for (var i = 0; i < pool.getNumWorkers(); ++i) {
+			for (var j = 0; j < vectorParts[i].length; ++j) {
+				vec[offset + j] = vectorParts[i][j];
+			}
+			offset += vectorParts[i].length;
+		}
+		return vec;
 	}
 }
 MW.Coordinator.prototype = new EventEmitter();

@@ -30,12 +30,12 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		that.length = w.length;
 	}
 
-	this.fromArray = function(arr) {
-		v = new Float64Array(arr.length);
-		for (var i = 0; i < arr.length; ++i) {
-			v[i] = arr[i];
+	this.toString = function() {
+		var str = "[";
+		for (var i = 0; i < that.length - 1; ++i) {
+			str += v[i] + ", "
 		}
-		that.length = arr.length;
+		return str + v[that.length-1] + "]";
 	}
 
 	this.sendToCoordinator = function(tag) {
@@ -45,24 +45,6 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 			self.postMessage({handle: "vectorSendToCoordinator", tag: tag, time: time,
 				vectorBuffer: v.buffer}, [v.buffer]);
 		}
-	}
-
-	this.dot = function(w) {
-		var tot = 0.0;
-		for (var i = 0; i < that.length; ++i) {
-			tot += v[i] * w.get(i);
-		}
-		return tot;
-	}
-
-	this.wkDot = function(w, tag) {
-		var time = util.getTime();
-		var lb = util.loadBalance(that.length, nWorkers, id);
-		var tot = 0.0;
-		for (var i = lb.ifrom; i < lb.ito; ++i) {
-			tot += v[i] * w.get(i);
-		}
-		self.postMessage({handle: "vectorDot", tag: tag, time: time, dot: tot});
 	}
 
 	this.plus = function(w) {
@@ -96,4 +78,127 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		}
 		return result;
 	}
+
+	this.scale = function(alpha) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] * alpha);
+		}
+		return result;		
+	}
+
+	this.apply = function(fn) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, fn(v[i]));
+		}
+		return result;		
+	}
+
+	this.dot = function(w) {
+		var tot = 0.0;
+		for (var i = 0; i < that.length; ++i) {
+			tot += v[i] * w.get(i);
+		}
+		return tot;
+	}
+
+	this.norm = function() {
+		var result = 0.0;
+		for (var i = 0.0; i < that.length; ++i) {
+			result += v[i] * v[i];
+		}
+		return Math.sqrt(result);
+	}
+
+	this.wkPlus = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] + w.get(i);
+		}
+		self.postMessage({handle: "vectorPlus", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkMinus = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] - w.get(i);
+		}
+		self.postMessage({handle: "vectorMinus", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkTimes = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] * w.get(i);
+		}
+		self.postMessage({handle: "vectorTimes", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkDividedBy = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] / w.get(i);
+		}
+		self.postMessage({handle: "vectorDividedBy", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkScale = function(alpha, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] * alpha;
+		}
+		self.postMessage({handle: "vectorScale", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkApply = function(fn, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = fn(v[i]);
+		}
+		self.postMessage({handle: "vectorApply", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkDot = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i] * w.get(i);
+		}
+		self.postMessage({handle: "vectorDot", tag: tag, time: time, dot: tot});
+	}
 }
+
+MW.Vector.fromArray = function(arr, mathWorkerId, nWorkersInput) {
+	var vec = new MW.Vector(arr.length, mathWorkerId, nWorkersInput);
+	for (var i = 0; i < arr.length; ++i) {
+		vec.set(i, arr[i]);
+	}
+	return vec;
+}
+

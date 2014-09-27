@@ -67,7 +67,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			w[offset++] = tot;
 		}
 		self.postMessage({handle: "matrixVectorProduct", tag: tag, id: id,
-			len: w.length, time: time, vectorPart: w.buffer}, [w.buffer]);
+			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
 

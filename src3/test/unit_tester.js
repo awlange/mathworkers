@@ -21,7 +21,8 @@ T.Tester = function(testName) {
 			pass = pass && tests[i];
 		}
 		if (!pass) {
-			console.log("Test(s) failed. Test list results:");
+			console.log("Test(s) failed for: " + name); 
+			console.log("Test list results:");
 			console.log(tests);
 		}
 		updatePage();
