@@ -440,7 +440,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	this.toString = function() {
 		var str = "[";
 		for (var i = 0; i < that.length - 1; ++i) {
-			str += v[i] + ", "
+			str += v[i] + ", ";
 		}
 		return str + v[that.length-1] + "]";
 	}
@@ -628,8 +628,34 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
 	}
 
+	// vector-matrix multiply: v.A
 	this.timesMatrix = function(A) {
+		var w = new MW.Vector(A.ncols);
+		for (var i = 0; i < A.ncols; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
+			}
+			w.set(i, tot);
+		}
+		return w;
+	}
 
+	// vector-matrix multiply: v.A
+	this.wkTimesMatrix = function(A, tag) {
+		var time = util.getTime();  // for timing
+		var lb = util.loadBalance(A.ncols, nWorkers, id);
+		var w = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
+			}
+			w[offset++] = tot;
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id,
+			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
 
@@ -682,6 +708,21 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		that.ncols = B[0].length;
 	}
 
+	this.toString = function() {
+		var str = "";
+		for (var i = 0; i < that.nrows; ++i) {
+			var row = "[";
+			for (var j = 0; j < that.ncols - 1; ++j) {
+				row += A[i][j] + ", ";
+			}
+			str += row + A[i][that.ncols-1] + "]";
+			if (i != that.nrows - 1) {
+				str += "\n";
+			}
+		}
+		return str;
+	}
+
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
@@ -697,6 +738,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		}
 	}
 
+	// matrix-vector multiply: A.v
 	this.timesVector = function(v, tag) {
 		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
@@ -715,10 +757,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 }
 
 MW.Matrix.fromArray = function(arr, mathWorkerId, nWorkersInput) {
-	var mat = new MW.Vector(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
+	var mat = new MW.Matrix(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
 	for (var i = 0; i < arr.length; ++i) {
 		for (var j = 0; j < arr[i].length; ++j) {
-			mat.set(i, j, arr[i]);
+			mat.set(i, j, arr[i][j]);
 		}
 	}
 	return mat;

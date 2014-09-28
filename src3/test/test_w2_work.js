@@ -2,6 +2,7 @@ importScripts("../mathworkers.js");
 
 var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
+var Matrix = MathWorkers.Matrix;
 
 var id;
 var nworkers;
@@ -71,3 +72,8 @@ MW.on("run_vectorSum", function() {
 	v.wkSum("vectorSum");
 });
 
+MW.on("run_vectorTimesMatrix", function() {
+	var v = Vector.fromArray([1.0, 2.0, 3.0], id, nworkers);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], id, nworkers);
+	var w = v.wkTimesMatrix(A, "vectorTimesMatrix");
+});

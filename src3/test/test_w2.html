@@ -23,6 +23,7 @@
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
   			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
   			<li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
+  			<li>vectorTimesMatrix<div id="vectorTimesMatrix" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -156,6 +157,15 @@ crd.on("vectorSum", function() {
 	var T = new UT.Tester("vectorSum");
 	var recv = crd.getBuffer();
 	T.doubleEqual(1500.0, recv);
+	T.passed();
+
+	crd.trigger("run_vectorTimesMatrix");
+});
+
+crd.on("vectorTimesMatrix", function() {
+	var T = new UT.Tester("vectorTimesMatrix");
+	var recv = crd.getBuffer();
+	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), recv);
 	T.passed();
 
 	// crd.trigger("run_vectorApply");

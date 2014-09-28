@@ -20,6 +20,7 @@
 			<li>dot<div id="dot" class="pending">pending</div></li>
   			<li>norm<div id="norm" class="pending">pending</div></li>
   			<li>sum<div id="sum" class="pending">pending</div></li>
+  			<li>vectorMatrixMultiply<div id="vectorMatrixMultiply" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -35,6 +36,7 @@ var Matrix = MWs.Matrix;
 var UT = UnitTester;
 var serialTests = [];
 
+// Vector tests
 serialTests.push( function() {
 	var T = new UT.Tester("plus");
 	var v = new MWs.Vector(3);
@@ -128,6 +130,15 @@ serialTests.push( function() {
 	var v = Vector.fromArray([1.0, 2.0, -30.0]);
 	var sum = v.sum();
 	T.doubleEqual(-27.0, sum);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("vectorMatrixMultiply");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = v.timesMatrix(A);
+	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), w);
 	T.passed();
 });
 

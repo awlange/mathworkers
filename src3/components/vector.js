@@ -33,7 +33,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	this.toString = function() {
 		var str = "[";
 		for (var i = 0; i < that.length - 1; ++i) {
-			str += v[i] + ", "
+			str += v[i] + ", ";
 		}
 		return str + v[that.length-1] + "]";
 	}
@@ -221,8 +221,34 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
 	}
 
+	// vector-matrix multiply: v.A
 	this.timesMatrix = function(A) {
+		var w = new MW.Vector(A.ncols);
+		for (var i = 0; i < A.ncols; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
+			}
+			w.set(i, tot);
+		}
+		return w;
+	}
 
+	// vector-matrix multiply: v.A
+	this.wkTimesMatrix = function(A, tag) {
+		var time = util.getTime();  // for timing
+		var lb = util.loadBalance(A.ncols, nWorkers, id);
+		var w = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
+			}
+			w[offset++] = tot;
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id,
+			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
 

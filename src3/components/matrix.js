@@ -39,6 +39,21 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		that.ncols = B[0].length;
 	}
 
+	this.toString = function() {
+		var str = "";
+		for (var i = 0; i < that.nrows; ++i) {
+			var row = "[";
+			for (var j = 0; j < that.ncols - 1; ++j) {
+				row += A[i][j] + ", ";
+			}
+			str += row + A[i][that.ncols-1] + "]";
+			if (i != that.nrows - 1) {
+				str += "\n";
+			}
+		}
+		return str;
+	}
+
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
@@ -54,6 +69,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		}
 	}
 
+	// matrix-vector multiply: A.v
 	this.timesVector = function(v, tag) {
 		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
@@ -72,10 +88,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 }
 
 MW.Matrix.fromArray = function(arr, mathWorkerId, nWorkersInput) {
-	var mat = new MW.Vector(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
+	var mat = new MW.Matrix(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
 	for (var i = 0; i < arr.length; ++i) {
 		for (var j = 0; j < arr[i].length; ++j) {
-			mat.set(i, j, arr[i]);
+			mat.set(i, j, arr[i][j]);
 		}
 	}
 	return mat;
