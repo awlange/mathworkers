@@ -32,6 +32,15 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	}
 
+	this.sendVectorToWorkers = function(vec, tag) {
+		// Must make a copy of the vector for each worker for transferrable object message passing
+		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+			var v = new Float64Array(vec.getVector());
+			pool.getWorker(wk).postMessage({handle: "vectorBroadcast", tag: tag, 
+				vec: v.buffer}, [v.buffer]);
+		}
+	}
+
 	// Route the message appropriately for the Worker
  	var onmessageHandler = function(event) {
  		var data = event.data;
@@ -45,32 +54,17 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
  				break;
- 			case "vectorPlus":
+ 			case "vectorParts":
  				handleVectorParts(data);
  				break;
- 			case "vectorMinus":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorTimes":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorDividedBy":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorScale":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorApply":
- 				handleVectorParts(data);
+  			case "vectorNorm":
+ 				handleVectorNorm(data);
  				break;
   			case "vectorDot":
  				handleVectorDot(data);
  				break;
  			case "matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
- 				break;
- 			case "matrixVectorProduct":
- 				handleVectorParts(data);
  				break;
  			default:
  				log.error("Invalid Coordinator handle: " + data.handle);
@@ -107,23 +101,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			nWorkersReported = 0;	
  		}
  	}
-
-	var handleVectorDot = function(data) {
-		tot += data.dot;
-		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
-			// save result to buffer and emit to the browser-side coordinator
-			objectBuffer = tot;
-			that.emit(data.tag);
-
-			// wall time
-			walltime = util.deltaTime(data.time);
-
-			// reset for next message
-			nWorkersReported = 0;
-			tot = 0.0;
-		}
-	}
 
 	var handleVectorSendToCoordinator = function(data) {
 		objectBuffer = new MW.Vector();
@@ -178,6 +155,41 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 		return vec;
 	}
+
+	var handleVectorNorm = function(data) {
+		tot += data.dot;
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// save result to buffer and emit to the browser-side coordinator
+			objectBuffer = Math.sqrt(tot);
+			that.emit(data.tag);
+
+			// wall time
+			walltime = util.deltaTime(data.time);
+
+			// reset for next message
+			nWorkersReported = 0;
+			tot = 0.0;
+		}
+	}
+
+	var handleVectorDot = function(data) {
+		tot += data.dot;
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// save result to buffer and emit to the browser-side coordinator
+			objectBuffer = tot;
+			that.emit(data.tag);
+
+			// wall time
+			walltime = util.deltaTime(data.time);
+
+			// reset for next message
+			nWorkersReported = 0;
+			tot = 0.0;
+		}
+	}
+
 }
 MW.Coordinator.prototype = new EventEmitter();
 

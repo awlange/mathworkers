@@ -119,7 +119,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] + w.get(i);
 		}
-		self.postMessage({handle: "vectorPlus", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -131,7 +131,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] - w.get(i);
 		}
-		self.postMessage({handle: "vectorMinus", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -143,7 +143,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorTimes", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -155,7 +155,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] / w.get(i);
 		}
-		self.postMessage({handle: "vectorDividedBy", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -167,7 +167,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * alpha;
 		}
-		self.postMessage({handle: "vectorScale", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -179,8 +179,18 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = fn(v[i]);
 		}
-		self.postMessage({handle: "vectorApply", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkNorm = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i] * v[i];
+		}
+		self.postMessage({handle: "vectorNorm", tag: tag, time: time, dot: tot});
 	}
 
 	this.wkDot = function(w, tag) {

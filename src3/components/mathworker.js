@@ -6,6 +6,7 @@ MW.MathWorker = function() {
 	var that = this;
  	var id;
  	var nWorkers;
+ 	var objectBuffer = {};
  	var logLevel = 2;
  	var triggers = {};
 
@@ -16,6 +17,10 @@ MW.MathWorker = function() {
  	this.getNumWorkers = function() {
  		return nWorkers;
  	}
+
+	this.getBuffer = function() {
+		return objectBuffer;
+	}
 
  	this.sendText = function(tag, message) {
  		self.postMessage({handle: "textFromWorker", id: id, tag: tag, text: message});
@@ -30,6 +35,9 @@ MW.MathWorker = function() {
 				break;
 			case "trigger":
 				handleTrigger(data);
+				break;
+			case "vectorBroadcast":
+				handleVectorBroadcast(data);
 				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
@@ -61,5 +69,11 @@ MW.MathWorker = function() {
 			log.error("Unregistered trigger tag: " + data.tag);
 		}
  	}
+
+ 	var handleVectorBroadcast = function(data) {
+ 		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
+ 		handleTrigger(data);
+ 	}
 }
+MW.Coordinator.prototype = new EventEmitter();
 

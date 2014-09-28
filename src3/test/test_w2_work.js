@@ -17,6 +17,10 @@ MW.on("run_sendVectorToCoordinator", function() {
 	v.sendToCoordinator("sendVectorToCoordinator");
 });
 
+MW.on("run_sendVectorToWorkers", function() {
+	MW.sendText("sendVectorToWorkers", MW.getBuffer().toString());
+});
+
 MW.on("run_vectorDot", function() {
 	var v = Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0], id, nworkers);
 	var w = Vector.fromArray([0.0, 1.0 / 3.0, 4.0 / 3.0, 9.0 / 3.0, 16.0 / 3.0], id, nworkers);
@@ -55,5 +59,10 @@ MW.on("run_vectorScale", function() {
 MW.on("run_vectorApply", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0], id, nworkers);
 	v.wkApply(Math.sqrt, "vectorApply");
+});
+
+MW.on("run_vectorNorm", function() {
+	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0], id, nworkers);
+	v.wkNorm("vectorNorm");
 });
 

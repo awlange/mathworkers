@@ -165,6 +165,15 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	}
 
+	this.sendVectorToWorkers = function(vec, tag) {
+		// Must make a copy of the vector for each worker for transferrable object message passing
+		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+			var v = new Float64Array(vec.getVector());
+			pool.getWorker(wk).postMessage({handle: "vectorBroadcast", tag: tag, 
+				vec: v.buffer}, [v.buffer]);
+		}
+	}
+
 	// Route the message appropriately for the Worker
  	var onmessageHandler = function(event) {
  		var data = event.data;
@@ -178,32 +187,17 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
  				break;
- 			case "vectorPlus":
+ 			case "vectorParts":
  				handleVectorParts(data);
  				break;
- 			case "vectorMinus":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorTimes":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorDividedBy":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorScale":
- 				handleVectorParts(data);
- 				break;
- 			case "vectorApply":
- 				handleVectorParts(data);
+  			case "vectorNorm":
+ 				handleVectorNorm(data);
  				break;
   			case "vectorDot":
  				handleVectorDot(data);
  				break;
  			case "matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
- 				break;
- 			case "matrixVectorProduct":
- 				handleVectorParts(data);
  				break;
  			default:
  				log.error("Invalid Coordinator handle: " + data.handle);
@@ -240,23 +234,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			nWorkersReported = 0;	
  		}
  	}
-
-	var handleVectorDot = function(data) {
-		tot += data.dot;
-		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
-			// save result to buffer and emit to the browser-side coordinator
-			objectBuffer = tot;
-			that.emit(data.tag);
-
-			// wall time
-			walltime = util.deltaTime(data.time);
-
-			// reset for next message
-			nWorkersReported = 0;
-			tot = 0.0;
-		}
-	}
 
 	var handleVectorSendToCoordinator = function(data) {
 		objectBuffer = new MW.Vector();
@@ -311,6 +288,41 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 		return vec;
 	}
+
+	var handleVectorNorm = function(data) {
+		tot += data.dot;
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// save result to buffer and emit to the browser-side coordinator
+			objectBuffer = Math.sqrt(tot);
+			that.emit(data.tag);
+
+			// wall time
+			walltime = util.deltaTime(data.time);
+
+			// reset for next message
+			nWorkersReported = 0;
+			tot = 0.0;
+		}
+	}
+
+	var handleVectorDot = function(data) {
+		tot += data.dot;
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// save result to buffer and emit to the browser-side coordinator
+			objectBuffer = tot;
+			that.emit(data.tag);
+
+			// wall time
+			walltime = util.deltaTime(data.time);
+
+			// reset for next message
+			nWorkersReported = 0;
+			tot = 0.0;
+		}
+	}
+
 }
 MW.Coordinator.prototype = new EventEmitter();
 
@@ -322,6 +334,7 @@ MW.MathWorker = function() {
 	var that = this;
  	var id;
  	var nWorkers;
+ 	var objectBuffer = {};
  	var logLevel = 2;
  	var triggers = {};
 
@@ -332,6 +345,10 @@ MW.MathWorker = function() {
  	this.getNumWorkers = function() {
  		return nWorkers;
  	}
+
+	this.getBuffer = function() {
+		return objectBuffer;
+	}
 
  	this.sendText = function(tag, message) {
  		self.postMessage({handle: "textFromWorker", id: id, tag: tag, text: message});
@@ -346,6 +363,9 @@ MW.MathWorker = function() {
 				break;
 			case "trigger":
 				handleTrigger(data);
+				break;
+			case "vectorBroadcast":
+				handleVectorBroadcast(data);
 				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
@@ -377,7 +397,13 @@ MW.MathWorker = function() {
 			log.error("Unregistered trigger tag: " + data.tag);
 		}
  	}
+
+ 	var handleVectorBroadcast = function(data) {
+ 		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
+ 		handleTrigger(data);
+ 	}
 }
+MW.Coordinator.prototype = new EventEmitter();
 
 
 /**
@@ -500,7 +526,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] + w.get(i);
 		}
-		self.postMessage({handle: "vectorPlus", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -512,7 +538,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] - w.get(i);
 		}
-		self.postMessage({handle: "vectorMinus", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -524,7 +550,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorTimes", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -536,7 +562,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] / w.get(i);
 		}
-		self.postMessage({handle: "vectorDividedBy", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -548,7 +574,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * alpha;
 		}
-		self.postMessage({handle: "vectorScale", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -560,8 +586,18 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = fn(v[i]);
 		}
-		self.postMessage({handle: "vectorApply", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkNorm = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i] * v[i];
+		}
+		self.postMessage({handle: "vectorNorm", tag: tag, time: time, dot: tot});
 	}
 
 	this.wkDot = function(w, tag) {
@@ -651,7 +687,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			w[offset++] = tot;
 		}
-		self.postMessage({handle: "matrixVectorProduct", tag: tag, id: id,
+		self.postMessage({handle: "vectorParts", tag: tag, id: id,
 			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }

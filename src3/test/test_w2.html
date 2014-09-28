@@ -13,6 +13,7 @@
   			<br>
    			<li>hello<div id="hello" class="pending">pending</div></li>
   			<li>sendVectorToCoordinator<div id="sendVectorToCoordinator" class="pending">pending</div></li>
+  			<li>sendVectorToWorkers<div id="sendVectorToWorkers" class="pending">pending</div></li>
   			<li>vectorDot<div id="vectorDot" class="pending">pending</div></li>
   			<li>vectorPlus<div id="vectorPlus" class="pending">pending</div></li>
   			<li>vectorMinus<div id="vectorMinus" class="pending">pending</div></li>
@@ -20,6 +21,7 @@
   			<li>vectorDividedBy<div id="vectorDividedBy" class="pending">pending</div></li>
   			<li>vectorScale<div id="vectorScale" class="pending">pending</div></li>
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
+  			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -54,6 +56,18 @@ crd.on("sendVectorToCoordinator", function() {
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
 	T.vectorEqual(vec, recv);
+	T.passed();
+
+	var vec = Vector.fromArray([0.0, 1.0, 2.0]);
+	crd.sendVectorToWorkers(vec, "run_sendVectorToWorkers");
+});
+
+crd.on("sendVectorToWorkers", function() {
+	var T = new UT.Tester("sendVectorToWorkers");
+	var vec = Vector.fromArray([0.0, 1.0, 2.0]);
+	var messageList = crd.getMessages();
+	T.equal(vec.toString(), messageList[0]);
+	T.equal(vec.toString(), messageList[1]);
 	T.passed();
 
 	crd.trigger("run_vectorDot");
@@ -123,6 +137,15 @@ crd.on("vectorApply", function() {
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([Math.sqrt(1.0), Math.sqrt(2.0), Math.sqrt(3.0), Math.sqrt(4.0), Math.sqrt(5.0)]);
 	T.vectorEqual(vec, recv);
+	T.passed();
+
+	crd.trigger("run_vectorNorm");
+});
+
+crd.on("vectorNorm", function() {
+	var T = new UT.Tester("vectorNorm");
+	var recv = crd.getBuffer();
+	T.doubleEqual(Math.sqrt(1.0 + 4.0 + 9.0 + 16.0), recv);
 	T.passed();
 
 	// crd.trigger("run_vectorApply");
