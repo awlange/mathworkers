@@ -89,8 +89,7 @@ function EventEmitter() {
 
     this.on = function(name, callback) {
         log.debug("registering event: " + name);
-        events[name] = events[name] || [];
-        events[name].push(callback);
+        events[name] = [callback];
     }
 
     this.emit = function(name, args) {
@@ -98,7 +97,7 @@ function EventEmitter() {
         events[name] = events[name] || [];
         args = args || [];
         events[name].forEach( function(fn) {
-        	fn.call(this, args);
+            fn.call(this, args);
         });
     }
 }
@@ -142,10 +141,15 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var messageBuffer = [];
 	var walltime = 0;
 	var logLevel = logLevel || 2;
+	var ready = false;
 	log.setLevel("coord", logLevel);
 
 	// Create the worker pool, which starts the workers
 	pool.create(nWorkersInput, workerScriptName, logLevel);
+
+	this.isReady = function() {
+		return ready;
+	}
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -219,6 +223,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.getNumWorkers()) {
+ 			ready = true;
  			that.emit("ready");
  			// reset for next message
 			nWorkersReported = 0;	

@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Performance Runs</title>
+		<link href="./performance.css" rel="stylesheet" type="text/css"/>
+  		<script src="../src/mathworkers.js"></script>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Performance Runs</h1>
+
+  		<p>Number of workers loaded in pool via URL query: <span id="nWorkers">(not loaded)</span></p>
+
+		<script>
+			// Globally available variable aliases
+			var MWs = MathWorkers;
+			var Vector = MWs.Vector;
+			var Matrix = MWs.Matrix;
+			var start;
+
+			// Get the requested number of workers from the URI query and create workers for duration of tests
+			var query = window.location.search || "?w=1";
+			var nWorkers = query.split("?w=")[1];
+			var crd = new MWs.Coordinator(nWorkers, "performance_work.js", 3);
+			document.getElementById("nWorkers").innerHTML = nWorkers;
+
+			// How many runs to perform for run statistics
+			// TODO: make this part of the query
+			var nRuns = 5;
+
+			function getStats(arr) {
+				var tot = 0.0;
+				var amax = Math.max.apply(Math, arr);
+				var amin = Math.min.apply(Math, arr);
+				for (var i = 0; i < arr.length; ++i) {
+					tot += arr[i];
+				}
+				var mean = tot / arr.length;
+				tot = 0.0;
+				for (var i = 0; i < arr.length; ++i) {
+					var tmp = mean - arr[i];
+					tot += tmp * tmp;
+				}
+				var std = Math.sqrt(tot / arr.length);
+				stats = {
+					mean: mean,
+					std: std,
+					min: amin,
+					max: amax
+				}
+				return stats;
+			}
+		</script>
+
+  		<h2>Run 1: Hello from workers</h2>
+  		<button id="run_1">run</button>
+
+		<script>
+/*
+ *  Run 1: Hello from workers
+ */
+var run_1 = document.getElementById('run_1');
+run_1.addEventListener('click', function() {
+	
+	if (!crd.isReady()) {
+		console.log("Coordinator not ready.");
+		return;
+	}
+
+	var times = [];
+	var r = 1;
+	crd.trigger("run_hello");
+	start = window.performance.now();
+
+	crd.on("hello", function() {
+		var messageList = crd.getMessages();
+		var delta = window.performance.now() - start;
+		times.push(delta);
+		if (r == nRuns) {
+			console.log(times);
+			var stats = getStats(times);
+			console.log(stats);
+		} else {
+			crd.trigger("run_hello");
+			start = window.performance.now();
+			r += 1;
+		}
+	});
+
+
+});
+		</script>
+  	</body>
+</html>

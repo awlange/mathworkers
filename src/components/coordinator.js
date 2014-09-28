@@ -9,10 +9,15 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var messageBuffer = [];
 	var walltime = 0;
 	var logLevel = logLevel || 2;
+	var ready = false;
 	log.setLevel("coord", logLevel);
 
 	// Create the worker pool, which starts the workers
 	pool.create(nWorkersInput, workerScriptName, logLevel);
+
+	this.isReady = function() {
+		return ready;
+	}
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -86,6 +91,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.getNumWorkers()) {
+ 			ready = true;
  			that.emit("ready");
  			// reset for next message
 			nWorkersReported = 0;	
