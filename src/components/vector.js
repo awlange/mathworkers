@@ -1,101 +1,262 @@
+
 /**
  *  Vector class
  */
-MW.Vector = function(type, input) {
+MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	var that = this;
-	this.type = type;
+	var id = mathWorkerId || 0;
+	var nWorkers = nWorkersInput || 1;
+	var v = null;
+	this.length = size;
 
-	var arr = util.newTypedArray(type, input);
-
-	this.length = function() {
-		return arr.length;
+	if (size !== undefined && size > 0) {
+		v = new Float64Array(size);
 	}
 
-	this.getType = function() {
-		return that.type;
+	this.get = function(i) {
+		return v[i];
 	}
 
-	this.getElement = function(i) {
-		return arr[i];
+	this.set = function(i, val) {
+		v[i] = val;
 	}
 
 	this.getArray = function() {
-		return arr;
+		return v;
 	}
 
-	this.setElement = function(i, val) {
-		arr[i] = val;
+	this.setVector = function(w) {
+		v = w;
+		that.length = w.length;
 	}
 
-	this.dot = function(vecA, nWorkers) {
-		if (nWorkers === undefined || nWorkers < 1) {
-			// serial execution
-			var tot = 0.0;
-			var vecAarr = vecA.getArray();
-			for (var i = 0; i < arr.length; ++i) {
-				tot += arr[i] * vecAarr[i];
-			}
-			return tot; // not a Promise!
+	this.toString = function() {
+		var str = "[";
+		for (var i = 0; i < that.length - 1; ++i) {
+			str += v[i] + ", ";
 		}
-		// parallel execution
-		return VectorVectorDot(arr, vecA.getArray(), nWorkers); // a Promise!
+		return str + v[that.length-1] + "]";
 	}
 
-	function VectorVectorDot(typedArrayA, typedArrayB, nWorkers) {
-		// inherit from Promise
-		return new Promise(function(resolve) {
+	this.sendToCoordinator = function(tag) {
+		// only id 0 does the sending actually
+		if (id == 0) {
+			var time = util.getTime();
+			self.postMessage({handle: "vectorSendToCoordinator", tag: tag, time: time,
+				vectorBuffer: v.buffer}, [v.buffer]);
+		}
+	}
 
-		    // Compute kernel
-			var computeKernel = util.functionToURL( function(event) {
-				var data = event.data;
-				var v = util.newTypedArray(data.type, data.v);
-				var w = util.newTypedArray(data.type, data.w);
-				var myDot = 0.0;
-				for (var i = 0; i < v.length; ++i) {
-					myDot += v[i] * w[i];
-				}
-				postMessage(myDot);
-				self.close();  // terminates the worker
-			});
+	this.plus = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] + w.get(i));
+		}
+		return result;
+	}
 
-		    // Reduce kernel
-			var total = 0;
-			var nWorkersReported = 0;
-			var reduceKernel = function(event) {
-				total += event.data;
-				nWorkersReported += 1;
-				if (nWorkersReported == nWorkers) {
-					resolve(total);  // resolve the Promise!
-				}
-			};
+	this.minus = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] - w.get(i));
+		}
+		return result;
+	}
 
-			// Launch workers
-		    var div = typedArrayA.length / nWorkers;
-		    var rem = typedArrayA.length % nWorkers;
-			for (var n = 0; n < nWorkers; ++n) {
+	this.times = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] * w.get(i));
+		}
+		return result;
+	}
 
-				// create workers, register the compute and reduce kernels
-				var wk = new Worker(computeKernel);
-				wk.onmessage = reduceKernel;
+	this.dividedBy = function(w) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] / w.get(i));
+		}
+		return result;
+	}
 
-				// load balance
-				var ifrom = n * div;
-				var ito = (n + 1) * div;
-				if (n == nWorkers-1) {
-					ito += rem;  // simple minded way for now
-				}
+	this.scale = function(alpha) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, v[i] * alpha);
+		}
+		return result;		
+	}
 
-				// split up data to be sent
-				var v = util.newTypedArray(that.type, typedArrayA.subarray(ifrom, ito));
-				var w = util.newTypedArray(that.type, typedArrayB.subarray(ifrom, ito));
+	this.apply = function(fn) {
+		var result = new MW.Vector(that.length);
+		for (var i = 0; i < that.length; ++i) {
+			result.set(i, fn(v[i]));
+		}
+		return result;		
+	}
 
-				// Post message to begin computation
-				wk.postMessage({
-					v: v.buffer, 
-					w: w.buffer, 
-					type: that.type
-				}, [v.buffer, w.buffer]);
+	this.dot = function(w) {
+		var tot = 0.0;
+		for (var i = 0; i < that.length; ++i) {
+			tot += v[i] * w.get(i);
+		}
+		return tot;
+	}
+
+	this.norm = function() {
+		var result = 0.0;
+		for (var i = 0.0; i < that.length; ++i) {
+			result += v[i] * v[i];
+		}
+		return Math.sqrt(result);
+	}
+
+	this.sum = function() {
+		var result = 0.0;
+		for (var i = 0.0; i < that.length; ++i) {
+			result += v[i];
+		}
+		return result;
+	}
+
+	this.wkPlus = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] + w.get(i);
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkMinus = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] - w.get(i);
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkTimes = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] * w.get(i);
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkDividedBy = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] / w.get(i);
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkScale = function(alpha, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = v[i] * alpha;
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkApply = function(fn, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var x = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			x[offset++] = fn(v[i]);
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+			len: x.length, vectorPart: x.buffer}, [x.buffer]);
+	}
+
+	this.wkNorm = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i] * v[i];
+		}
+		self.postMessage({handle: "vectorNorm", tag: tag, time: time, tot: tot});
+	}
+
+	this.wkDot = function(w, tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i] * w.get(i);
+		}
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	this.wkSum = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i];
+		}
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	// vector-matrix multiply: v.A
+	this.timesMatrix = function(A) {
+		var w = new MW.Vector(A.ncols);
+		for (var i = 0; i < A.ncols; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
 			}
-		});
+			w.set(i, tot);
+		}
+		return w;
+	}
+
+	// vector-matrix multiply: v.A
+	this.wkTimesMatrix = function(A, tag) {
+		var time = util.getTime();  // for timing
+		var lb = util.loadBalance(A.ncols, nWorkers, id);
+		var w = new Float64Array(lb.ito - lb.ifrom);
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.length; ++j) {
+				tot += v[j] * A.get(j, i);
+			}
+			w[offset++] = tot;
+		}
+		self.postMessage({handle: "vectorParts", tag: tag, id: id,
+			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
+
+MW.Vector.fromArray = function(arr, mathWorkerId, nWorkersInput) {
+	var vec = new MW.Vector(arr.length, mathWorkerId, nWorkersInput);
+	for (var i = 0; i < arr.length; ++i) {
+		vec.set(i, arr[i]);
+	}
+	return vec;
+}
+
