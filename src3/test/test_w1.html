@@ -19,6 +19,7 @@
   			<li>apply<div id="apply" class="pending">pending</div></li>
 			<li>dot<div id="dot" class="pending">pending</div></li>
   			<li>norm<div id="norm" class="pending">pending</div></li>
+  			<li>sum<div id="sum" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -119,6 +120,14 @@ serialTests.push( function() {
 	var norm = v.norm();
 	var expected = Math.sqrt(1.0 + 4.0 + 9.0);
 	T.doubleEqual(expected, norm);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("sum");
+	var v = Vector.fromArray([1.0, 2.0, -30.0]);
+	var sum = v.sum();
+	T.doubleEqual(-27.0, sum);
 	T.passed();
 });
 

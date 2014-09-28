@@ -66,3 +66,8 @@ MW.on("run_vectorNorm", function() {
 	v.wkNorm("vectorNorm");
 });
 
+MW.on("run_vectorSum", function() {
+	var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0], id, nworkers);
+	v.wkSum("vectorSum");
+});
+

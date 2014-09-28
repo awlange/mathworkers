@@ -168,7 +168,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			var v = new Float64Array(vec.getVector());
+			var v = new Float64Array(vec.getArray());
 			pool.getWorker(wk).postMessage({handle: "vectorBroadcast", tag: tag, 
 				vec: v.buffer}, [v.buffer]);
 		}
@@ -193,8 +193,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
   			case "vectorNorm":
  				handleVectorNorm(data);
  				break;
-  			case "vectorDot":
- 				handleVectorDot(data);
+  			case "vectorSum":
+ 				handleVectorSum(data);
  				break;
  			case "matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
@@ -290,7 +290,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	var handleVectorNorm = function(data) {
-		tot += data.dot;
+		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// save result to buffer and emit to the browser-side coordinator
@@ -306,8 +306,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	}
 
-	var handleVectorDot = function(data) {
-		tot += data.dot;
+	var handleVectorSum = function(data) {
+		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// save result to buffer and emit to the browser-side coordinator
@@ -428,7 +428,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		v[i] = val;
 	}
 
-	this.getVector = function() {
+	this.getArray = function() {
 		return v;
 	}
 
@@ -518,6 +518,14 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		return Math.sqrt(result);
 	}
 
+	this.sum = function() {
+		var result = 0.0;
+		for (var i = 0.0; i < that.length; ++i) {
+			result += v[i];
+		}
+		return result;
+	}
+
 	this.wkPlus = function(w, tag) {
 		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
@@ -597,7 +605,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * v[i];
 		}
-		self.postMessage({handle: "vectorNorm", tag: tag, time: time, dot: tot});
+		self.postMessage({handle: "vectorNorm", tag: tag, time: time, tot: tot});
 	}
 
 	this.wkDot = function(w, tag) {
@@ -607,7 +615,21 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorDot", tag: tag, time: time, dot: tot});
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	this.wkSum = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i];
+		}
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	this.timesMatrix = function(A) {
+
 	}
 }
 
@@ -649,7 +671,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		return A[i];
 	}
 
-	this.getMatrix = function() {
+	this.getArray = function() {
 		return A;
 	}
 
@@ -691,6 +713,17 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
+
+MW.Matrix.fromArray = function(arr, mathWorkerId, nWorkersInput) {
+	var mat = new MW.Vector(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
+	for (var i = 0; i < arr.length; ++i) {
+		for (var j = 0; j < arr[i].length; ++j) {
+			mat.set(i, j, arr[i]);
+		}
+	}
+	return mat;
+}
+
 
 
 return MW;

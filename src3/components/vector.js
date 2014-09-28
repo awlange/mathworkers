@@ -21,7 +21,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		v[i] = val;
 	}
 
-	this.getVector = function() {
+	this.getArray = function() {
 		return v;
 	}
 
@@ -111,6 +111,14 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		return Math.sqrt(result);
 	}
 
+	this.sum = function() {
+		var result = 0.0;
+		for (var i = 0.0; i < that.length; ++i) {
+			result += v[i];
+		}
+		return result;
+	}
+
 	this.wkPlus = function(w, tag) {
 		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
@@ -190,7 +198,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * v[i];
 		}
-		self.postMessage({handle: "vectorNorm", tag: tag, time: time, dot: tot});
+		self.postMessage({handle: "vectorNorm", tag: tag, time: time, tot: tot});
 	}
 
 	this.wkDot = function(w, tag) {
@@ -200,7 +208,21 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorDot", tag: tag, time: time, dot: tot});
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	this.wkSum = function(tag) {
+		var time = util.getTime();
+		var lb = util.loadBalance(that.length, nWorkers, id);
+		var tot = 0.0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			tot += v[i];
+		}
+		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+	}
+
+	this.timesMatrix = function(A) {
+
 	}
 }
 

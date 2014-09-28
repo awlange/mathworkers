@@ -28,7 +28,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		return A[i];
 	}
 
-	this.getMatrix = function() {
+	this.getArray = function() {
 		return A;
 	}
 
@@ -70,4 +70,15 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
+
+MW.Matrix.fromArray = function(arr, mathWorkerId, nWorkersInput) {
+	var mat = new MW.Vector(arr.length, arr[0].length, mathWorkerId, nWorkersInput);
+	for (var i = 0; i < arr.length; ++i) {
+		for (var j = 0; j < arr[i].length; ++j) {
+			mat.set(i, j, arr[i]);
+		}
+	}
+	return mat;
+}
+
 

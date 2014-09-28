@@ -35,7 +35,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			var v = new Float64Array(vec.getVector());
+			var v = new Float64Array(vec.getArray());
 			pool.getWorker(wk).postMessage({handle: "vectorBroadcast", tag: tag, 
 				vec: v.buffer}, [v.buffer]);
 		}
@@ -60,8 +60,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
   			case "vectorNorm":
  				handleVectorNorm(data);
  				break;
-  			case "vectorDot":
- 				handleVectorDot(data);
+  			case "vectorSum":
+ 				handleVectorSum(data);
  				break;
  			case "matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
@@ -157,7 +157,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	var handleVectorNorm = function(data) {
-		tot += data.dot;
+		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// save result to buffer and emit to the browser-side coordinator
@@ -173,8 +173,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	}
 
-	var handleVectorDot = function(data) {
-		tot += data.dot;
+	var handleVectorSum = function(data) {
+		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// save result to buffer and emit to the browser-side coordinator
