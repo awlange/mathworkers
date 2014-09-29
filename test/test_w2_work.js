@@ -24,7 +24,7 @@ MW.on("run_sendVectorToWorkers", function() {
 
 MW.on("run_vectorDot", function() {
 	var v = Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0], id, nworkers);
-	var w = Vector.fromArray([0.0, 1.0 / 3.0, 4.0 / 3.0, 9.0 / 3.0, 16.0 / 3.0], id, nworkers);
+	var w = Vector.fromArray([1.0, 1.0, 1.0, 1.0, 1.0], id, nworkers);
 	v.wkDot(w, "vectorDot");
 });
 

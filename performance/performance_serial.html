@@ -10,22 +10,13 @@
   		<!-- Display results of tests -->
   		<h1>MathWorkers Performance Runs</h1>
 
-  		<p>Number of workers loaded in pool via URL query: <span id="nWorkers">(not loaded)</span></p>
+  		<p>Serial runs</p>
 
 		<script>
 			// Globally available variable aliases
 			var MWs = MathWorkers;
 			var Vector = MWs.Vector;
 			var Matrix = MWs.Matrix;
-
-			// Get the requested number of workers from the URI query and create workers for duration of tests
-			var query = window.location.search || "?w=1";
-			var nWorkers = query.split("?w=")[1];
-			var crd = new MWs.Coordinator(nWorkers, "performance_work.js");
-			document.getElementById("nWorkers").innerHTML = nWorkers;
-			crd.on("ready", function() {
-				crd.trigger("set");
-			});
 
 			// How many runs to perform for run statistics
 			// TODO: make this part of the query
@@ -82,35 +73,6 @@
 			}
 		</script>
 
-		<!-- Run 0 -->
-  		<h2>Run 0: Hello from workers</h2>
-  		<button id="run_0">run</button>
-  		<div class="run_stats">
-  			<ul id="stats_0"></ul>
-  		</div>
-		<script>
-var run_0 = document.getElementById('run_0');
-run_0.addEventListener('click', function() {
-	
-	var times = [];
-	var r = 1;
-	crd.trigger("run_hello");
-	var start = window.performance.now();
-
-	crd.on("hello", function() {
-		var messageList = crd.getMessages();
-		times.push(window.performance.now() - start);
-		if (r == nRuns) {
-			showStats(getStats(times), "stats_0");
-		} else {
-			crd.trigger("run_hello");
-			start = window.performance.now();
-			r += 1;
-		}
-	});
-});
-		</script>
-
 		<!-- Run 1 -->
   		<h2>Run 1: Vector dot product</h2>
   		<button id="run_1">run</button>
@@ -121,22 +83,25 @@ run_0.addEventListener('click', function() {
 var run_1 = document.getElementById('run_1');
 run_1.addEventListener('click', function() {
 	
-	var times = [];
-	var r = 1;
-	crd.trigger("run_vectorDot");
-	var start = window.performance.now();
+	var n = 200000;
+	var v = new Float64Array(n);
+	var w = new Float64Array(n);
+	for (var i = 0; i < n; ++i) {
+		v[i] = Math.random();
+		w[i] = Math.random();
+	}
 
-	crd.on("vectorDot", function() {
-		var buffer = crd.getBuffer();
-		times.push(window.performance.now() - start);
-		if (r == nRuns) {
-			showStats(getStats(times), "stats_1");
-		} else {
-			crd.trigger("run_vectorDot");
-			start = window.performance.now();
-			r += 1;
+	var times = [];
+	for (var r = 0; r < nRuns; ++r) {
+		var start = window.performance.now();
+		var tot = 0.0;
+		for (var i = 0; i < n; ++i) {
+			tot += v[i] * w[i];
 		}
-	});
+		times.push(window.performance.now() - start);
+	}
+	showStats(getStats(times), "stats_1");
+	
 });
 		</script>
 
@@ -150,24 +115,33 @@ run_1.addEventListener('click', function() {
 var run_2 = document.getElementById('run_2');
 run_2.addEventListener('click', function() {
 	
-	var times = [];
-	var r = 1;
-	crd.trigger("run_vectorMatrixProduct");
-	var start = window.performance.now();
-
-	crd.on("vectorMatrixProduct", function() {
-		var buffer = crd.getBuffer();
-		times.push(window.performance.now() - start);
-		if (r == nRuns) {
-			showStats(getStats(times), "stats_2");
-		} else {
-			crd.trigger("run_vectorMatrixProduct");
-			start = window.performance.now();
-			r += 1;
+	var n = 3000;
+	var v = new Float64Array(n);
+	var w = new Float64Array(n);
+	var A = [];
+	for (var i = 0; i < n; ++i) {
+		v[i] = Math.random();
+		A.push(new Float64Array(n));
+		for (var j = 0; j < n; ++j) {
+			A[i][j] = Math.random();
 		}
-	});
+	}
+
+	var times = [];
+	for (var r = 0; r < nRuns; ++r) {
+		var start = window.performance.now();
+		for (var i = 0; i < n; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < n; ++j) {
+				tot += v[j] * A[j][i];
+			}
+			w[i] = tot;
+		}
+		times.push(window.performance.now() - start);
+	}
+	showStats(getStats(times), "stats_2");
+	
 });
 		</script>
-
   	</body>
 </html>

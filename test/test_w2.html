@@ -78,7 +78,7 @@ crd.on("sendVectorToWorkers", function() {
 crd.on("vectorDot", function() {
 	var T = new UT.Tester("vectorDot");
 	var recv = crd.getBuffer();
-	T.doubleEqual(200.0 / 3.0, recv);
+	T.doubleEqual(20.0, recv);
 	T.passed();
 
 	crd.trigger("run_vectorPlus");

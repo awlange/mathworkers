@@ -47,8 +47,7 @@ MW.MathWorker = function() {
  	// registers the callback for a trigger
  	this.on = function(tag, callback) {
         log.debug("registering trigger: " + tag);
-        triggers[tag] = triggers[tag] || [];
-        triggers[tag].push(callback);
+        triggers[tag] = [callback];
     }
 
  	var handleInit = function(data) {
