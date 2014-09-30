@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Serial Unit Tests</title>
+		<link href="./test.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Serial Unit Tests</h1>
+  		<h2>Vector tests</h2>
+  		<ul>
+  			<li>plus<div id="plus" class="pending">pending</div></li>
+  			<li>minus<div id="minus" class="pending">pending</div></li>
+  			<li>times<div id="times" class="pending">pending</div></li>
+  			<li>dividedBy<div id="dividedBy" class="pending">pending</div></li>
+  			<li>scale<div id="scale" class="pending">pending</div></li>
+  			<li>apply<div id="apply" class="pending">pending</div></li>
+			<li>dot<div id="dot" class="pending">pending</div></li>
+  			<li>norm<div id="norm" class="pending">pending</div></li>
+  			<li>sum<div id="sum" class="pending">pending</div></li>
+  			<li>vectorMatrixMultiply<div id="vectorMatrixMultiply" class="pending">pending</div></li>
+  		</ul>
+
+  		<!-- Scripts to run test below (being loose with the indentation) -->
+  		<script src="../src/mathworkers.js"></script>
+  		<script src="unit_tester.js"></script>
+ 		<script>
+/*
+ * Serial tests
+ */
+var MWs = MathWorkers;
+var Vector = MWs.Vector;
+var Matrix = MWs.Matrix;
+var UT = UnitTester;
+var serialTests = [];
+
+// Vector tests
+serialTests.push( function() {
+	var T = new UT.Tester("plus");
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, i * 1.0);
+		w.set(i, i * 2.0);
+	}
+	var plus = v.plus(w);
+	var expected = Vector.fromArray([0.0, 3.0, 6.0]);
+	T.vectorEqual(expected, plus);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("minus");
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, (i+1) * 2.0);
+		w.set(i, (i+1) * 1.0);
+	}
+	var minus = v.minus(w);
+	var expected = Vector.fromArray([1.0, 2.0, 3.0]);
+	T.vectorEqual(expected, minus);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("times");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var w = Vector.fromArray([4.0, 8.0, -3.0]);
+	var times = v.times(w);
+	var expected = Vector.fromArray([4.0, 16.0, -9.0]);
+	T.vectorEqual(expected, times);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("dividedBy");
+	var v = Vector.fromArray([1.0, 8.0, 3.0]);
+	var w = Vector.fromArray([4.0, 2.0, -3.0]);
+	var div = v.dividedBy(w);
+	var expected = Vector.fromArray([0.25, 4.0, -1.0]);
+	T.vectorEqual(expected, div);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("scale");
+	var v = Vector.fromArray([0.25, 4.0, -30.0]);
+	var sc = v.scale(2.0);
+	var expected = Vector.fromArray([0.50, 8.0, -60.0]);
+	T.vectorEqual(expected, sc);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("apply");
+	var v = Vector.fromArray([1.0, 2.0, -3.0]);
+	var app = v.apply(Math.exp);
+	var expected = Vector.fromArray([Math.exp(1.0), Math.exp(2.0), Math.exp(-3.0)]);
+	T.vectorEqual(expected, app);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("dot");
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.set(i, i * 1.0);
+		w.set(i, i * 2.0);
+	}
+	var dot = v.dot(w);
+	T.doubleEqual(10.0, dot);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("norm");
+	var v = Vector.fromArray([1.0, 2.0, -3.0]);
+	var norm = v.norm();
+	var expected = Math.sqrt(1.0 + 4.0 + 9.0);
+	T.doubleEqual(expected, norm);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("sum");
+	var v = Vector.fromArray([1.0, 2.0, -30.0]);
+	var sum = v.sum();
+	T.doubleEqual(-27.0, sum);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("vectorMatrixMultiply");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = v.timesMatrix(A);
+	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), w);
+	T.passed();
+});
+
+
+serialTests.forEach( function(fn) {
+	fn.call(this);
+});
+		</script>
+  	</body>
+</html>

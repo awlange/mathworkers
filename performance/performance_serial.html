@@ -1,0 +1,147 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Performance Runs</title>
+		<link href="./performance.css" rel="stylesheet" type="text/css"/>
+  		<script src="../src/mathworkers.js"></script>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Performance Runs</h1>
+
+  		<p>Serial runs</p>
+
+		<script>
+			// Globally available variable aliases
+			var MWs = MathWorkers;
+			var Vector = MWs.Vector;
+			var Matrix = MWs.Matrix;
+
+			// How many runs to perform for run statistics
+			// TODO: make this part of the query
+			var nRuns = 10;
+
+			function getStats(arr) {
+				var tot = 0.0;
+				var amax = Math.max.apply(Math, arr);
+				var amin = Math.min.apply(Math, arr);
+				for (var i = 0; i < arr.length; ++i) {
+					tot += arr[i];
+				}
+				var mean = tot / arr.length;
+				tot = 0.0;
+				for (var i = 0; i < arr.length; ++i) {
+					var tmp = mean - arr[i];
+					tot += tmp * tmp;
+				}
+				var std = Math.sqrt(tot / arr.length);
+				stats = {
+					nruns: arr.length,
+					mean: mean,
+					std: std,
+					min: amin,
+					max: amax
+				}
+				return stats;
+			}
+
+			function showStats(stats, elementId) {
+				var elem = document.getElementById(elementId);
+				while (elem.hasChildNodes()) {
+					elem.removeChild(elem.childNodes[0]);
+				}
+				var li_nruns = document.createElement("li");
+				li_nruns.appendChild(document.createTextNode("nruns: " + stats.nruns));
+				elem.appendChild(li_nruns);
+
+				var li_mean = document.createElement("li");
+				li_mean.appendChild(document.createTextNode("mean: " + stats.mean.toFixed(2)));
+				elem.appendChild(li_mean);
+
+				var li_std = document.createElement("li");
+				li_std.appendChild(document.createTextNode("std: " + stats.std.toFixed(2)));
+				elem.appendChild(li_std);
+
+				var li_min = document.createElement("li");
+				li_min.appendChild(document.createTextNode("min: " + stats.min.toFixed(2)));
+				elem.appendChild(li_min);
+
+				var li_max = document.createElement("li");
+				li_max.appendChild(document.createTextNode("max: " + stats.max.toFixed(2)));
+				elem.appendChild(li_max);
+			}
+		</script>
+
+		<!-- Run 1 -->
+  		<h2>Run 1: Vector dot product</h2>
+  		<button id="run_1">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_1"></ul>
+  		</div>
+		<script>
+var run_1 = document.getElementById('run_1');
+run_1.addEventListener('click', function() {
+	
+	var n = 200000;
+	var v = new Float64Array(n);
+	var w = new Float64Array(n);
+	for (var i = 0; i < n; ++i) {
+		v[i] = Math.random();
+		w[i] = Math.random();
+	}
+
+	var times = [];
+	for (var r = 0; r < nRuns; ++r) {
+		var start = window.performance.now();
+		var tot = 0.0;
+		for (var i = 0; i < n; ++i) {
+			tot += v[i] * w[i];
+		}
+		times.push(window.performance.now() - start);
+	}
+	showStats(getStats(times), "stats_1");
+	
+});
+		</script>
+
+		<!-- Run 2 -->
+  		<h2>Run 2: Vector-matrix product</h2>
+  		<button id="run_2">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_2"></ul>
+  		</div>
+		<script>
+var run_2 = document.getElementById('run_2');
+run_2.addEventListener('click', function() {
+	
+	var n = 3000;
+	var v = new Float64Array(n);
+	var w = new Float64Array(n);
+	var A = [];
+	for (var i = 0; i < n; ++i) {
+		v[i] = Math.random();
+		A.push(new Float64Array(n));
+		for (var j = 0; j < n; ++j) {
+			A[i][j] = Math.random();
+		}
+	}
+
+	var times = [];
+	for (var r = 0; r < nRuns; ++r) {
+		var start = window.performance.now();
+		for (var i = 0; i < n; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < n; ++j) {
+				tot += v[j] * A[j][i];
+			}
+			w[i] = tot;
+		}
+		times.push(window.performance.now() - start);
+	}
+	showStats(getStats(times), "stats_2");
+	
+});
+		</script>
+  	</body>
+</html>

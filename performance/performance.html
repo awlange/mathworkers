@@ -1,0 +1,173 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Performance Runs</title>
+		<link href="./performance.css" rel="stylesheet" type="text/css"/>
+  		<script src="../src/mathworkers.js"></script>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Performance Runs</h1>
+
+  		<p>Number of workers loaded in pool via URL query: <span id="nWorkers">(not loaded)</span></p>
+
+		<script>
+			// Globally available variable aliases
+			var MWs = MathWorkers;
+			var Vector = MWs.Vector;
+			var Matrix = MWs.Matrix;
+
+			// Get the requested number of workers from the URI query and create workers for duration of tests
+			var query = window.location.search || "?w=1";
+			var nWorkers = query.split("?w=")[1];
+			var crd = new MWs.Coordinator(nWorkers, "performance_work.js");
+			document.getElementById("nWorkers").innerHTML = nWorkers;
+			crd.on("ready", function() {
+				crd.trigger("set");
+			});
+
+			// How many runs to perform for run statistics
+			// TODO: make this part of the query
+			var nRuns = 10;
+
+			function getStats(arr) {
+				var tot = 0.0;
+				var amax = Math.max.apply(Math, arr);
+				var amin = Math.min.apply(Math, arr);
+				for (var i = 0; i < arr.length; ++i) {
+					tot += arr[i];
+				}
+				var mean = tot / arr.length;
+				tot = 0.0;
+				for (var i = 0; i < arr.length; ++i) {
+					var tmp = mean - arr[i];
+					tot += tmp * tmp;
+				}
+				var std = Math.sqrt(tot / arr.length);
+				stats = {
+					nruns: arr.length,
+					mean: mean,
+					std: std,
+					min: amin,
+					max: amax
+				}
+				return stats;
+			}
+
+			function showStats(stats, elementId) {
+				var elem = document.getElementById(elementId);
+				while (elem.hasChildNodes()) {
+					elem.removeChild(elem.childNodes[0]);
+				}
+				var li_nruns = document.createElement("li");
+				li_nruns.appendChild(document.createTextNode("nruns: " + stats.nruns));
+				elem.appendChild(li_nruns);
+
+				var li_mean = document.createElement("li");
+				li_mean.appendChild(document.createTextNode("mean: " + stats.mean.toFixed(2)));
+				elem.appendChild(li_mean);
+
+				var li_std = document.createElement("li");
+				li_std.appendChild(document.createTextNode("std: " + stats.std.toFixed(2)));
+				elem.appendChild(li_std);
+
+				var li_min = document.createElement("li");
+				li_min.appendChild(document.createTextNode("min: " + stats.min.toFixed(2)));
+				elem.appendChild(li_min);
+
+				var li_max = document.createElement("li");
+				li_max.appendChild(document.createTextNode("max: " + stats.max.toFixed(2)));
+				elem.appendChild(li_max);
+			}
+		</script>
+
+		<!-- Run 0 -->
+  		<h2>Run 0: Hello from workers</h2>
+  		<button id="run_0">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_0"></ul>
+  		</div>
+		<script>
+var run_0 = document.getElementById('run_0');
+run_0.addEventListener('click', function() {
+	
+	var times = [];
+	var r = 1;
+	crd.trigger("run_hello");
+	var start = window.performance.now();
+
+	crd.on("hello", function() {
+		var messageList = crd.getMessages();
+		times.push(window.performance.now() - start);
+		if (r == nRuns) {
+			showStats(getStats(times), "stats_0");
+		} else {
+			crd.trigger("run_hello");
+			start = window.performance.now();
+			r += 1;
+		}
+	});
+});
+		</script>
+
+		<!-- Run 1 -->
+  		<h2>Run 1: Vector dot product</h2>
+  		<button id="run_1">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_1"></ul>
+  		</div>
+		<script>
+var run_1 = document.getElementById('run_1');
+run_1.addEventListener('click', function() {
+	
+	var times = [];
+	var r = 1;
+	crd.trigger("run_vectorDot");
+	var start = window.performance.now();
+
+	crd.on("vectorDot", function() {
+		var buffer = crd.getBuffer();
+		times.push(window.performance.now() - start);
+		if (r == nRuns) {
+			showStats(getStats(times), "stats_1");
+		} else {
+			crd.trigger("run_vectorDot");
+			start = window.performance.now();
+			r += 1;
+		}
+	});
+});
+		</script>
+
+		<!-- Run 2 -->
+  		<h2>Run 2: Vector-matrix product</h2>
+  		<button id="run_2">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_2"></ul>
+  		</div>
+		<script>
+var run_2 = document.getElementById('run_2');
+run_2.addEventListener('click', function() {
+	
+	var times = [];
+	var r = 1;
+	crd.trigger("run_vectorMatrixProduct");
+	var start = window.performance.now();
+
+	crd.on("vectorMatrixProduct", function() {
+		var buffer = crd.getBuffer();
+		times.push(window.performance.now() - start);
+		if (r == nRuns) {
+			showStats(getStats(times), "stats_2");
+		} else {
+			crd.trigger("run_vectorMatrixProduct");
+			start = window.performance.now();
+			r += 1;
+		}
+	});
+});
+		</script>
+
+  	</body>
+</html>
