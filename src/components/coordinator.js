@@ -36,7 +36,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	this.newVectorFromArray = function(arr) {
-		return new MW.Vector.fromArray(arr);
+		return MW.Vector.fromArray(arr);
 	}
 
 	this.newMatrix = function(nrows, ncols) {
@@ -44,7 +44,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	this.newMatrixFromArray = function(arr) {
-		return new MW.Matrix.fromArray(arr);
+		return MW.Matrix.fromArray(arr);
 	}
 
 	this.trigger = function(tag) {

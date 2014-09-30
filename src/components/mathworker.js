@@ -27,7 +27,7 @@ MW.MathWorker = function() {
 	}
 
 	this.newVectorFromArray = function(arr) {
-		return new MW.Vector.fromArray(arr, id, nWorkers);
+		return MW.Vector.fromArray(arr, id, nWorkers);
 	}
 
 	this.newMatrix = function(nrows, ncols) {
@@ -35,7 +35,7 @@ MW.MathWorker = function() {
 	}
 
 	this.newMatrixFromArray = function(arr) {
-		return new MW.Matrix.fromArray(arr, id, nWorkers);
+		return MW.Matrix.fromArray(arr, id, nWorkers);
 	}
 
  	this.sendText = function(tag, message) {
