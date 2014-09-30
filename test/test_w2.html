@@ -35,6 +35,12 @@
   		<h2>Matrix tests</h2>
   		<ul>
   			<li>matrixTimesVector<div id="matrixTimesVector" class="pending">pending</div></li>
+  			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
+  			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
+  			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
+  			<li>matrixDividedBy<div id="matrixDividedBy" class="pending">pending</div></li>
+  			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
+  			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -210,7 +216,63 @@ crd.on("matrixTimesVector", function() {
 	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), recv);
 	T.passed();
 
-	// crd.trigger("run_vectorApply");
+	crd.trigger("run_matrixPlus");
+});
+
+crd.on("matrixPlus", function() {
+	var T = new UT.Tester("matrixPlus");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[4.0, 4.0, 4.0], [10.0, 10.0, 10.0], [16.0, 16.0, 16.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixMinus");
+});
+
+crd.on("matrixMinus", function() {
+	var T = new UT.Tester("matrixMinus");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixTimes");
+});
+
+crd.on("matrixTimes", function() {
+	var T = new UT.Tester("matrixTimes");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixDividedBy");
+});
+
+crd.on("matrixDividedBy", function() {
+	var T = new UT.Tester("matrixDividedBy");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[1.0/3.0, 1.0, 3.0], [4.0/6.0, 1.0, 6.0/4.0], [7.0/9.0, 1.0, 9.0/7.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixScale");
+});
+
+crd.on("matrixScale", function() {
+	var T = new UT.Tester("matrixScale");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[3.0, 6.0, 9.0], [12.0, 15.0, 18.0], [21.0, 24.0, 27.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixApply");
+});
+
+crd.on("matrixApply", function() {
+	var T = new UT.Tester("matrixApply");
+	var recv = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)], 
+									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)], 
+									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
+	T.passed();
+
+	// crd.trigger("");
 });
 
 		</script>

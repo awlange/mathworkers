@@ -1,4 +1,4 @@
-//Built: Mon Sep 29 23:09:36 CDT 2014
+//Built: Tue Sep 30 00:03:09 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -220,14 +220,17 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "gatherVector":
  				handleGatherVector(data);
  				break;
+ 			case "matrixSendToCoordinator":
+ 				handleMatrixSendToCoordinator(data);
+ 				break;
+ 			 case "gatherMatrix":
+ 				handleGatherMatrix(data);
+ 				break;
   			case "vectorNorm":
  				handleVectorNorm(data);
  				break;
   			case "vectorSum":
  				handleVectorSum(data);
- 				break;
- 			case "matrixSendToCoordinator":
- 				handleMatrixSendToCoordinator(data);
  				break;
  			default:
  				log.error("Invalid Coordinator handle: " + data.handle);
@@ -245,6 +248,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var nWorkersReported = 0;
  	var tot = 0.0;
  	var gatherVector = {};
+ 	var gatherMatrix = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -283,8 +287,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	var handleGatherVector = function(data) {
-		// Reduce the vector part from each worker
-		// Collect each worker's part into an array
+		// Reduce the vector parts from each worker
 		var id = data.id;
 		gatherVector[id] = new Float64Array(data.vectorPart);
 		tot += data.len;
@@ -313,6 +316,36 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			offset += gatherVector[i].length;
 		}
 		return vec;
+	}
+
+	var handleGatherMatrix = function(data) {
+		// Reduce the matrix rows from each worker
+		var id = data.id;
+		for (var i = 0; i < data.nrows; ++i) {
+			gatherMatrix[data.offset + i] = new Float64Array(data[i]);
+		}
+		tot += data.nrows;
+
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// build the full vector and save to buffer
+			objectBuffer = new MW.Matrix();
+			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
+
+			// emit and reset
+			that.emit(data.tag);
+			nWorkersReported = 0;
+			tot = 0;
+			gatherMatrix = {};
+		}
+	}
+
+	var buildMatrixFromParts = function(gatherMatrix, totalRows) {
+		var result = []
+		for (var i = 0; i < totalRows; ++i) {
+			result.push(gatherMatrix[i]);
+		}
+		return result;
 	}
 
 	var handleVectorNorm = function(data) {
@@ -845,6 +878,100 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			w.set(i, tot);
 		}
 		return w;
+	}
+
+	var gatherMatrix = function(mat, offset, tag) {
+		var matObject = {handle: "gatherMatrix", tag: tag, id: id, nrows: mat.length, offset: offset};
+		var matBufferList = [];
+		for (var i = 0; i < mat.length; ++i) {
+			matObject[i] = mat[i].buffer;
+			matBufferList.push(mat[i].buffer);
+		}
+		self.postMessage(matObject, matBufferList);
+	}
+
+	this.wkPlus = function(B, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = A[i][j] + B.get(i, j);
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
+	}
+
+	this.wkMinus = function(B, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = A[i][j] - B.get(i, j);
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
+	}
+
+	this.wkTimes = function(B, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = A[i][j] * B.get(i, j);
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
+	}
+
+	this.wkDividedBy = function(B, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = A[i][j] / B.get(i, j);
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
+	}
+
+	this.wkScale = function(alpha, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = alpha * A[i][j];
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
+	}
+
+	this.wkApply = function(fn, tag) {
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(that.ncols));
+			for (var j = 0; j < that.ncols; ++j) {
+				C[offset][j] = fn(A[i][j]);
+			}
+			++offset;
+		}
+		gatherMatrix(C, offset-1, tag);
 	}
 
 	// matrix-vector multiply: A.v

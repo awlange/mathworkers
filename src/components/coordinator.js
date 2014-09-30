@@ -87,14 +87,17 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "gatherVector":
  				handleGatherVector(data);
  				break;
+ 			case "matrixSendToCoordinator":
+ 				handleMatrixSendToCoordinator(data);
+ 				break;
+ 			 case "gatherMatrix":
+ 				handleGatherMatrix(data);
+ 				break;
   			case "vectorNorm":
  				handleVectorNorm(data);
  				break;
   			case "vectorSum":
  				handleVectorSum(data);
- 				break;
- 			case "matrixSendToCoordinator":
- 				handleMatrixSendToCoordinator(data);
  				break;
  			default:
  				log.error("Invalid Coordinator handle: " + data.handle);
@@ -112,6 +115,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var nWorkersReported = 0;
  	var tot = 0.0;
  	var gatherVector = {};
+ 	var gatherMatrix = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -150,8 +154,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	var handleGatherVector = function(data) {
-		// Reduce the vector part from each worker
-		// Collect each worker's part into an array
+		// Reduce the vector parts from each worker
 		var id = data.id;
 		gatherVector[id] = new Float64Array(data.vectorPart);
 		tot += data.len;
@@ -180,6 +183,36 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			offset += gatherVector[i].length;
 		}
 		return vec;
+	}
+
+	var handleGatherMatrix = function(data) {
+		// Reduce the matrix rows from each worker
+		var id = data.id;
+		for (var i = 0; i < data.nrows; ++i) {
+			gatherMatrix[data.offset + i] = new Float64Array(data[i]);
+		}
+		tot += data.nrows;
+
+		nWorkersReported += 1;
+		if (nWorkersReported == pool.getNumWorkers()) {
+			// build the full vector and save to buffer
+			objectBuffer = new MW.Matrix();
+			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
+
+			// emit and reset
+			that.emit(data.tag);
+			nWorkersReported = 0;
+			tot = 0;
+			gatherMatrix = {};
+		}
+	}
+
+	var buildMatrixFromParts = function(gatherMatrix, totalRows) {
+		var result = []
+		for (var i = 0; i < totalRows; ++i) {
+			result.push(gatherMatrix[i]);
+		}
+		return result;
 	}
 
 	var handleVectorNorm = function(data) {
