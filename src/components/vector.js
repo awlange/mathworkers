@@ -127,7 +127,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] + w.get(i);
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -139,7 +139,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] - w.get(i);
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -151,7 +151,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -163,7 +163,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] / w.get(i);
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -175,7 +175,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * alpha;
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -187,7 +187,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = fn(v[i]);
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
@@ -247,7 +247,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 			}
 			w[offset++] = tot;
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id,
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
 			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }

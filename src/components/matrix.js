@@ -84,7 +84,6 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 
 	// matrix-vector multiply: A.v
 	this.wkTimesVector = function(v, tag) {
-		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var w = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
@@ -95,8 +94,8 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			w[offset++] = tot;
 		}
-		self.postMessage({handle: "vectorParts", tag: tag, id: id,
-			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
+			len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
 

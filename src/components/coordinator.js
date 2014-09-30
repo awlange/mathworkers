@@ -75,8 +75,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
  				break;
- 			case "vectorParts":
- 				handleVectorParts(data);
+ 			case "gatherVector":
+ 				handleGatherVector(data);
  				break;
   			case "vectorNorm":
  				handleVectorNorm(data);
@@ -102,7 +102,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	// Reduction function variables
  	var nWorkersReported = 0;
  	var tot = 0.0;
- 	var vectorParts = {};
+ 	var gatherVector = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -142,18 +142,18 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		that.emit(data.tag);
 	}
 
-	var handleVectorParts = function(data) {
+	var handleGatherVector = function(data) {
 		// Reduce the vector part from each worker
 		// Collect each worker's part into an array
 		var id = data.id;
-		vectorParts[id] = new Float64Array(data.vectorPart);
+		gatherVector[id] = new Float64Array(data.vectorPart);
 		tot += data.len;
 
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
-			objectBuffer.setVector(buildVectorFromParts(vectorParts, tot));
+			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
 
 			// walltime
 			walltime = util.deltaTime(data.time);
@@ -162,18 +162,18 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			that.emit(data.tag);
 			nWorkersReported = 0;
 			tot = 0;
-			vectorParts = {};
+			gatherVector = {};
 		}
 	}
 
-	var buildVectorFromParts = function(vectorParts, totalLength) {
+	var buildVectorFromParts = function(gatherVector, totalLength) {
 		var vec = new Float64Array(totalLength);
 		var offset = 0;
 		for (var i = 0; i < pool.getNumWorkers(); ++i) {
-			for (var j = 0; j < vectorParts[i].length; ++j) {
-				vec[offset + j] = vectorParts[i][j];
+			for (var j = 0; j < gatherVector[i].length; ++j) {
+				vec[offset + j] = gatherVector[i][j];
 			}
-			offset += vectorParts[i].length;
+			offset += gatherVector[i].length;
 		}
 		return vec;
 	}
