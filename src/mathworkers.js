@@ -1,4 +1,4 @@
-//Built: Mon Sep 29 22:51:53 CDT 2014
+//Built: Mon Sep 29 23:09:36 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -772,6 +772,66 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 
 			self.postMessage(matObject, matBufferList);
 		}
+	}
+
+	this.plus = function(B) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, A[i][j] + B.get(i, j));
+			}
+		}
+		return C;		
+	}
+
+	this.minus = function(B) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, A[i][j] - B.get(i, j));
+			}
+		}
+		return C;		
+	}
+
+	this.times = function(B) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, A[i][j] * B.get(i, j));
+			}
+		}
+		return C;		
+	}
+
+	this.dividedBy = function(B) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, A[i][j] / B.get(i, j));
+			}
+		}
+		return C;		
+	}
+
+	this.scale = function(alpha) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, alpha * A[i][j]);
+			}
+		}
+		return C;		
+	}
+
+	this.apply = function(fn) {
+		var C = new MW.Matrix(that.nrows, that.ncols);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				C.set(i, j, fn(A[i][j]));
+			}
+		}
+		return C;		
 	}
 
 	// matrix-vector multiply: A.v

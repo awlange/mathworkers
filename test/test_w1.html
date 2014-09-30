@@ -25,6 +25,12 @@
 
   		<h2>Matrix tests</h2>
   		<ul>
+			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
+			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
+			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
+			<li>matrixDividedBy<div id="matrixDividedBy" class="pending">pending</div></li>
+			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
+			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
 			<li>matrixVectoryMultiply<div id="matrixVectorMultiply" class="pending">pending</div></li>
   		</ul>
 
@@ -152,8 +158,61 @@ serialTests.push( function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var w = A.timesVector(v);
-	console.log();
 	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), w);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixPlus");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.plus(B);
+	T.matrixEqual(Matrix.fromArray([[4.0, 4.0, 4.0], [10.0, 10.0, 10.0], [16.0, 16.0, 16.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixMinus");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.minus(B);
+	T.matrixEqual(Matrix.fromArray([[-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixTimes");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.times(B);
+	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDividedBy");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.dividedBy(B);
+	T.matrixEqual(Matrix.fromArray([[1.0/3.0, 1.0, 3.0], [4.0/6.0, 1.0, 6.0/4.0], [7.0/9.0, 1.0, 9.0/7.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixScale");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var C = A.scale(3.0);
+	T.matrixEqual(Matrix.fromArray([[3.0, 6.0, 9.0], [12.0, 15.0, 18.0], [21.0, 24.0, 27.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixApply");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var C = A.apply(Math.sqrt);
+	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)], 
+									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)], 
+									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), C);
 	T.passed();
 });
 
