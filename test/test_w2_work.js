@@ -14,12 +14,21 @@ MW.on("run_hello", function() {
 });
 
 MW.on("run_sendVectorToCoordinator", function() {
-	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0], id, nworkers);
+	var v = MW.newVectorFromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
 	v.sendToCoordinator("sendVectorToCoordinator");
+});
+
+MW.on("run_sendMatrixToCoordinator", function() {
+	var A = MW.newMatrixFromArray([[0.0, 1.0], [2.0, 3.0]]);
+	A.sendToCoordinator("sendMatrixToCoordinator");
 });
 
 MW.on("run_sendVectorToWorkers", function() {
 	MW.sendText("sendVectorToWorkers", MW.getBuffer().toString());
+});
+
+MW.on("run_sendMatrixToWorkers", function() {
+	MW.sendText("sendMatrixToWorkers", MW.getBuffer().toString());
 });
 
 MW.on("run_vectorDot", function() {
@@ -77,3 +86,10 @@ MW.on("run_vectorTimesMatrix", function() {
 	var A = MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var w = v.wkTimesMatrix(A, "vectorTimesMatrix");
 });
+
+MW.on("run_matrixTimesVector", function() {
+	var v = MW.newVectorFromArray([1.0, 2.0, 3.0]);
+	var A = MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = A.wkTimesVector(v, "matrixTimesVector");
+});
+

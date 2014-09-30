@@ -57,6 +57,20 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	}
 
+	this.sendMatrixToWorkers = function(mat, tag) {
+		// Must make a copy of each matrix row for each worker for transferrable object message passing
+		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+			var matObject = {handle: "broadcastMatrix", tag: tag, nrows: mat.nrows};
+			var matBufferList = [];
+			for (var i = 0; i < mat.nrows; ++i) {
+				var row = new Float64Array(mat.getRow(i));
+				matObject[i] = row.buffer;
+				matBufferList.push(row.buffer);
+			}
+			pool.getWorker(wk).postMessage(matObject, matBufferList);
+		}
+	}
+
 	// Route the message appropriately for the Worker
  	var onmessageHandler = function(event) {
  		var data = event.data;

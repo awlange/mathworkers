@@ -8,12 +8,16 @@
 	<body>
   		<!-- Display results of tests -->
   		<h1>MathWorkers Multithreaded Unit Tests</h1>
+  		
   		<h2>Communication tests</h2>
   		<ul>
    			<li>hello<div id="hello" class="pending">pending</div></li>
   			<li>sendVectorToCoordinator<div id="sendVectorToCoordinator" class="pending">pending</div></li>
+  			<li>sendMatrixToCoordinator<div id="sendMatrixToCoordinator" class="pending">pending</div></li>
   			<li>sendVectorToWorkers<div id="sendVectorToWorkers" class="pending">pending</div></li>
+  			<li>sendMatrixToWorkers<div id="sendMatrixToWorkers" class="pending">pending</div></li>
   		</ul>
+
   		<h2>Vector tests</h2>
   		<ul>
   			<li>vectorDot<div id="vectorDot" class="pending">pending</div></li>
@@ -26,6 +30,11 @@
   			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
   			<li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
   			<li>vectorTimesMatrix<div id="vectorTimesMatrix" class="pending">pending</div></li>
+  		</ul>
+
+  		<h2>Matrix tests</h2>
+  		<ul>
+  			<li>matrixTimeVector<div id="matrixTimesVector" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -62,6 +71,16 @@ crd.on("sendVectorToCoordinator", function() {
 	T.vectorEqual(vec, recv);
 	T.passed();
 
+	crd.trigger("run_sendMatrixToCoordinator");
+});
+
+crd.on("sendMatrixToCoordinator", function() {
+	var T = new UT.Tester("sendMatrixToCoordinator");
+	var recv = crd.getBuffer();
+	var mat = Matrix.fromArray([[0.0, 1.0], [2.0, 3.0]]);
+	T.matrixEqual(mat, recv);
+	T.passed();
+
 	var vec = Vector.fromArray([0.0, 1.0, 2.0]);
 	crd.sendVectorToWorkers(vec, "run_sendVectorToWorkers");
 });
@@ -72,6 +91,18 @@ crd.on("sendVectorToWorkers", function() {
 	var messageList = crd.getMessages();
 	T.equal(vec.toString(), messageList[0]);
 	T.equal(vec.toString(), messageList[1]);
+	T.passed();
+
+	var mat = Matrix.fromArray([[0.0, 1.0], [2.0, 3.0]]);
+	crd.sendMatrixToWorkers(mat, "run_sendMatrixToWorkers");
+});
+
+crd.on("sendMatrixToWorkers", function() {
+	var T = new UT.Tester("sendMatrixToWorkers");
+	var mat = Matrix.fromArray([[0.0, 1.0], [2.0, 3.0]]);
+	var messageList = crd.getMessages();
+	T.equal(mat.toString(), messageList[0]);
+	T.equal(mat.toString(), messageList[1]);
 	T.passed();
 
 	crd.trigger("run_vectorDot");
@@ -168,6 +199,15 @@ crd.on("vectorTimesMatrix", function() {
 	var T = new UT.Tester("vectorTimesMatrix");
 	var recv = crd.getBuffer();
 	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixTimesVector");
+});
+
+crd.on("matrixTimesVector", function() {
+	var T = new UT.Tester("matrixTimesVector");
+	var recv = crd.getBuffer();
+	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), recv);
 	T.passed();
 
 	// crd.trigger("run_vectorApply");

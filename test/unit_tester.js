@@ -53,14 +53,27 @@ T.Tester = function(testName) {
 	}
 
 	this.vectorEqual = function(expected, actual) {
-		var len = expected.length === actual.length;
-		if (!len) {
+		if (!(expected.length === actual.length)) {
 			tests.push(false);
 			return;
 		}
 		var elements = true;
-		for (var i = 0; i < actual.length; ++i) {
+		for (var i = 0; i < actual.length && elements; ++i) {
 			elements = elements && Math.abs(expected.get(i) - actual.get(i)) < EPSILON;
+		}
+		tests.push(elements);
+	}
+
+	this.matrixEqual = function(expected, actual) {
+		if (!(expected.nrows === actual.nrows) || !(expected.ncols === actual.ncols)) {
+			tests.push(false);
+			return;
+		}
+		var elements = true;
+		for (var i = 0; i < actual.nrows && elements; ++i) {
+			for (var j = 0; j < actual.ncols && elements; ++j) {
+				elements = elements && Math.abs(expected.get(i, j) - actual.get(i, j)) < EPSILON;
+			}
 		}
 		tests.push(elements);
 	}

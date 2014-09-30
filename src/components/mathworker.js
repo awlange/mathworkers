@@ -55,6 +55,9 @@ MW.MathWorker = function() {
 			case "broadcastVector":
 				handleBroadcastVector(data);
 				break;
+			case "broadcastMatrix":
+				handleBroadcastMatrix(data);
+				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
  		}
@@ -87,6 +90,16 @@ MW.MathWorker = function() {
 
  	var handleBroadcastVector = function(data) {
  		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
+ 		handleTrigger(data);
+ 	}
+
+ 	var handleBroadcastMatrix = function(data) {
+ 		var tmp = [];
+		for (var i = 0; i < data.nrows; ++i) {
+			tmp.push(new Float64Array(data[i]));
+		}
+		objectBuffer = new MW.Matrix();
+		objectBuffer.setMatrix(tmp);
  		handleTrigger(data);
  	}
 }
