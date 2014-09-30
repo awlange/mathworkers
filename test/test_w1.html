@@ -8,6 +8,7 @@
 	<body>
   		<!-- Display results of tests -->
   		<h1>MathWorkers Serial Unit Tests</h1>
+  		
   		<h2>Vector tests</h2>
   		<ul>
   			<li>plus<div id="plus" class="pending">pending</div></li>
@@ -20,6 +21,11 @@
   			<li>norm<div id="norm" class="pending">pending</div></li>
   			<li>sum<div id="sum" class="pending">pending</div></li>
   			<li>vectorMatrixMultiply<div id="vectorMatrixMultiply" class="pending">pending</div></li>
+  		</ul>
+
+  		<h2>Matrix tests</h2>
+  		<ul>
+			<li>matrixVectoryMultiply<div id="matrixVectorMultiply" class="pending">pending</div></li>
   		</ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -138,6 +144,16 @@ serialTests.push( function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var w = v.timesMatrix(A);
 	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), w);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixVectorMultiply");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = A.timesVector(v);
+	console.log();
+	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), w);
 	T.passed();
 });
 

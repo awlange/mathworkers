@@ -70,7 +70,20 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	}
 
 	// matrix-vector multiply: A.v
-	this.timesVector = function(v, tag) {
+	this.timesVector = function(v) {
+		var w = new MW.Vector(that.nrows);
+		for (var i = 0; i < that.nrows; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.ncols; ++j) {
+				tot += A[i][j] * v.get(j);
+			}
+			w.set(i, tot);
+		}
+		return w;
+	}
+
+	// matrix-vector multiply: A.v
+	this.wkTimesVector = function(v, tag) {
 		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var w = new Float64Array(lb.ito - lb.ifrom);

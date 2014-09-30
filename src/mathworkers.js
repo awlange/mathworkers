@@ -1,4 +1,4 @@
-//Built: Mon Sep 29 20:49:40 CDT 2014
+//Built: Mon Sep 29 21:43:19 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -169,7 +169,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	this.newVectorFromArray = function(arr) {
-		return new MW.Vector.fromArray(arr);
+		return MW.Vector.fromArray(arr);
 	}
 
 	this.newMatrix = function(nrows, ncols) {
@@ -177,7 +177,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	}
 
 	this.newMatrixFromArray = function(arr) {
-		return new MW.Matrix.fromArray(arr);
+		return MW.Matrix.fromArray(arr);
 	}
 
 	this.trigger = function(tag) {
@@ -377,7 +377,7 @@ MW.MathWorker = function() {
 	}
 
 	this.newVectorFromArray = function(arr) {
-		return new MW.Vector.fromArray(arr, id, nWorkers);
+		return MW.Vector.fromArray(arr, id, nWorkers);
 	}
 
 	this.newMatrix = function(nrows, ncols) {
@@ -385,7 +385,7 @@ MW.MathWorker = function() {
 	}
 
 	this.newMatrixFromArray = function(arr) {
-		return new MW.Matrix.fromArray(arr, id, nWorkers);
+		return MW.Matrix.fromArray(arr, id, nWorkers);
 	}
 
  	this.sendText = function(tag, message) {
@@ -776,7 +776,20 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	}
 
 	// matrix-vector multiply: A.v
-	this.timesVector = function(v, tag) {
+	this.timesVector = function(v) {
+		var w = new MW.Vector(that.nrows);
+		for (var i = 0; i < that.nrows; ++i) {
+			var tot = 0.0;
+			for (var j = 0; j < that.ncols; ++j) {
+				tot += A[i][j] * v.get(j);
+			}
+			w.set(i, tot);
+		}
+		return w;
+	}
+
+	// matrix-vector multiply: A.v
+	this.wkTimesVector = function(v, tag) {
 		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var w = new Float64Array(lb.ito - lb.ifrom);
