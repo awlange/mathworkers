@@ -31,6 +31,22 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		return walltime;
 	}
 
+	this.newVector = function(size) {
+		return new MW.Vector(size);
+	}
+
+	this.newVectorFromArray = function(arr) {
+		return new MW.Vector.fromArray(arr);
+	}
+
+	this.newMatrix = function(nrows, ncols) {
+		return new MW.Matrix(nrows, ncols);
+	}
+
+	this.newMatrixFromArray = function(arr) {
+		return new MW.Matrix.fromArray(arr);
+	}
+
 	this.trigger = function(tag) {
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
 			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag});

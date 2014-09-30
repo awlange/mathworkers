@@ -22,6 +22,22 @@ MW.MathWorker = function() {
 		return objectBuffer;
 	}
 
+	this.newVector = function(size) {
+		return new MW.Vector(size, id, nWorkers);
+	}
+
+	this.newVectorFromArray = function(arr) {
+		return new MW.Vector.fromArray(arr, id, nWorkers);
+	}
+
+	this.newMatrix = function(nrows, ncols) {
+		return new MW.Matrix(nrows, ncols, id, nWorkers);
+	}
+
+	this.newMatrixFromArray = function(arr) {
+		return new MW.Matrix.fromArray(arr, id, nWorkers);
+	}
+
  	this.sendText = function(tag, message) {
  		self.postMessage({handle: "textFromWorker", id: id, tag: tag, text: message});
  	}

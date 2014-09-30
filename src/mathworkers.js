@@ -1,3 +1,4 @@
+//Built: Mon Sep 29 20:49:40 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -161,6 +162,22 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.getWallTime = function() {
 		return walltime;
+	}
+
+	this.newVector = function(size) {
+		return new MW.Vector(size);
+	}
+
+	this.newVectorFromArray = function(arr) {
+		return new MW.Vector.fromArray(arr);
+	}
+
+	this.newMatrix = function(nrows, ncols) {
+		return new MW.Matrix(nrows, ncols);
+	}
+
+	this.newMatrixFromArray = function(arr) {
+		return new MW.Matrix.fromArray(arr);
 	}
 
 	this.trigger = function(tag) {
@@ -353,6 +370,22 @@ MW.MathWorker = function() {
 
 	this.getBuffer = function() {
 		return objectBuffer;
+	}
+
+	this.newVector = function(size) {
+		return new MW.Vector(size, id, nWorkers);
+	}
+
+	this.newVectorFromArray = function(arr) {
+		return new MW.Vector.fromArray(arr, id, nWorkers);
+	}
+
+	this.newMatrix = function(nrows, ncols) {
+		return new MW.Matrix(nrows, ncols, id, nWorkers);
+	}
+
+	this.newMatrixFromArray = function(arr) {
+		return new MW.Matrix.fromArray(arr, id, nWorkers);
 	}
 
  	this.sendText = function(tag, message) {
@@ -677,8 +710,8 @@ MW.Vector.fromArray = function(arr, mathWorkerId, nWorkersInput) {
  */
 MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	var that = this;
-	var id = mathWorkerId;
-	var nWorkers = nWorkersInput;
+	var id = mathWorkerId || 0;
+	var nWorkers = nWorkersInput || 1;
 	this.nrows = nrows || 0;
 	this.ncols = ncols || 0;
 

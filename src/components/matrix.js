@@ -4,8 +4,8 @@
  */
 MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	var that = this;
-	var id = mathWorkerId;
-	var nWorkers = nWorkersInput;
+	var id = mathWorkerId || 0;
+	var nWorkers = nWorkersInput || 1;
 	this.nrows = nrows || 0;
 	this.ncols = ncols || 0;
 
