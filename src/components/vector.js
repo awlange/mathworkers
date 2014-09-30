@@ -41,8 +41,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
-			var time = util.getTime();
-			self.postMessage({handle: "vectorSendToCoordinator", tag: tag, time: time,
+			self.postMessage({handle: "vectorSendToCoordinator", tag: tag,
 				vectorBuffer: v.buffer}, [v.buffer]);
 		}
 	}
@@ -120,105 +119,96 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	}
 
 	this.wkPlus = function(w, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] + w.get(i);
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkMinus = function(w, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] - w.get(i);
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkTimes = function(w, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * w.get(i);
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, 
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkDividedBy = function(w, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] / w.get(i);
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkScale = function(alpha, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * alpha;
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkApply = function(fn, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = fn(v[i]);
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, time: time, 
+		self.postMessage({handle: "gatherVector", tag: tag, id: id,
 			len: x.length, vectorPart: x.buffer}, [x.buffer]);
 	}
 
 	this.wkNorm = function(tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var tot = 0.0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * v[i];
 		}
-		self.postMessage({handle: "vectorNorm", tag: tag, time: time, tot: tot});
+		self.postMessage({handle: "vectorNorm", tag: tag, tot: tot});
 	}
 
 	this.wkDot = function(w, tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var tot = 0.0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+		self.postMessage({handle: "vectorSum", tag: tag, tot: tot});
 	}
 
 	this.wkSum = function(tag) {
-		var time = util.getTime();
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var tot = 0.0;
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i];
 		}
-		self.postMessage({handle: "vectorSum", tag: tag, time: time, tot: tot});
+		self.postMessage({handle: "vectorSum", tag: tag, tot: tot});
 	}
 
 	// vector-matrix multiply: v.A
@@ -236,7 +226,6 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 
 	// vector-matrix multiply: v.A
 	this.wkTimesMatrix = function(A, tag) {
-		var time = util.getTime();  // for timing
 		var lb = util.loadBalance(A.ncols, nWorkers, id);
 		var w = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
@@ -248,7 +237,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 			w[offset++] = tot;
 		}
 		self.postMessage({handle: "gatherVector", tag: tag, id: id,
-			time: time, len: w.length, vectorPart: w.buffer}, [w.buffer]);
+			len: w.length, vectorPart: w.buffer}, [w.buffer]);
 	}
 }
 

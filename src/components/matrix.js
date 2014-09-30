@@ -57,8 +57,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
-			var time = util.getTime();  // for timing
-			var matObject = {handle: "matrixSendToCoordinator", tag: tag, time: time, nrows: that.nrows};
+			var matObject = {handle: "matrixSendToCoordinator", tag: tag, nrows: that.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < that.nrows; ++i) {
 				matObject[i] = A[i].buffer;

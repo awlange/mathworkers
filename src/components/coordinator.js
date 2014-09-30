@@ -7,7 +7,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
 	var messageBuffer = [];
-	var walltime = 0;
 	var logLevel = logLevel || 2;
 	var ready = false;
 	log.setLevel("coord", logLevel);
@@ -25,10 +24,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.getMessages = function() {
 		return messageBuffer;
-	}
-
-	this.getWallTime = function() {
-		return walltime;
 	}
 
 	this.newVector = function(size) {
@@ -127,7 +122,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorSendToCoordinator = function(data) {
 		objectBuffer = new MW.Vector();
 		objectBuffer.setVector(new Float64Array(data.vectorBuffer));
-		walltime = util.deltaTime(data.time);
 		that.emit(data.tag);
 	}
 
@@ -138,7 +132,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 		objectBuffer = new MW.Matrix();
 		objectBuffer.setMatrix(tmp);
-		walltime = util.deltaTime(data.time);
 		that.emit(data.tag);
 	}
 
@@ -154,9 +147,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
 			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
-
-			// walltime
-			walltime = util.deltaTime(data.time);
 
 			// emit and reset
 			that.emit(data.tag);
@@ -186,9 +176,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			objectBuffer = Math.sqrt(tot);
 			that.emit(data.tag);
 
-			// wall time
-			walltime = util.deltaTime(data.time);
-
 			// reset for next message
 			nWorkersReported = 0;
 			tot = 0.0;
@@ -202,9 +189,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// save result to buffer and emit to the browser-side coordinator
 			objectBuffer = tot;
 			that.emit(data.tag);
-
-			// wall time
-			walltime = util.deltaTime(data.time);
 
 			// reset for next message
 			nWorkersReported = 0;
