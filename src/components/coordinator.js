@@ -57,7 +57,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
 			var v = new Float64Array(vec.getArray());
-			pool.getWorker(wk).postMessage({handle: "vectorBroadcast", tag: tag, 
+			pool.getWorker(wk).postMessage({handle: "broadcastVector", tag: tag, 
 				vec: v.buffer}, [v.buffer]);
 		}
 	}
