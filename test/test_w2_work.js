@@ -4,6 +4,8 @@ var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
 
+var EPSILON = 0.00000001;
+
 var id;
 var nworkers;
 
@@ -132,12 +134,26 @@ MW.on("run_matrixApply", function() {
 	A.wkApply(Math.sqrt, "matrixApply");
 });
 
-// Experimental for testing coordinator broadcasting result
-// MW.on("run_exp", function() {
-// 	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
-// 	v.wkSum("exp", true);
-// });
-// MW.on("exp", function(args) {
-// 	console.log(args[0]);
-// });
+MW.on("run_vectorDotRebroadcast", function() {
+	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
+	var w = MW.newVectorFromArray([10.0, 10.0, 10.0, 10.0, 10.0]);
+	v.wkDot(w, "vdotre", true);
+});
+MW.on("vdotre", function(dot) {
+	MW.sendDataToCoordinator(dot, "vectorDotRebroadcast");
+});
+
+MW.on("run_vectorTimesMatrixRebroadcast", function() {
+	var v = MW.newVectorFromArray([1.0, 2.0, 3.0]);
+	var A = MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	v.wkTimesMatrix(A, "vtmre", true);
+});
+MW.on("vtmre", function(vec) {
+	var expected = [30.0, 36.0, 42.0];
+	var pass = vec instanceof Vector && vec.length == 3;
+	for (var i = 0; i < 3 && pass; ++i) {
+		pass = pass && vec.get(i) - expected[i] < EPSILON;
+	}
+	MW.sendDataToCoordinator(pass, "vectorTimesMatrixRebroadcast");
+});
 

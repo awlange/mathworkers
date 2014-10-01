@@ -141,8 +141,14 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		return w;
 	}
 
-	var gatherMatrix = function(mat, offset, tag) {
-		var matObject = {handle: "gatherMatrix", tag: tag, id: id, nrows: mat.length, offset: offset};
+	var gatherVector = function(vec, tag, rebroadcast) {
+		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+	}
+
+	var gatherMatrix = function(mat, offset, tag, rebroadcast) {
+		var matObject = {handle: "gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
+						 nrows: mat.length, offset: offset};
 		var matBufferList = [];
 		for (var i = 0; i < mat.length; ++i) {
 			matObject[i] = mat[i].buffer;
@@ -151,7 +157,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		self.postMessage(matObject, matBufferList);
 	}
 
-	this.wkPlus = function(B, tag) {
+	this.wkPlus = function(B, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -162,10 +168,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
-	this.wkMinus = function(B, tag) {
+	this.wkMinus = function(B, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -176,10 +182,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
-	this.wkTimes = function(B, tag) {
+	this.wkTimes = function(B, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -190,10 +196,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
-	this.wkDividedBy = function(B, tag) {
+	this.wkDividedBy = function(B, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -204,10 +210,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
-	this.wkScale = function(alpha, tag) {
+	this.wkScale = function(alpha, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -218,10 +224,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
-	this.wkApply = function(fn, tag) {
+	this.wkApply = function(fn, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -232,11 +238,11 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag);
+		gatherMatrix(C, offset-1, tag, rebroadcast);
 	}
 
 	// matrix-vector multiply: A.v
-	this.wkTimesVector = function(v, tag) {
+	this.wkTimesVector = function(v, tag, rebroadcast) {
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var w = new Float64Array(lb.ito - lb.ifrom);
 		var offset = 0;
@@ -247,8 +253,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			w[offset++] = tot;
 		}
-		self.postMessage({handle: "gatherVector", tag: tag, id: id,
-			len: w.length, vectorPart: w.buffer}, [w.buffer]);
+		gatherVector(w, tag, rebroadcast);
 	}
 }
 

@@ -44,6 +44,12 @@
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
   		</ul>
 
+  		<h2>Rebroadcast tests</h2>
+  		<ul>
+  			<li>vectorDotRebroadcast<div id="vectorDotRebroadcast" class="pending">pending</div></li>
+  			<li>vectorTimesMatrixRebroadcast<div id="vectorTimesMatrixRebroadcast" class="pending">pending</div></li>
+  		</ul>
+
   		<!-- Scripts to run test below (being loose with the indentation) -->
   		<script src="../src/mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
@@ -283,7 +289,27 @@ crd.on("matrixApply", function() {
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
 	T.passed();
 
-	//crd.trigger("run_exp");
+	crd.trigger("run_vectorDotRebroadcast");
+});
+
+crd.on("vectorDotRebroadcast", function() {
+	var T = new UT.Tester("vectorDotRebroadcast");
+	var messageList = crd.getMessageDataList();
+	T.equal(15000.0, messageList[0]);
+	T.equal(15000.0, messageList[1]);
+	T.passed();
+
+	crd.trigger("run_vectorTimesMatrixRebroadcast");
+});
+
+crd.on("vectorTimesMatrixRebroadcast", function() {
+	var T = new UT.Tester("vectorTimesMatrixRebroadcast");
+	var messageList = crd.getMessageDataList();
+	T.isTrue(messageList[0]);
+	T.isTrue(messageList[1]);
+	T.passed();
+
+	// crd.trigger("");
 });
 
 		</script>
