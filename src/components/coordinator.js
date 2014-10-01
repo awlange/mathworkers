@@ -42,9 +42,9 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		return MW.Matrix.fromArray(arr);
 	}
 
-	this.trigger = function(tag) {
+	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag});
+			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag, args: args});
 		}
 	}
 
@@ -235,7 +235,17 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		if (nWorkersReported == pool.getNumWorkers()) {
 			// save result to buffer and emit to the browser-side coordinator
 			objectBuffer = tot;
-			that.emit(data.tag);
+			//that.emit(data.tag);
+
+			// broadcast?
+			if (data.broadcast) {
+				for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+					pool.getWorker(wk).postMessage({handle: "broadcast", tag: data.tag, args: [tot]});
+				}
+			} else {
+				// otherwise, do the usual emission
+				that.emit(data.tag);
+			}
 
 			// reset for next message
 			nWorkersReported = 0;

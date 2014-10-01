@@ -127,3 +127,12 @@ MW.on("run_matrixApply", function() {
 	A.wkApply(Math.sqrt, "matrixApply");
 });
 
+// Experimental for testing coordinator broadcasting result
+MW.on("run_exp", function() {
+	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
+	v.wkSum("exp", true);
+});
+MW.on("exp", function(args) {
+	console.log(args[0]);
+});
+

@@ -58,6 +58,9 @@ MW.MathWorker = function() {
 			case "broadcastMatrix":
 				handleBroadcastMatrix(data);
 				break;
+			case "broadcast":
+				handleBroadcast(data);
+				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
  		}
@@ -80,8 +83,9 @@ MW.MathWorker = function() {
  	var handleTrigger = function(data) {
 		if (data.tag in triggers) {
 			triggers[data.tag] = triggers[data.tag] || [];
+			args = data.args || [];
 			triggers[data.tag].forEach( function(fn) {
-				fn.call(this);
+				fn.call(this, args);
 			});
 		} else {
 			log.error("Unregistered trigger tag: " + data.tag);
@@ -102,6 +106,12 @@ MW.MathWorker = function() {
 		objectBuffer.setMatrix(tmp);
  		handleTrigger(data);
  	}
+
+ 	var handleBroadcast = function(data) {
+ 		objectBuffer = data.args;  // just a number for now
+ 		handleTrigger(data);
+ 	}
+
 }
 MW.Coordinator.prototype = new EventEmitter();
 
