@@ -11,7 +11,8 @@
   		
   		<h2>Communication tests</h2>
   		<ul>
-   			<li>hello<div id="hello" class="pending">pending</div></li>
+   			<li>sendDataToCoordinator<div id="sendDataToCoordinator" class="pending">pending</div></li>
+  			<li>sendDataToWorkers<div id="sendDataToWorkers" class="pending">pending</div></li>
   			<li>sendVectorToCoordinator<div id="sendVectorToCoordinator" class="pending">pending</div></li>
   			<li>sendMatrixToCoordinator<div id="sendMatrixToCoordinator" class="pending">pending</div></li>
   			<li>sendVectorToWorkers<div id="sendVectorToWorkers" class="pending">pending</div></li>
@@ -57,14 +58,24 @@ var Vector = MWs.Vector;
 var Matrix = MWs.Matrix;
 
 crd.on("ready", function() {
-	crd.trigger("run_hello");
+	crd.trigger("run_sendDataToCoordinator");
 });
 
-crd.on("hello", function() {
-	var T = new UT.Tester("hello");
-	var messageList = crd.getMessages();
+crd.on("sendDataToCoordinator", function() {
+	var T = new UT.Tester("sendDataToCoordinator");
+	var messageList = crd.getMessageDataList();
 	T.equal("Hello from worker 0 of 2 workers.", messageList[0]);
 	T.equal("Hello from worker 1 of 2 workers.", messageList[1]);
+	T.passed();
+
+	crd.sendDataToWorkers(12345, "run_sendDataToWorkers");
+});
+
+crd.on("sendDataToWorkers", function() {
+	var T = new UT.Tester("sendDataToWorkers");
+	var messageList = crd.getMessageDataList();
+	T.equal("Data received by worker 0: 12345", messageList[0]);
+	T.equal("Data received by worker 1: 12345", messageList[1]);
 	T.passed();
 
 	crd.trigger("run_sendVectorToCoordinator");
@@ -94,7 +105,7 @@ crd.on("sendMatrixToCoordinator", function() {
 crd.on("sendVectorToWorkers", function() {
 	var T = new UT.Tester("sendVectorToWorkers");
 	var vec = Vector.fromArray([0.0, 1.0, 2.0]);
-	var messageList = crd.getMessages();
+	var messageList = crd.getMessageDataList();
 	T.equal(vec.toString(), messageList[0]);
 	T.equal(vec.toString(), messageList[1]);
 	T.passed();
@@ -106,7 +117,7 @@ crd.on("sendVectorToWorkers", function() {
 crd.on("sendMatrixToWorkers", function() {
 	var T = new UT.Tester("sendMatrixToWorkers");
 	var mat = Matrix.fromArray([[0.0, 1.0], [2.0, 3.0]]);
-	var messageList = crd.getMessages();
+	var messageList = crd.getMessageDataList();
 	T.equal(mat.toString(), messageList[0]);
 	T.equal(mat.toString(), messageList[1]);
 	T.passed();
@@ -272,7 +283,7 @@ crd.on("matrixApply", function() {
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
 	T.passed();
 
-	crd.trigger("run_exp");
+	//crd.trigger("run_exp");
 });
 
 		</script>

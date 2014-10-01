@@ -6,7 +6,7 @@
 MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
-	var messageBuffer = [];
+	var messageDataBuffer = [];
 	var logLevel = logLevel || 2;
 	var ready = false;
 	log.setLevel("coord", logLevel);
@@ -22,8 +22,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		return objectBuffer;
 	}
 
-	this.getMessages = function() {
-		return messageBuffer;
+	this.getMessageDataList = function() {
+		return messageDataBuffer;
 	}
 
 	this.newVector = function(size) {
@@ -45,6 +45,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
 			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag, args: args});
+		}
+	}
+
+	this.sendDataToWorkers = function(dat, tag) {
+		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+			pool.getWorker(wk).postMessage({handle: "broadcastData", tag: tag, data: dat});
 		}
 	}
 
@@ -78,8 +84,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "workerReady":
  				handleWorkerReady();
  				break;
- 			case "textFromWorker":
- 				handleTextFromWorker(data);
+ 			case "sendData":
+ 				handleSendData(data);
  				break;
  			case "vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
@@ -105,10 +111,10 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	}
 
  	// Register the above onmessageHandler for each worker in the pool
- 	// Also, initialize the message buffer with empty strings
+ 	// Also, initialize the message data buffer with empty objects
  	for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
  		pool.getWorker(wk).onmessage = onmessageHandler;
- 		messageBuffer.push("");
+ 		messageDataBuffer.push({});
  	}
 
  	// Reduction function variables
@@ -127,8 +133,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  		}
  	}
 
- 	var handleTextFromWorker = function(data) {
- 		messageBuffer[data.id] = data.text;
+ 	var handleSendData = function(data) {
+ 		messageDataBuffer[data.id] = data.data;
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.getNumWorkers()) {
  			that.emit(data.tag);
@@ -164,9 +170,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
 			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
-
-			// emit and reset
-			that.emit(data.tag);
+			if (data.rebroadcast) {
+				that.sendVectorToWorkers(objectBuffer, data.tag);
+			} else {
+				// emit
+				that.emit(data.tag);
+			}
+			// reset
 			nWorkersReported = 0;
 			tot = 0;
 			gatherVector = {};
@@ -198,9 +208,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
-
-			// emit and reset
-			that.emit(data.tag);
+			if (data.rebroadcast) {
+				that.sendMatrixToWorkers(objectBuffer, data.tag);
+			} else {
+				// emit
+				that.emit(data.tag);
+			}
+			//reset
 			nWorkersReported = 0;
 			tot = 0;
 			gatherMatrix = {};
@@ -219,9 +233,14 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
-			// save result to buffer and emit to the browser-side coordinator
 			objectBuffer = Math.sqrt(tot);
-			that.emit(data.tag);
+			if (data.rebroadcast) {
+				// rebroadcast the result back to the workers
+				that.sendDataToWorkers(objectBuffer, data.tag);
+			} else {
+				// save result to buffer and emit to the browser-side coordinator
+				that.emit(data.tag);
+			}
 
 			// reset for next message
 			nWorkersReported = 0;
@@ -233,20 +252,14 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.tot;
 		nWorkersReported += 1;
 		if (nWorkersReported == pool.getNumWorkers()) {
-			// save result to buffer and emit to the browser-side coordinator
 			objectBuffer = tot;
-			//that.emit(data.tag);
-
-			// broadcast?
-			if (data.broadcast) {
-				for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-					pool.getWorker(wk).postMessage({handle: "broadcast", tag: data.tag, args: [tot]});
-				}
+			if (data.rebroadcast) {
+				// rebroadcast the result back to the workers
+				that.sendDataToWorkers(objectBuffer, data.tag);
 			} else {
-				// otherwise, do the usual emission
+				// save result to buffer and emit to the browser-side coordinator
 				that.emit(data.tag);
 			}
-
 			// reset for next message
 			nWorkersReported = 0;
 			tot = 0.0;

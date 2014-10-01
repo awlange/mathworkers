@@ -7,10 +7,15 @@ var Matrix = MathWorkers.Matrix;
 var id;
 var nworkers;
 
-MW.on("run_hello", function() {
+MW.on("run_sendDataToCoordinator", function() {
 	id = MW.getId();
 	nworkers = MW.getNumWorkers();
-	MW.sendText("hello", "Hello from worker " + id + " of " + nworkers + " workers.");
+	MW.sendDataToCoordinator("Hello from worker " + id + " of " + nworkers + " workers.", "sendDataToCoordinator");
+});
+
+MW.on("run_sendDataToWorkers", function(arg) {
+	id = MW.getId();
+	MW.sendDataToCoordinator("Data received by worker " + id  + ": " + arg, "sendDataToWorkers");
 });
 
 MW.on("run_sendVectorToCoordinator", function() {
@@ -24,11 +29,11 @@ MW.on("run_sendMatrixToCoordinator", function() {
 });
 
 MW.on("run_sendVectorToWorkers", function() {
-	MW.sendText("sendVectorToWorkers", MW.getBuffer().toString());
+	MW.sendDataToCoordinator(MW.getBuffer().toString(), "sendVectorToWorkers");
 });
 
 MW.on("run_sendMatrixToWorkers", function() {
-	MW.sendText("sendMatrixToWorkers", MW.getBuffer().toString());
+	MW.sendDataToCoordinator(MW.getBuffer().toString(), "sendMatrixToWorkers");
 });
 
 MW.on("run_vectorDot", function() {
@@ -128,11 +133,11 @@ MW.on("run_matrixApply", function() {
 });
 
 // Experimental for testing coordinator broadcasting result
-MW.on("run_exp", function() {
-	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
-	v.wkSum("exp", true);
-});
-MW.on("exp", function(args) {
-	console.log(args[0]);
-});
+// MW.on("run_exp", function() {
+// 	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
+// 	v.wkSum("exp", true);
+// });
+// MW.on("exp", function(args) {
+// 	console.log(args[0]);
+// });
 

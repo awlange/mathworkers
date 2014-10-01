@@ -38,8 +38,8 @@ MW.MathWorker = function() {
 		return MW.Matrix.fromArray(arr, id, nWorkers);
 	}
 
- 	this.sendText = function(tag, message) {
- 		self.postMessage({handle: "textFromWorker", id: id, tag: tag, text: message});
+ 	this.sendDataToCoordinator = function(data, tag) {
+ 		self.postMessage({handle: "sendData", id: id, tag: tag, data: data});
  	}
 
  	// Route the message appropriately for the Worker
@@ -52,14 +52,14 @@ MW.MathWorker = function() {
 			case "trigger":
 				handleTrigger(data);
 				break;
+			case "broadcastData":
+				handleBroadcastData(data);
+				break;
 			case "broadcastVector":
 				handleBroadcastVector(data);
 				break;
 			case "broadcastMatrix":
 				handleBroadcastMatrix(data);
-				break;
-			case "broadcast":
-				handleBroadcast(data);
 				break;
  			default:
  				log.error("Invalid MathWorker handle: " + data.handle);
@@ -80,10 +80,10 @@ MW.MathWorker = function() {
  		self.postMessage({handle: "workerReady"});
  	}
 
- 	var handleTrigger = function(data) {
+ 	var handleTrigger = function(data, obj) {
 		if (data.tag in triggers) {
 			triggers[data.tag] = triggers[data.tag] || [];
-			args = data.args || [];
+			args = data.data || obj || [];
 			triggers[data.tag].forEach( function(fn) {
 				fn.call(this, args);
 			});
@@ -92,9 +92,14 @@ MW.MathWorker = function() {
 		}
  	}
 
+ 	var handleBroadcastData = function(data) {
+ 		objectBuffer = data.data;
+ 		handleTrigger(data);
+ 	}
+
  	var handleBroadcastVector = function(data) {
  		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
- 		handleTrigger(data);
+ 		handleTrigger(data, objectBuffer);
  	}
 
  	var handleBroadcastMatrix = function(data) {
@@ -104,14 +109,8 @@ MW.MathWorker = function() {
 		}
 		objectBuffer = new MW.Matrix();
 		objectBuffer.setMatrix(tmp);
- 		handleTrigger(data);
+ 		handleTrigger(data, objectBuffer);
  	}
-
- 	var handleBroadcast = function(data) {
- 		objectBuffer = data.args;  // just a number for now
- 		handleTrigger(data);
- 	}
-
 }
 MW.Coordinator.prototype = new EventEmitter();
 
