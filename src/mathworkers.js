@@ -1,4 +1,4 @@
-//Built: Wed Oct  1 00:06:35 CDT 2014
+//Built: Thu Oct  2 23:55:01 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -65,20 +65,26 @@ var util = {}
 util.loadBalance = function(n, nWorkers, id) {
 	var div = Math.floor(n / nWorkers);
 	var rem = n % nWorkers;
-	var ifrom = id * div;
-	var ito = (id + 1) * div;
-	if (id == nWorkers-1) {
-		ito += rem;  // simple minded way for now
+
+	// naive way
+	// var ifrom = id * div;
+	// var ito = ifrom + div;
+	// if (id == nWorkers-1) {
+	// 	ito += rem;  // simple minded way for now
+	// }
+
+	// distribute remainder as evenly as possible
+	var ifrom;
+	var ito;
+	if (id < rem) {
+		ifrom = id * (div + 1);
+		ito = ifrom + div + 1;
+	} else {
+		ifrom = id * div + rem;
+		ito = ifrom + div;
 	}
+
 	return {ifrom: ifrom, ito: ito};
-}
-
-util.getTime = function() {
-	return new Date().getTime();
-}
-
-util.deltaTime = function(time) {
-	return new Date().getTime() - time;
 }
 
 
@@ -897,6 +903,17 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		return C;		
 	}
 
+	// Allocate new matrix and return to allow for arbitrary shaped matrices
+	this.transpose = function() {
+		var B = new MW.Matrix(that.ncols, that.nrows, that.id, that.nWorkers);
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < that.ncols; ++j) {
+				B.set(j, i, A[i][j]);
+			}
+		}
+		return B;
+	}
+
 	// matrix-vector multiply: A.v
 	this.timesVector = function(v) {
 		var w = new MW.Vector(that.nrows);
@@ -909,6 +926,34 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		}
 		return w;
 	}
+
+	// matrix-matrix multiply: A.B
+	// TODO: if alpha is specified: alpha * A.B
+	this.timesMatrix = function(B) {
+		var C = new MW.Matrix(that.nrows, B.ncols, that.id, that.nWorkers);
+		// for (var i = 0; i < that.nrows; ++i) {
+		// 	for (var j = 0; j < B.ncols; ++j) {
+		// 		var tot = 0.0;
+		// 		for (var k = 0; k < that.ncols; ++k) {
+		// 			tot += A[i][k] * B.get(k, j);
+		// 		}
+		// 		C.set(i, j, tot);
+		// 	}
+		// }
+		// Transpose B for better row-major memory access
+		var Bt = B.transpose();
+		for (var i = 0; i < that.nrows; ++i) {
+			for (var j = 0; j < B.ncols; ++j) {
+				var tot = 0.0;
+				for (var k = 0; k < that.ncols; ++k) {
+					tot += A[i][k] * Bt.get(j, k);
+				}
+				C.set(i, j, tot);
+			}
+		}
+		return C;
+	}
+
 
 	var gatherVector = function(vec, tag, rebroadcast) {
 		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
@@ -937,7 +982,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	this.wkMinus = function(B, tag, rebroadcast) {
@@ -951,7 +996,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	this.wkTimes = function(B, tag, rebroadcast) {
@@ -965,7 +1010,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	this.wkDividedBy = function(B, tag, rebroadcast) {
@@ -979,7 +1024,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	this.wkScale = function(alpha, tag, rebroadcast) {
@@ -993,7 +1038,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	this.wkApply = function(fn, tag, rebroadcast) {
@@ -1007,7 +1052,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
-		gatherMatrix(C, offset-1, tag, rebroadcast);
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 
 	// matrix-vector multiply: A.v
