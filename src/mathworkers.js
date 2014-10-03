@@ -1,4 +1,4 @@
-//Built: Fri Oct  3 00:17:53 CDT 2014
+//Built: Fri Oct  3 17:31:34 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -938,7 +938,6 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		return C;
 	}
 
-
 	var gatherVector = function(vec, tag, rebroadcast) {
 		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
 			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
@@ -1052,6 +1051,26 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			w[offset++] = tot;
 		}
 		gatherVector(w, tag, rebroadcast);
+	}
+
+	this.wkTimesMatrix = function(B, tag, rebroadcast) {
+		// Transpose B for better row-major memory access
+		var Bt = B.transpose();
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(B.ncols));
+			for (var j = 0; j < B.ncols; ++j) {
+				var tot = 0.0;
+				for (var k = 0; k < that.ncols; ++k) {
+					tot += A[i][k] * Bt.get(j, k);
+				}
+				C[offset][j] = tot;
+			}
+			++offset;
+		}
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 }
 

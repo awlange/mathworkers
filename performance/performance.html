@@ -169,5 +169,34 @@ run_2.addEventListener('click', function() {
 });
 		</script>
 
+		<!-- Run 3 -->
+  		<h2>Run 3: Matrix-matrix product</h2>
+  		<button id="run_3">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_3"></ul>
+  		</div>
+		<script>
+var run_3 = document.getElementById('run_3');
+run_3.addEventListener('click', function() {
+	
+	var times = [];
+	var r = 1;
+	crd.trigger("run_matrixMatrixProduct");
+	var start = window.performance.now();
+
+	crd.on("matrixMatrixProduct", function() {
+		var buffer = crd.getBuffer();
+		times.push(window.performance.now() - start);
+		if (r == nRuns) {
+			showStats(getStats(times), "stats_3");
+		} else {
+			crd.trigger("run_matrixMatrixProduct");
+			start = window.performance.now();
+			r += 1;
+		}
+	});
+});
+		</script>
+
   	</body>
 </html>

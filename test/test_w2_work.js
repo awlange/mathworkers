@@ -134,6 +134,14 @@ MW.on("run_matrixApply", function() {
 	A.wkApply(Math.sqrt, "matrixApply");
 });
 
+MW.on("run_matrixTimesMatrix1", function() {
+	var A = MW.newMatrixFromArray([[1.0, 2.0], 
+							  	   [2.0, 3.0]]);
+	var B = MW.newMatrixFromArray([[-3.0, 2.0],
+							       [1.0, -2.0]]);
+	A.wkTimesMatrix(B, "matrixTimesMatrix1");
+});
+
 MW.on("run_vectorDotRebroadcast", function() {
 	var v = MW.newVectorFromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
 	var w = MW.newVectorFromArray([10.0, 10.0, 10.0, 10.0, 10.0]);

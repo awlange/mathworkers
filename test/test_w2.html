@@ -42,6 +42,7 @@
   			<li>matrixDividedBy<div id="matrixDividedBy" class="pending">pending</div></li>
   			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
+  			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
   		</ul>
 
   		<h2>Rebroadcast tests</h2>
@@ -287,6 +288,16 @@ crd.on("matrixApply", function() {
 	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)], 
 									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)], 
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
+	T.passed();
+
+	crd.trigger("run_matrixTimesMatrix1");
+});
+
+crd.on("matrixTimesMatrix1", function() {
+	var T = new UT.Tester("matrixTimesMatrix1");
+	var BA = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0],
+									[-3.0, -2.0]]), BA);
 	T.passed();
 
 	crd.trigger("run_vectorDotRebroadcast");

@@ -32,10 +32,11 @@ var A;
 MW.on("set", function() {
 	id = MW.getId();
 	nworkers = MW.getNumWorkers();
-	v = getRandomVector(20000);
-	w = getRandomVector(20000);
-	x = getRandomVector(3000);
-	A = getRandomMatrix(3000, 3000);
+	v = getRandomVector(2000);
+	w = getRandomVector(2000);
+	x = getRandomVector(400);
+	A = getRandomMatrix(400, 400);
+	B = getRandomMatrix(400, 400);
 });
 
 MW.on("run_hello", function() {
@@ -48,4 +49,8 @@ MW.on("run_vectorDot", function() {
 
 MW.on("run_vectorMatrixProduct", function() {
 	x.wkTimesMatrix(A, "vectorMatrixProduct");
+});
+
+MW.on("run_matrixMatrixProduct", function() {
+	A.wkTimesMatrix(B, "matrixMatrixProduct");
 });

@@ -284,6 +284,26 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		}
 		gatherVector(w, tag, rebroadcast);
 	}
+
+	this.wkTimesMatrix = function(B, tag, rebroadcast) {
+		// Transpose B for better row-major memory access
+		var Bt = B.transpose();
+		var lb = util.loadBalance(that.nrows, nWorkers, id);
+		var C = [];
+		var offset = 0;
+		for (var i = lb.ifrom; i < lb.ito; ++i) {
+			C.push(new Float64Array(B.ncols));
+			for (var j = 0; j < B.ncols; ++j) {
+				var tot = 0.0;
+				for (var k = 0; k < that.ncols; ++k) {
+					tot += A[i][k] * Bt.get(j, k);
+				}
+				C[offset][j] = tot;
+			}
+			++offset;
+		}
+		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+	}
 }
 
 MW.Matrix.fromArray = function(arr, mathWorkerId, nWorkersInput) {
