@@ -1,4 +1,4 @@
-//Built: Thu Oct  2 23:55:01 CDT 2014
+//Built: Fri Oct  3 00:17:53 CDT 2014
 /**
  *  MathWorkers.js 
  *  A JavaScript math library that use WebWorkers for parallelization
@@ -65,13 +65,6 @@ var util = {}
 util.loadBalance = function(n, nWorkers, id) {
 	var div = Math.floor(n / nWorkers);
 	var rem = n % nWorkers;
-
-	// naive way
-	// var ifrom = id * div;
-	// var ito = ifrom + div;
-	// if (id == nWorkers-1) {
-	// 	ito += rem;  // simple minded way for now
-	// }
 
 	// distribute remainder as evenly as possible
 	var ifrom;
@@ -931,15 +924,6 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	// TODO: if alpha is specified: alpha * A.B
 	this.timesMatrix = function(B) {
 		var C = new MW.Matrix(that.nrows, B.ncols, that.id, that.nWorkers);
-		// for (var i = 0; i < that.nrows; ++i) {
-		// 	for (var j = 0; j < B.ncols; ++j) {
-		// 		var tot = 0.0;
-		// 		for (var k = 0; k < that.ncols; ++k) {
-		// 			tot += A[i][k] * B.get(k, j);
-		// 		}
-		// 		C.set(i, j, tot);
-		// 	}
-		// }
 		// Transpose B for better row-major memory access
 		var Bt = B.transpose();
 		for (var i = 0; i < that.nrows; ++i) {

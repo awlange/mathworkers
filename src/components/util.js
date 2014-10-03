@@ -7,13 +7,6 @@ util.loadBalance = function(n, nWorkers, id) {
 	var div = Math.floor(n / nWorkers);
 	var rem = n % nWorkers;
 
-	// naive way
-	// var ifrom = id * div;
-	// var ito = ifrom + div;
-	// if (id == nWorkers-1) {
-	// 	ito += rem;  // simple minded way for now
-	// }
-
 	// distribute remainder as evenly as possible
 	var ifrom;
 	var ito;

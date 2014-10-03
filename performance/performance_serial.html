@@ -143,5 +143,40 @@ run_2.addEventListener('click', function() {
 	
 });
 		</script>
+
+		<!-- Run 3 -->
+  		<h2>Run 3: Matrix-matrix product</h2>
+  		<button id="run_3">run</button>
+  		<div class="run_stats">
+  			<ul id="stats_3"></ul>
+  		</div>
+		<script>
+var run_3 = document.getElementById('run_3');
+run_3.addEventListener('click', function() {
+	
+	var n = 512;
+	var A = [];
+    var B = [];
+	for (var i = 0; i < n; ++i) {
+		A.push(new Float64Array(n));
+		B.push(new Float64Array(n));
+		for (var j = 0; j < n; ++j) {
+			A[i][j] = Math.random();
+			B[i][j] = Math.random();
+		}
+	}
+	A = MathWorkers.Matrix.fromArray(A);
+	B = MathWorkers.Matrix.fromArray(B);
+
+	var times = [];
+	for (var r = 0; r < nRuns; ++r) {
+		var start = window.performance.now();
+		var C = A.timesMatrix(B);
+		times.push(window.performance.now() - start);
+	}
+	showStats(getStats(times), "stats_3");
+	
+});
+		</script>
   	</body>
 </html>

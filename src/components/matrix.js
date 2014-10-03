@@ -156,15 +156,6 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	// TODO: if alpha is specified: alpha * A.B
 	this.timesMatrix = function(B) {
 		var C = new MW.Matrix(that.nrows, B.ncols, that.id, that.nWorkers);
-		// for (var i = 0; i < that.nrows; ++i) {
-		// 	for (var j = 0; j < B.ncols; ++j) {
-		// 		var tot = 0.0;
-		// 		for (var k = 0; k < that.ncols; ++k) {
-		// 			tot += A[i][k] * B.get(k, j);
-		// 		}
-		// 		C.set(i, j, tot);
-		// 	}
-		// }
 		// Transpose B for better row-major memory access
 		var Bt = B.transpose();
 		for (var i = 0; i < that.nrows; ++i) {
@@ -178,7 +169,6 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		}
 		return C;
 	}
-
 
 	var gatherVector = function(vec, tag, rebroadcast) {
 		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
