@@ -3,7 +3,6 @@
  *  MathWorker for worker-side interface
  */
 MW.MathWorker = function() {
-	var that = this;
  	var id;
  	var nWorkers;
  	var objectBuffer = {};
@@ -38,26 +37,26 @@ MW.MathWorker = function() {
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "sendData", id: id, tag: tag, data: data});
+ 		self.postMessage({handle: "_sendData", id: id, tag: tag, data: data});
  	};
 
  	// Route the message appropriately for the Worker
 	self.onmessage = function(event) {
 		var data = event.data;
 		switch (data.handle) {
-			case "init":
+			case "_init":
 				handleInit(data);
 				break;
-			case "trigger":
+			case "_trigger":
 				handleTrigger(data);
 				break;
-			case "broadcastData":
+			case "_broadcastData":
 				handleBroadcastData(data);
 				break;
-			case "broadcastVector":
+			case "_broadcastVector":
 				handleBroadcastVector(data);
 				break;
-			case "broadcastMatrix":
+			case "_broadcastMatrix":
 				handleBroadcastMatrix(data);
 				break;
  			default:
@@ -76,7 +75,7 @@ MW.MathWorker = function() {
  		nWorkers = data.nWorkers;
  		log.setLevel("w" + id, data.logLevel);
  		log.debug("Initialized MathWorker: " + id + " of " + nWorkers + " workers.");
- 		self.postMessage({handle: "workerReady"});
+ 		self.postMessage({handle: "_workerReady"});
  	};
 
  	var handleTrigger = function(data, obj) {

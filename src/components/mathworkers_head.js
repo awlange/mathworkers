@@ -1,7 +1,7 @@
 /**
  *  MathWorkers.js
  *
- *  A JavaScript math library that use WebWorkers for parallelization
+ *  A JavaScript math library that uses WebWorkers for parallelization
  *
  *  Adrian W. Lange, 2014
  */

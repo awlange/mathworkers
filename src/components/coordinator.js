@@ -45,13 +45,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			pool.getWorker(wk).postMessage({handle: "trigger", tag: tag, args: args});
+			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
 	this.sendDataToWorkers = function(dat, tag) {
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			pool.getWorker(wk).postMessage({handle: "broadcastData", tag: tag, data: dat});
+			pool.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
 		}
 	};
 
@@ -59,7 +59,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
 			var v = new Float64Array(vec.getArray());
-			pool.getWorker(wk).postMessage({handle: "broadcastVector", tag: tag, 
+			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
 		}
 	};
@@ -67,7 +67,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferrable object message passing
 		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
-			var matObject = {handle: "broadcastMatrix", tag: tag, nrows: mat.nrows};
+			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < mat.nrows; ++i) {
 				var row = new Float64Array(mat.getRow(i));
@@ -78,32 +78,37 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	};
 
+    // Convenience on ready to hide the handle
+    this.onReady = function(callBack) {
+        this.on("_ready", callBack);
+    };
+
 	// Route the message appropriately for the Worker
  	var onmessageHandler = function(event) {
  		var data = event.data;
  		switch (data.handle) {
- 			case "workerReady":
+ 			case "_workerReady":
  				handleWorkerReady();
  				break;
- 			case "sendData":
+ 			case "_sendData":
  				handleSendData(data);
  				break;
- 			case "vectorSendToCoordinator":
+ 			case "_vectorSendToCoordinator":
  				handleVectorSendToCoordinator(data);
  				break;
- 			case "gatherVector":
+ 			case "_gatherVector":
  				handleGatherVector(data);
  				break;
- 			case "matrixSendToCoordinator":
+ 			case "_matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
  				break;
- 			 case "gatherMatrix":
+ 			 case "_gatherMatrix":
  				handleGatherMatrix(data);
  				break;
-  			case "vectorNorm":
+  			case "_vectorNorm":
  				handleVectorNorm(data);
  				break;
-  			case "vectorSum":
+  			case "_vectorSum":
  				handleVectorSum(data);
  				break;
  			default:
@@ -128,7 +133,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.getNumWorkers()) {
  			ready = true;
- 			that.emit("ready");
+ 			that.emit("_ready");
  			// reset for next message
 			nWorkersReported = 0;	
  		}
@@ -198,7 +203,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	var handleGatherMatrix = function(data) {
 		// Reduce the matrix rows from each worker
-		var id = data.id;
 		for (var i = 0; i < data.nrows; ++i) {
 			gatherMatrix[data.offset + i] = new Float64Array(data[i]);
 		}

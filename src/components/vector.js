@@ -41,7 +41,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
-			self.postMessage({handle: "vectorSendToCoordinator", tag: tag,
+			self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
 				vectorBuffer: v.buffer}, [v.buffer]);
 		}
 	};
@@ -119,7 +119,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 	};
 
 	var gatherVector = function(vec, tag, rebroadcast) {
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+		self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
 			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 	};
 
@@ -189,7 +189,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * v[i];
 		}
-		self.postMessage({handle: "vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
+		self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
 	};
 
 	this.wkDot = function(w, tag, rebroadcast) {
@@ -198,7 +198,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
-		self.postMessage({handle: "vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+		self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 	};
 
 	this.wkSum = function(tag, rebroadcast) {
@@ -207,7 +207,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i];
 		}
-		self.postMessage({handle: "vectorSum", tag: tag, tot: tot, rebroadcast: rebroadcast});
+		self.postMessage({handle: "_vectorSum", tag: tag, tot: tot, rebroadcast: rebroadcast});
 	};
 
 	// vector-matrix multiply: v.A

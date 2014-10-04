@@ -61,7 +61,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	this.sendToCoordinator = function(tag) {
 		// only id 0 does the sending actually
 		if (id == 0) {
-			var matObject = {handle: "matrixSendToCoordinator", tag: tag, nrows: that.nrows};
+			var matObject = {handle: "_matrixSendToCoordinator", tag: tag, nrows: that.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < that.nrows; ++i) {
 				matObject[i] = A[i].buffer;
@@ -189,12 +189,12 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 	};
 
 	var gatherVector = function(vec, tag, rebroadcast) {
-		self.postMessage({handle: "gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+		self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
 			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 	};
 
 	var gatherMatrix = function(mat, offset, tag, rebroadcast) {
-		var matObject = {handle: "gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
+		var matObject = {handle: "_gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
 						 nrows: mat.length, offset: offset};
 		var matBufferList = [];
 		for (var i = 0; i < mat.length; ++i) {
