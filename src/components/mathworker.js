@@ -109,6 +109,22 @@ MW.MathWorker = function() {
 		objectBuffer.setMatrix(tmp);
  		handleTrigger(data, objectBuffer);
  	};
+
+    this.gatherVector = function(vec, tag, rebroadcast) {
+        self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+            len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+    };
+
+    this.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+        var matObject = {handle: "_gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
+            nrows: mat.length, offset: offset};
+        var matBufferList = [];
+        for (var i = 0; i < mat.length; ++i) {
+            matObject[i] = mat[i].buffer;
+            matBufferList.push(mat[i].buffer);
+        }
+        self.postMessage(matObject, matBufferList);
+    };
 };
-MW.Coordinator.prototype = new EventEmitter();
+MW.MathWorker.prototype = new EventEmitter();
 

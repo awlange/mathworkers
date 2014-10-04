@@ -1,4 +1,4 @@
-//Built: Sat Oct  4 11:52:09 CDT 2014
+//Built: Sat Oct  4 12:32:05 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -519,7 +519,7 @@ MW.MathWorker = function() {
  		handleTrigger(data, objectBuffer);
  	};
 };
-MW.Coordinator.prototype = new EventEmitter();
+MW.MathWorker.prototype = new EventEmitter();
 
 
 /**

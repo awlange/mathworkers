@@ -118,10 +118,10 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		return result;
 	};
 
-	var gatherVector = function(vec, tag, rebroadcast) {
-		self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
-			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
-	};
+//	var gatherVector = function(vec, tag, rebroadcast) {
+//		self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+//			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+//	};
 
 	this.wkPlus = function(w, tag, rebroadcast) {
 		var lb = util.loadBalance(that.length, nWorkers, id);
