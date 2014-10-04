@@ -1,4 +1,4 @@
-//Built: Sat Oct  4 13:54:03 CDT 2014
+//Built: Sat Oct  4 15:58:12 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -64,10 +64,10 @@ var log = new Logger();
  *  General internal utility functions
  */
 var util = {};
-util.loadBalance = function(n, id) {
-    var nWorkers = pool.getNumWorkers();
-	var div = Math.floor(n / nWorkers);
-	var rem = n % nWorkers;
+util.loadBalance = function(n) {
+    var id = pool.myWorkerId;
+	var div = Math.floor(n / pool.nWorkers);
+	var rem = n % pool.nWorkers;
 
 	// distribute remainder as evenly as possible
 	var ifrom;
@@ -110,25 +110,23 @@ function EventEmitter() {
  *  MathWorker Pool 
  */
 var pool = {};
+
+// Globally scoped useful variables, defaults
+pool.workerPool = [];
+pool.nWorkers = 1;
+pool.myWorkerId = 0;
+
 pool.create = function(nWorkersInput, workerScriptName, logLevel) {
-	var workerPool = [];
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i,
 			nWorkers: nWorkersInput, logLevel: logLevel});
-		workerPool.push(worker);
+		this.workerPool.push(worker);
+        this.nWorkers = this.workerPool.length;
 	}
 
-	this.getNumWorkers = function() {
-		return workerPool.length || 1;
-	};
-
-	this.getPool = function() {
-		return workerPool;
-	};
-
 	this.getWorker = function(workerId) {
-		return workerPool[workerId];
+		return this.workerPool[workerId];
 	};
 };
 
@@ -178,20 +176,20 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	this.trigger = function(tag, args) {
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
 	this.sendDataToWorkers = function(dat, tag) {
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			pool.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
 		}
 	};
 
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var v = new Float64Array(vec.getArray());
 			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
@@ -200,7 +198,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferrable object message passing
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < mat.nrows; ++i) {
@@ -252,7 +250,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	// Register the above onmessageHandler for each worker in the pool
  	// Also, initialize the message data buffer with empty objects
- 	for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+ 	for (var wk = 0; wk < pool.nWorkers; ++wk) {
  		pool.getWorker(wk).onmessage = onmessageHandler;
  		messageDataBuffer.push({});
  	}
@@ -265,7 +263,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.getNumWorkers()) {
+ 		if (nWorkersReported == pool.nWorkers) {
  			ready = true;
  			that.emit("_ready");
  			// reset for next message
@@ -276,7 +274,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleSendData = function(data) {
  		messageDataBuffer[data.id] = data.data;
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.getNumWorkers()) {
+ 		if (nWorkersReported == pool.nWorkers) {
  			that.emit(data.tag);
  			// reset for next message
 			nWorkersReported = 0;	
@@ -306,7 +304,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.len;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
 			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
@@ -326,7 +324,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var buildVectorFromParts = function(gatherVector, totalLength) {
 		var vec = new Float64Array(totalLength);
 		var offset = 0;
-		for (var i = 0; i < pool.getNumWorkers(); ++i) {
+		for (var i = 0; i < pool.nWorkers; ++i) {
 			for (var j = 0; j < gatherVector[i].length; ++j) {
 				vec[offset + j] = gatherVector[i][j];
 			}
@@ -343,7 +341,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.nrows;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
@@ -371,7 +369,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorNorm = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
@@ -390,7 +388,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorSum = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			objectBuffer = tot;
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
@@ -413,17 +411,15 @@ MW.Coordinator.prototype = new EventEmitter();
  *  MathWorker for worker-side interface
  */
 MW.MathWorker = function() {
- 	var id;
- 	var nWorkers;
  	var objectBuffer = {};
  	var triggers = {};
 
  	this.getId = function() {
- 		return id;
+ 		return pool.myWorkerId;
  	};
 
  	this.getNumWorkers = function() {
- 		return nWorkers;
+ 		return pool.nWorkers;
  	};
 
 	this.getBuffer = function() {
@@ -431,30 +427,28 @@ MW.MathWorker = function() {
 	};
 
 	this.newVector = function(size) {
-		return new MW.Vector(size, id, nWorkers);
+		return new MW.Vector(size);
 	};
 
 	this.newVectorFromArray = function(arr) {
-		return MW.Vector.fromArray(arr, id, nWorkers);
+		return MW.Vector.fromArray(arr);
 	};
 
 	this.newMatrix = function(nrows, ncols) {
-		return new MW.Matrix(nrows, ncols, id, nWorkers);
+		return new MW.Matrix(nrows, ncols, pool.myWorkerId);
 	};
 
 	this.newMatrixFromArray = function(arr) {
-		return MW.Matrix.fromArray(arr, id, nWorkers);
+		return MW.Matrix.fromArray(arr, pool.myWorkerId);
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "_sendData", id: id, tag: tag, data: data});
+ 		self.postMessage({handle: "_sendData", id: pool.myWorkerId, tag: tag, data: data});
  	};
 
     this.sendVectorToCoordinator = function(vec, tag) {
-        console.log("banana");
-
         // only id 0 does the sending actually
-        if (id == 0) {
+        if (pool.myWorkerId == 0) {
             self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
                 vectorBuffer: vec.buffer}, [vec.buffer]);
         }
@@ -491,10 +485,10 @@ MW.MathWorker = function() {
     };
 
  	var handleInit = function(data) {
- 		id = data.id;
- 		nWorkers = data.nWorkers;
- 		log.setLevel("w" + id, data.logLevel);
- 		log.debug("Initialized MathWorker: " + id + " of " + nWorkers + " workers.");
+        pool.myWorkerId = data.id;
+        pool.nWorkers = data.nWorkers;
+ 		log.setLevel("w" + pool.myWorkerId, data.logLevel);
+ 		log.debug("Initialized MathWorker: " + pool.myWorkerId + " of " + pool.nWorkers + " workers.");
  		self.postMessage({handle: "_workerReady"});
  	};
 
@@ -536,13 +530,13 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * MathWorker static-like functions
  */
-MW.MathWorker.gatherVector = function(vec, tag, id, rebroadcast) {
-    self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+    self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
-MW.MathWorker.gatherMatrix = function(mat, offset, tag, id, rebroadcast) {
-    var matObject = {handle: "_gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
+MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+    var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {
@@ -564,200 +558,100 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
 
 /**
  *  Vector class
+ *
+ *  A wrapper around an array
  */
-MW.Vector = function(size, mathWorkerId, nWorkersInput) {
-    var that = this;
-    var id = mathWorkerId || 0;
-    var v = null;
+MW.Vector = function(size) {
+    this.array = null;
     this.length = size;
-
     if (size !== undefined && size > 0) {
-        v = new Float64Array(size);
+        this.array = new Float64Array(size);
     }
 };
 
-MW.Vector.prototype.get = function(i) {
-    return v[i];
-};
-
-MW.Vector.prototype.set = function(i, val) {
-    v[i] = val;
-};
-
-MW.Vector.prototype.getArray = function() {
-    return v;
-};
-
 MW.Vector.prototype.setVector = function(w) {
-    v = w;
-    that.length = w.length;
+    this.array = w;
+    this.length = w.length;
 };
 
 MW.Vector.prototype.toString = function() {
     var str = "[";
-    for (var i = 0; i < that.length - 1; ++i) {
-        str += v[i] + ", ";
+    for (var i = 0; i < this.length - 1; ++i) {
+        str += this.array[i] + ", ";
     }
-    return str + v[that.length-1] + "]";
+    return str + v[this.length-1] + "]";
 };
 
 MW.Vector.prototype.plus = function(w) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, v[i] + w.get(i));
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = this.array[i] + w.array[i];
     }
     return result;
 };
 
 MW.Vector.prototype.minus = function(w) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, v[i] - w.get(i));
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = this.array[i] - w.array[i];
     }
     return result;
 };
 
 MW.Vector.prototype.times = function(w) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, v[i] * w.get(i));
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = this.array[i] * w.array[i];
     }
     return result;
 };
 
 MW.Vector.prototype.dividedBy = function(w) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, v[i] / w.get(i));
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = this.array[i] / w.array[i];
     }
     return result;
 };
 
 MW.Vector.prototype.scale = function(alpha) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, v[i] * alpha);
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = this.array[i] * alpha;
     }
     return result;
 };
 
 MW.Vector.prototype.apply = function(fn) {
-    var result = new MW.Vector(that.length);
-    for (var i = 0; i < that.length; ++i) {
-        result.set(i, fn(v[i]));
+    var result = new MW.Vector(this.length);
+    for (var i = 0; i < this.length; ++i) {
+        result.array[i] = fn(this.array[i]);
     }
     return result;
 };
 
 MW.Vector.prototype.dot = function(w) {
     var tot = 0.0;
-    for (var i = 0; i < that.length; ++i) {
-        tot += v[i] * w.get(i);
+    for (var i = 0; i < this.length; ++i) {
+        tot += this.array[i] * w.array[i];
     }
     return tot;
 };
 
 MW.Vector.prototype.norm = function() {
     var result = 0.0;
-    for (var i = 0.0; i < that.length; ++i) {
-        result += v[i] * v[i];
+    for (var i = 0.0; i < this.length; ++i) {
+        result += this.array[i] * this.array[i];
     }
     return Math.sqrt(result);
 };
 
 MW.Vector.prototype.sum = function() {
     var result = 0.0;
-    for (var i = 0.0; i < that.length; ++i) {
-        result += v[i];
+    for (var i = 0.0; i < this.length; ++i) {
+        result += this.array[i];
     }
     return result;
-};
-
-MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = v[i] + w.get(i);
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = v[i] - w.get(i);
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = v[i] * w.get(i);
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = v[i] / w.get(i);
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = v[i] * alpha;
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var x = new Float64Array(lb.ito - lb.ifrom);
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = fn(v[i]);
-    }
-    MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
-};
-
-MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += v[i] * v[i];
-    }
-    MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
-};
-
-MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += v[i] * w.get(i);
-    }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
-};
-
-MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
-    var lb = util.loadBalance(that.length, id);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += v[i];
-    }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
 
 // vector-matrix multiply: v.A
@@ -765,33 +659,121 @@ MW.Vector.prototype.timesMatrix = function(A) {
     var w = new MW.Vector(A.ncols);
     for (var i = 0; i < A.ncols; ++i) {
         var tot = 0.0;
-        for (var j = 0; j < that.length; ++j) {
-            tot += v[j] * A.get(j, i);
+        for (var j = 0; j < this.length; ++j) {
+            tot += this.array[j] * A.get(j, i);
         }
-        w.set(i, tot);
+        w.array[i] = tot;
     }
     return w;
 };
 
+MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = this.array[i] + w.array[i];
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = this.array[i] - w.array[i];
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = this.array[i] * w.array[i];
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = this.array[i] / w.array[i];
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = this.array[i] * alpha;
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var x = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        x[offset++] = fn(this.array[i]);
+    }
+    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var tot = 0.0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        tot += this.array[i] * this.array[i];
+    }
+    MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var tot = 0.0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        tot += this.array[i] * w.array[i];
+    }
+    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
+    var lb = util.loadBalance(this.length);
+    var tot = 0.0;
+    for (var i = lb.ifrom; i < lb.ito; ++i) {
+        tot += this.array[i];
+    }
+    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};
+
 // vector-matrix multiply: v.A
 MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
-    var lb = util.loadBalance(A.ncols, id);
+    var lb = util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         var tot = 0.0;
-        for (var j = 0; j < that.length; ++j) {
-            tot += v[j] * A.get(j, i);
+        for (var j = 0; j < this.length; ++j) {
+            tot += this.array[j] * A.get(j, i);
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, id, rebroadcast);
+    MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
 
-MW.Vector.fromArray = function(arr, mathWorkerId, nWorkersInput) {
-    var vec = new MW.Vector(arr.length, mathWorkerId, nWorkersInput);
+// Deep copy the array
+MW.Vector.fromArray = function(arr) {
+    var vec = new MW.Vector(arr.length);
     for (var i = 0; i < arr.length; ++i) {
-        vec.set(i, arr[i]);
+        vec.array[i] = arr[i];
     }
     return vec;
 };
@@ -961,9 +943,9 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		for (var i = 0; i < that.nrows; ++i) {
 			var tot = 0.0;
 			for (var j = 0; j < that.ncols; ++j) {
-				tot += A[i][j] * v.get(j);
+				tot += A[i][j] * v.array[j];
 			}
-			w.set(i, tot);
+            w.array[i] = tot;
 		}
 		return w;
 	};
@@ -1078,7 +1060,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			var tot = 0.0;
 			for (var j = 0; j < that.ncols; ++j) {
-				tot += A[i][j] * v.get(j);
+				tot += A[i][j] * v.array[j];
 			}
 			w[offset++] = tot;
 		}

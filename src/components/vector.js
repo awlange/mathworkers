@@ -68,7 +68,7 @@ MW.Vector.prototype.scale = function(alpha) {
 MW.Vector.prototype.apply = function(fn) {
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
-        result.array[i] = fn(v[i]);
+        result.array[i] = fn(this.array[i]);
     }
     return result;
 };

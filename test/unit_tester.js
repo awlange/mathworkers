@@ -59,7 +59,7 @@ T.Tester = function(testName) {
 		}
 		var elements = true;
 		for (var i = 0; i < actual.length && elements; ++i) {
-			elements = elements && Math.abs(expected.get(i) - actual.get(i)) < EPSILON;
+			elements = elements && Math.abs(expected.array[i] - actual.array[i]) < EPSILON;
 		}
 		tests.push(elements);
 	}

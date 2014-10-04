@@ -31,7 +31,7 @@
 			<li>matrixDividedBy<div id="matrixDividedBy" class="pending">pending</div></li>
 			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
 			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
-			<li>matrixVectoryMultiply<div id="matrixVectorMultiply" class="pending">pending</div></li>
+			<li>matrixVectorMultiply<div id="matrixVectorMultiply" class="pending">pending</div></li>
 			<li>matrixTransposeSquare<div id="matrixTransposeSquare" class="pending">pending</div></li>
 			<li>matrixTransposeRect<div id="matrixTransposeRect" class="pending">pending</div></li>
 			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
@@ -60,8 +60,8 @@ serialTests.push( function() {
 	var v = new MWs.Vector(3);
 	var w = new MWs.Vector(3);
 	for (var i = 0; i < 3; ++i) {
-		v.set(i, i);
-		w.set(i, i * 2.0);
+		v.array[i] = i;
+		w.array[i] = i * 2.0;
 	}
 	var plus = v.plus(w);
 	var expected = Vector.fromArray([0.0, 3.0, 6.0]);
@@ -74,8 +74,8 @@ serialTests.push( function() {
 	var v = new MWs.Vector(3);
 	var w = new MWs.Vector(3);
 	for (var i = 0; i < 3; ++i) {
-		v.set(i, (i+1) * 2.0);
-		w.set(i, (i+1));
+		v.array[i] = (i+1) * 2.0;
+		w.array[i] = i+1;
 	}
 	var minus = v.minus(w);
 	var expected = Vector.fromArray([1.0, 2.0, 3.0]);
@@ -126,8 +126,8 @@ serialTests.push( function() {
 	var v = new MWs.Vector(3);
 	var w = new MWs.Vector(3);
 	for (var i = 0; i < 3; ++i) {
-		v.set(i, i * 1.0);
-		w.set(i, i * 2.0);
+        v.array[i] = i;
+        w.array[i] = i * 2.0;
 	}
 	var dot = v.dot(w);
 	T.doubleEqual(10.0, dot);

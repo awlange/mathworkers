@@ -163,9 +163,9 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		for (var i = 0; i < that.nrows; ++i) {
 			var tot = 0.0;
 			for (var j = 0; j < that.ncols; ++j) {
-				tot += A[i][j] * v.get(j);
+				tot += A[i][j] * v.array[j];
 			}
-			w.set(i, tot);
+            w.array[i] = tot;
 		}
 		return w;
 	};
@@ -280,7 +280,7 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			var tot = 0.0;
 			for (var j = 0; j < that.ncols; ++j) {
-				tot += A[i][j] * v.get(j);
+				tot += A[i][j] * v.array[j];
 			}
 			w[offset++] = tot;
 		}
