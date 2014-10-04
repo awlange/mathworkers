@@ -22,7 +22,7 @@ MW.on("run_sendDataToWorkers", function(arg) {
 
 MW.on("run_sendVectorToCoordinator", function() {
 	var v = MW.newVectorFromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.sendToCoordinator("sendVectorToCoordinator");
+	MW.sendVectorToCoordinator(v, "sendVectorToCoordinator");
 });
 
 MW.on("run_sendMatrixToCoordinator", function() {

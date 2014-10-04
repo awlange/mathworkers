@@ -3,17 +3,15 @@
  *  MathWorker for worker-side interface
  */
 MW.MathWorker = function() {
- 	var id;
- 	var nWorkers;
  	var objectBuffer = {};
  	var triggers = {};
 
  	this.getId = function() {
- 		return id;
+ 		return pool.myWorkerId;
  	};
 
  	this.getNumWorkers = function() {
- 		return nWorkers;
+ 		return pool.nWorkers;
  	};
 
 	this.getBuffer = function() {
@@ -21,24 +19,32 @@ MW.MathWorker = function() {
 	};
 
 	this.newVector = function(size) {
-		return new MW.Vector(size, id, nWorkers);
+		return new MW.Vector(size);
 	};
 
 	this.newVectorFromArray = function(arr) {
-		return MW.Vector.fromArray(arr, id, nWorkers);
+		return MW.Vector.fromArray(arr);
 	};
 
 	this.newMatrix = function(nrows, ncols) {
-		return new MW.Matrix(nrows, ncols, id, nWorkers);
+		return new MW.Matrix(nrows, ncols, pool.myWorkerId);
 	};
 
 	this.newMatrixFromArray = function(arr) {
-		return MW.Matrix.fromArray(arr, id, nWorkers);
+		return MW.Matrix.fromArray(arr, pool.myWorkerId);
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "_sendData", id: id, tag: tag, data: data});
+ 		self.postMessage({handle: "_sendData", id: pool.myWorkerId, tag: tag, data: data});
  	};
+
+    this.sendVectorToCoordinator = function(vec, tag) {
+        // only id 0 does the sending actually
+        if (pool.myWorkerId == 0) {
+            self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
+                vectorBuffer: vec.buffer}, [vec.buffer]);
+        }
+    };
 
  	// Route the message appropriately for the Worker
 	self.onmessage = function(event) {
@@ -71,10 +77,10 @@ MW.MathWorker = function() {
     };
 
  	var handleInit = function(data) {
- 		id = data.id;
- 		nWorkers = data.nWorkers;
- 		log.setLevel("w" + id, data.logLevel);
- 		log.debug("Initialized MathWorker: " + id + " of " + nWorkers + " workers.");
+        pool.myWorkerId = data.id;
+        pool.nWorkers = data.nWorkers;
+ 		log.setLevel("w" + pool.myWorkerId, data.logLevel);
+ 		log.debug("Initialized MathWorker: " + pool.myWorkerId + " of " + pool.nWorkers + " workers.");
  		self.postMessage({handle: "_workerReady"});
  	};
 
@@ -116,13 +122,13 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * MathWorker static-like functions
  */
-MW.MathWorker.gatherVector = function(vec, tag, id, rebroadcast) {
-    self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
+MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+    self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
-MW.MathWorker.gatherMatrix = function(mat, offset, tag, id, rebroadcast) {
-    var matObject = {handle: "_gatherMatrix", tag: tag, id: id, rebroadcast: rebroadcast,
+MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+    var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {

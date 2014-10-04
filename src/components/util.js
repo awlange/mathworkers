@@ -3,9 +3,10 @@
  *  General internal utility functions
  */
 var util = {};
-util.loadBalance = function(n, nWorkers, id) {
-	var div = Math.floor(n / nWorkers);
-	var rem = n % nWorkers;
+util.loadBalance = function(n) {
+    var id = pool.myWorkerId;
+	var div = Math.floor(n / pool.nWorkers);
+	var rem = n % pool.nWorkers;
 
 	// distribute remainder as evenly as possible
 	var ifrom;

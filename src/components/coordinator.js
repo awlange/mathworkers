@@ -44,20 +44,20 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	this.trigger = function(tag, args) {
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
 	this.sendDataToWorkers = function(dat, tag) {
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			pool.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
 		}
 	};
 
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferrable object message passing
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var v = new Float64Array(vec.getArray());
 			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
@@ -66,7 +66,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferrable object message passing
-		for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < mat.nrows; ++i) {
@@ -118,7 +118,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	// Register the above onmessageHandler for each worker in the pool
  	// Also, initialize the message data buffer with empty objects
- 	for (var wk = 0; wk < pool.getNumWorkers(); ++wk) {
+ 	for (var wk = 0; wk < pool.nWorkers; ++wk) {
  		pool.getWorker(wk).onmessage = onmessageHandler;
  		messageDataBuffer.push({});
  	}
@@ -131,7 +131,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.getNumWorkers()) {
+ 		if (nWorkersReported == pool.nWorkers) {
  			ready = true;
  			that.emit("_ready");
  			// reset for next message
@@ -142,7 +142,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleSendData = function(data) {
  		messageDataBuffer[data.id] = data.data;
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.getNumWorkers()) {
+ 		if (nWorkersReported == pool.nWorkers) {
  			that.emit(data.tag);
  			// reset for next message
 			nWorkersReported = 0;	
@@ -172,7 +172,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.len;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
 			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
@@ -192,7 +192,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var buildVectorFromParts = function(gatherVector, totalLength) {
 		var vec = new Float64Array(totalLength);
 		var offset = 0;
-		for (var i = 0; i < pool.getNumWorkers(); ++i) {
+		for (var i = 0; i < pool.nWorkers; ++i) {
 			for (var j = 0; j < gatherVector[i].length; ++j) {
 				vec[offset + j] = gatherVector[i][j];
 			}
@@ -209,7 +209,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.nrows;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
@@ -237,7 +237,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorNorm = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
@@ -256,7 +256,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorSum = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.getNumWorkers()) {
+		if (nWorkersReported == pool.nWorkers) {
 			objectBuffer = tot;
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
