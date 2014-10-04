@@ -17,31 +17,32 @@ Logger = function() {
 			name = nameInput;
 			level = val;
 		}
-	}
+	};
 
 	this.error = function(message) {
 		if (level >= 1) {
 			console.error("ERROR:" + name + ": " + message);
 		}
-	}
+	};
 
 	this.info = function(message) {
 		if (level >= 1) {
 			console.info("INFO:" + name + ": " + message);
 		}
-	}
+	};
 
 	this.warn = function(message) {
 		if (level >= 2) {
 			console.warn("WARN:" + name + ": " + message);
 		}
-	}
+	};
 
 	this.debug = function(message) {
 		if (level >= 3) {
 			console.log("DEBUG:" + name + ": " + message);
 		}
-	}
-}
+	};
+};
+
 var log = new Logger();
 

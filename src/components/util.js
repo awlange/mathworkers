@@ -2,7 +2,7 @@
 /**
  *  General internal utility functions
  */
-var util = {}
+var util = {};
 util.loadBalance = function(n, nWorkers, id) {
 	var div = Math.floor(n / nWorkers);
 	var rem = n % nWorkers;
@@ -19,5 +19,5 @@ util.loadBalance = function(n, nWorkers, id) {
 	}
 
 	return {ifrom: ifrom, ito: ito};
-}
+};
 

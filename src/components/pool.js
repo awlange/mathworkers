@@ -16,14 +16,14 @@ pool.create = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.getNumWorkers = function() {
 		return pool.length;
-	}
+	};
 
 	this.getPool = function() {
 		return pool;
-	}
+	};
 
 	this.getWorker = function(workerId) {
 		return pool[workerId];
-	}
-}
+	};
+};
 
