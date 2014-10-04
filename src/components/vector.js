@@ -118,11 +118,6 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		return result;
 	};
 
-//	var gatherVector = function(vec, tag, rebroadcast) {
-//		self.postMessage({handle: "_gatherVector", tag: tag, id: id, rebroadcast: rebroadcast,
-//			len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
-//	};
-
 	this.wkPlus = function(w, tag, rebroadcast) {
 		var lb = util.loadBalance(that.length, nWorkers, id);
 		var x = new Float64Array(lb.ito - lb.ifrom);
@@ -130,7 +125,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] + w.get(i);
 		}
-		gatherVector(x, tag, rebroadcast);
+		MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkMinus = function(w, tag, rebroadcast) {
@@ -140,7 +135,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] - w.get(i);
 		}
-		gatherVector(x, tag, rebroadcast);
+        MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkTimes = function(w, tag, rebroadcast) {
@@ -150,7 +145,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * w.get(i);
 		}
-		gatherVector(x, tag, rebroadcast);
+        MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkDividedBy = function(w, tag, rebroadcast) {
@@ -160,7 +155,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] / w.get(i);
 		}
-		gatherVector(x, tag, rebroadcast);
+        MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkScale = function(alpha, tag, rebroadcast) {
@@ -170,7 +165,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = v[i] * alpha;
 		}
-		gatherVector(x, tag, rebroadcast);
+        MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkApply = function(fn, tag, rebroadcast) {
@@ -180,7 +175,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			x[offset++] = fn(v[i]);
 		}
-		gatherVector(x, tag, rebroadcast);
+        MW.MathWorker.gatherVector(x, tag, id, rebroadcast);
 	};
 
 	this.wkNorm = function(tag, rebroadcast) {
@@ -189,7 +184,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * v[i];
 		}
-		self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
+        MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
 	};
 
 	this.wkDot = function(w, tag, rebroadcast) {
@@ -198,7 +193,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i] * w.get(i);
 		}
-		self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+        MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 	};
 
 	this.wkSum = function(tag, rebroadcast) {
@@ -207,7 +202,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 		for (var i = lb.ifrom; i < lb.ito; ++i) {
 			tot += v[i];
 		}
-		self.postMessage({handle: "_vectorSum", tag: tag, tot: tot, rebroadcast: rebroadcast});
+        MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 	};
 
 	// vector-matrix multiply: v.A
@@ -235,7 +230,7 @@ MW.Vector = function(size, mathWorkerId, nWorkersInput) {
 			}
 			w[offset++] = tot;
 		}
-		gatherVector(w, tag, rebroadcast);
+        MW.MathWorker.gatherVector(w, tag, id, rebroadcast);
 	};
 };
 
