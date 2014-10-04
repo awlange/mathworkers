@@ -83,7 +83,7 @@
 var run_1 = document.getElementById('run_1');
 run_1.addEventListener('click', function() {
 	
-	var n = 200000;
+	var n = 2000;
 	var v = new Float64Array(n);
 	var w = new Float64Array(n);
 	for (var i = 0; i < n; ++i) {
@@ -115,7 +115,7 @@ run_1.addEventListener('click', function() {
 var run_2 = document.getElementById('run_2');
 run_2.addEventListener('click', function() {
 	
-	var n = 3000;
+	var n = 2000;
 	var v = new Float64Array(n);
 	var w = new Float64Array(n);
 	var A = [];
@@ -157,9 +157,11 @@ run_3.addEventListener('click', function() {
 	var n = 400;
 	var A = [];
     var B = [];
+    var C = [];
 	for (var i = 0; i < n; ++i) {
 		A.push(new Float64Array(n));
 		B.push(new Float64Array(n));
+		C.push(new Float64Array(n));
 		for (var j = 0; j < n; ++j) {
 			A[i][j] = Math.random();
 			B[i][j] = Math.random();
@@ -172,6 +174,25 @@ run_3.addEventListener('click', function() {
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
 		var C = A.timesMatrix(B);
+
+		// Vanilla JS is much more performant in Chrome! TODO: improve matrix class!!!
+		// for (var i = 0; i < n; ++i) {
+		// 	for (var j = i + 1; j < n; ++j) {
+		// 		var tmp = B[i][j];
+		// 		B[i][j] = B[j][i];
+		// 		B[j][i] = tmp;
+		// 	}
+		// }
+		// for (var i = 0; i < n; ++i) {
+		// 	for (var j = 0; j < n; ++j) {
+		// 		var tot = 0.0;
+		// 		for (var k = 0; k < n; ++k) {
+		// 			tot += A[i][k] * B[j][k];
+		// 		}
+		// 		C[i][j] = tot;
+		// 	}
+		// }
+
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_3");

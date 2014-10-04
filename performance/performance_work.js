@@ -40,7 +40,7 @@ MW.on("set", function() {
 });
 
 MW.on("run_hello", function() {
-	MW.sendText("hello", "Hello from worker " + MW.getId() + " of " + MW.getNumWorkers() + " workers.");
+	MW.sendDataToCoordinator("Hello from worker " + MW.getId() + " of " + MW.getNumWorkers() + " workers.", "hello");
 });
 
 MW.on("run_vectorDot", function() {
