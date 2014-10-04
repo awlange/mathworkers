@@ -39,6 +39,10 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		that.ncols = B[0].length;
 	}
 
+	this.isSquare = function() {
+		return that.nrows == that.ncols;
+	}
+
 	this.toString = function() {
 		var str = "";
 		for (var i = 0; i < that.nrows; ++i) {
@@ -137,6 +141,20 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 		}
 		return B;
+	}
+
+	// Only works for square matrices
+	this.transposeInPlace = function() {
+		if (that.isSquare()) {
+			for (var i = 0; i < that.nrows; ++i) {
+				for (var j = i + 1; j < that.ncols; ++j) {
+					var tmp = A[i][j];
+					A[i][j] = A[j][i];
+					A[j][i] = tmp;
+				}
+			}			
+		}
+		return that;
 	}
 
 	// matrix-vector multiply: A.v
@@ -285,9 +303,12 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 		gatherVector(w, tag, rebroadcast);
 	}
 
+	// C = A.B
 	this.wkTimesMatrix = function(B, tag, rebroadcast) {
 		// Transpose B for better row-major memory access
-		var Bt = B.transpose();
+		// If square, save on memory by doing an in-place transpose
+		var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
+
 		var lb = util.loadBalance(that.nrows, nWorkers, id);
 		var C = [];
 		var offset = 0;
@@ -302,6 +323,12 @@ MW.Matrix = function(nrows, ncols, mathWorkerId, nWorkersInput) {
 			}
 			++offset;
 		}
+
+		// restore B
+		if (B.isSquare) {
+			B.transposeInPlace();
+		}
+
 		gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 	}
 }
