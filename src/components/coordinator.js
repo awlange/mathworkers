@@ -7,17 +7,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
-	var ready = false;
+	this.ready = false;
 
     logLevel = logLevel || 2;
 	log.setLevel("coord", logLevel);
 
 	// Create the worker pool, which starts the workers
 	pool.create(nWorkersInput, workerScriptName, logLevel);
-
-	this.isReady = function() {
-		return ready;
-	};
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -45,7 +41,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-            console.log("Trigger tag " + wk + " : " + tag);
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
@@ -133,7 +128,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.nWorkers) {
- 			ready = true;
+ 			that.ready = true;
  			that.emit("_ready");
  			// reset for next message
 			nWorkersReported = 0;	
@@ -214,7 +209,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
-            console.log("Dude: " + data.rebroadcast);
 			if (data.rebroadcast) {
 				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {

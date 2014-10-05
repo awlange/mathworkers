@@ -1,4 +1,4 @@
-//Built: Sun Oct  5 11:43:26 CDT 2014
+//Built: Sun Oct  5 16:14:50 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -139,17 +139,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
-	var ready = false;
+	this.ready = false;
 
     logLevel = logLevel || 2;
 	log.setLevel("coord", logLevel);
 
 	// Create the worker pool, which starts the workers
 	pool.create(nWorkersInput, workerScriptName, logLevel);
-
-	this.isReady = function() {
-		return ready;
-	};
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -177,7 +173,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-            console.log("Trigger tag " + wk + " : " + tag);
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
@@ -265,7 +260,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
  		if (nWorkersReported == pool.nWorkers) {
- 			ready = true;
+ 			that.ready = true;
  			that.emit("_ready");
  			// reset for next message
 			nWorkersReported = 0;	
@@ -346,7 +341,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
-            console.log("Dude: " + data.rebroadcast);
 			if (data.rebroadcast) {
 				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
@@ -546,13 +540,13 @@ MW.MathWorker.prototype = new EventEmitter();
  * MathWorker static-like functions
  */
 MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
@@ -564,12 +558,12 @@ MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
 };
 
 MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
@@ -977,7 +971,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
@@ -991,7 +985,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
@@ -1005,7 +999,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
@@ -1019,7 +1013,7 @@ MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -1033,7 +1027,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -1047,7 +1041,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 // matrix-vector multiply: A.v
@@ -1062,7 +1056,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, id, rebroadcast);
+    MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
 
 // C = A.B
@@ -1091,7 +1085,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 

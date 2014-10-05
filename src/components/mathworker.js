@@ -136,13 +136,13 @@ MW.MathWorker.prototype = new EventEmitter();
  * MathWorker static-like functions
  */
 MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
@@ -154,12 +154,12 @@ MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
 };
 
 MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
-    rebroadcast = false;
+    rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 

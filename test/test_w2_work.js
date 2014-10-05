@@ -160,7 +160,7 @@ MW.on("vtmre", function(vec) {
 	var expected = [30.0, 36.0, 42.0];
 	var pass = vec instanceof Vector && vec.length == 3;
 	for (var i = 0; i < 3 && pass; ++i) {
-		pass = pass && vec.get(i) - expected[i] < EPSILON;
+		pass = pass && vec.array[i] - expected[i] < EPSILON;
 	}
 	MW.sendDataToCoordinator(pass, "vectorTimesMatrixRebroadcast");
 });

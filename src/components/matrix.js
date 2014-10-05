@@ -177,7 +177,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
@@ -191,7 +191,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
@@ -205,7 +205,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
@@ -219,7 +219,7 @@ MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -233,7 +233,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -247,7 +247,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 // matrix-vector multiply: A.v
@@ -262,7 +262,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, id, rebroadcast);
+    MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
 
 // C = A.B
@@ -291,7 +291,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, id, rebroadcast);
+    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
 
