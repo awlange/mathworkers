@@ -27,7 +27,7 @@ MW.on("run_sendVectorToCoordinator", function() {
 
 MW.on("run_sendMatrixToCoordinator", function() {
 	var A = MW.newMatrixFromArray([[0.0, 1.0], [2.0, 3.0]]);
-	A.sendToCoordinator("sendMatrixToCoordinator");
+	MW.sendMatrixToCoordinator(A, "sendMatrixToCoordinator");
 });
 
 MW.on("run_sendVectorToWorkers", function() {

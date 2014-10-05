@@ -46,6 +46,19 @@ MW.MathWorker = function() {
         }
     };
 
+    this.sendMatrixToCoordinator = function(mat, tag) {
+        // only id 0 does the sending actually
+        if (id == 0) {
+            var matObject = {handle: "_matrixSendToCoordinator", tag: tag, nrows: mat.nrows};
+            var matBufferList = [];
+            for (var i = 0; i < mat.nrows; ++i) {
+                matObject[i] = mat.array[i].buffer;
+                matBufferList.push(mat.array[i].buffer);
+            }
+            self.postMessage(matObject, matBufferList);
+        }
+    };
+
  	// Route the message appropriately for the Worker
 	self.onmessage = function(event) {
 		var data = event.data;

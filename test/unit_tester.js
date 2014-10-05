@@ -26,15 +26,15 @@ T.Tester = function(testName) {
 			console.log(tests);
 		}
 		updatePage();
-	}
+	};
 
 	this.isTrue = function(comparison) {
 		tests.push(comparison == true);
-	}
+	};
 
 	this.isFalse = function(comparison) {
 		tests.push(comparison == false);
-	}
+	};
 
 	this.equal = function(expected, actual) {
 		tests.push(expected === actual); 
@@ -46,11 +46,11 @@ T.Tester = function(testName) {
 
 	this.doubleEqual = function(expected, actual) {
 		tests.push(Math.abs(expected - actual) <= EPSILON);
-	}
+	};
 
 	this.doubleNotEqual = function(expected, actual) {
 		tests.push(Math.abs(expected - actual) > EPSILON);
-	}
+	};
 
 	this.vectorEqual = function(expected, actual) {
 		if (!(expected.length === actual.length)) {
@@ -62,7 +62,7 @@ T.Tester = function(testName) {
 			elements = elements && Math.abs(expected.array[i] - actual.array[i]) < EPSILON;
 		}
 		tests.push(elements);
-	}
+	};
 
 	this.matrixEqual = function(expected, actual) {
 		if (!(expected.nrows === actual.nrows) || !(expected.ncols === actual.ncols)) {
@@ -72,11 +72,11 @@ T.Tester = function(testName) {
 		var elements = true;
 		for (var i = 0; i < actual.nrows && elements; ++i) {
 			for (var j = 0; j < actual.ncols && elements; ++j) {
-				elements = elements && Math.abs(expected.get(i, j) - actual.get(i, j)) < EPSILON;
+				elements = elements && Math.abs(expected.array[i][j] - actual.array[i][j]) < EPSILON;
 			}
 		}
 		tests.push(elements);
-	}
+	};
 
 	// DOM manipulation functions
 	var updatePage = function() {
@@ -89,7 +89,7 @@ T.Tester = function(testName) {
 			elem.innerHTML = "failed";
 		}
 	}
-}
+};
 
 return T;
 }());

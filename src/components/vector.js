@@ -6,15 +6,24 @@
  */
 MW.Vector = function(size) {
     this.array = null;
-    this.length = size;
-    if (size !== undefined && size > 0) {
+    this.length = size || 0;
+    if (size > 0) {
         this.array = new Float64Array(size);
     }
 };
 
-MW.Vector.prototype.setVector = function(w) {
-    this.array = w;
-    this.length = w.length;
+// Deep copy the array
+MW.Vector.fromArray = function(arr) {
+    var vec = new MW.Vector(arr.length);
+    for (var i = 0; i < arr.length; ++i) {
+        vec.array[i] = arr[i];
+    }
+    return vec;
+};
+
+MW.Vector.prototype.setVector = function(arr) {
+    this.array = arr;
+    this.length = arr.length;
 };
 
 MW.Vector.prototype.toString = function() {
@@ -103,7 +112,7 @@ MW.Vector.prototype.timesMatrix = function(A) {
     for (var i = 0; i < A.ncols; ++i) {
         var tot = 0.0;
         for (var j = 0; j < this.length; ++j) {
-            tot += this.array[j] * A.get(j, i);
+            tot += this.array[j] * A.array[j][i];
         }
         w.array[i] = tot;
     }
@@ -205,19 +214,11 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         var tot = 0.0;
         for (var j = 0; j < this.length; ++j) {
-            tot += this.array[j] * A.get(j, i);
+            tot += this.array[j] * A.array[j][i];
         }
         w[offset++] = tot;
     }
     MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
 
-// Deep copy the array
-MW.Vector.fromArray = function(arr) {
-    var vec = new MW.Vector(arr.length);
-    for (var i = 0; i < arr.length; ++i) {
-        vec.array[i] = arr[i];
-    }
-    return vec;
-};
 

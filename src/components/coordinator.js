@@ -71,7 +71,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < mat.nrows; ++i) {
-				var row = new Float64Array(mat.getRow(i));
+				var row = new Float64Array(mat.array[i]);
 				matObject[i] = row.buffer;
 				matBufferList.push(row.buffer);
 			}
@@ -157,7 +157,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	var handleMatrixSendToCoordinator = function(data) {
-		var tmp = [];
+        var tmp = [];
 		for (var i = 0; i < data.nrows; ++i) {
 			tmp.push(new Float64Array(data[i]));
 		}
