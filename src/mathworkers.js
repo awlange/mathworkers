@@ -1,4 +1,4 @@
-//Built: Sat Oct  4 15:58:12 CDT 2014
+//Built: Sun Oct  5 01:07:27 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -23,7 +23,7 @@ var MW = {};
  */
 Logger = function() {
 	var name = "";
-	var level = 2;
+	var level = 3;
 
 	this.setLevel = function(nameInput, val) {
 		if (val !== undefined && val !== null) {
@@ -177,6 +177,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
+            console.log("Trigger tag " + wk + " : " + tag);
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
@@ -188,16 +189,16 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	this.sendVectorToWorkers = function(vec, tag) {
-		// Must make a copy of the vector for each worker for transferrable object message passing
+		// Must make a copy of the vector for each worker for transferable object message passing
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-			var v = new Float64Array(vec.getArray());
+			var v = new Float64Array(vec.array);
 			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
 		}
 	};
 
 	this.sendMatrixToWorkers = function(mat, tag) {
-		// Must make a copy of each matrix row for each worker for transferrable object message passing
+		// Must make a copy of each matrix row for each worker for transferable object message passing
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
@@ -345,6 +346,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
+            console.log("Dude: " + data.rebroadcast);
 			if (data.rebroadcast) {
 				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
@@ -450,7 +452,7 @@ MW.MathWorker = function() {
         // only id 0 does the sending actually
         if (pool.myWorkerId == 0) {
             self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
-                vectorBuffer: vec.buffer}, [vec.buffer]);
+                vectorBuffer: vec.array.buffer}, [vec.array.buffer]);
         }
     };
 
@@ -493,9 +495,9 @@ MW.MathWorker = function() {
  	};
 
  	var handleTrigger = function(data, obj) {
-		if (data.tag in triggers) {
+		if (triggers[data.tag]) {
 			triggers[data.tag] = triggers[data.tag] || [];
-			args = data.data || obj || [];
+			var args = data.data || obj || [];
 			triggers[data.tag].forEach( function(fn) {
 				fn.call(this, args);
 			});
@@ -531,11 +533,13 @@ MW.MathWorker.prototype = new EventEmitter();
  * MathWorker static-like functions
  */
 MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+    rebroadcast = false;
     var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
@@ -547,10 +551,12 @@ MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
 };
 
 MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
@@ -579,7 +585,7 @@ MW.Vector.prototype.toString = function() {
     for (var i = 0; i < this.length - 1; ++i) {
         str += this.array[i] + ", ";
     }
-    return str + v[this.length-1] + "]";
+    return str + this.array[this.length-1] + "]";
 };
 
 MW.Vector.prototype.plus = function(w) {

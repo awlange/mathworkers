@@ -22,7 +22,7 @@ MW.Vector.prototype.toString = function() {
     for (var i = 0; i < this.length - 1; ++i) {
         str += this.array[i] + ", ";
     }
-    return str + v[this.length-1] + "]";
+    return str + this.array[this.length-1] + "]";
 };
 
 MW.Vector.prototype.plus = function(w) {

@@ -8,9 +8,9 @@ var id;
 var nworkers;
 
 function getRandomVector(size) {
-	var vec = new Vector(size, id, nworkers);
+	var vec = new Vector(size);
 	for (var i = 0; i < size; ++i) {
-		vec.set(i, Math.random());
+		vec.array[i] = Math.random();
 	}
 	return vec;
 }
@@ -27,7 +27,7 @@ function getRandomMatrix(nrows, ncols) {
 
 // Some vectors and matrices to play with
 var v, w, x;
-var A;
+var A, B;
 
 MW.on("set", function() {
 	id = MW.getId();
@@ -39,11 +39,8 @@ MW.on("set", function() {
 	B = getRandomMatrix(400, 400);
 });
 
-MW.on("run_hello", function() {
-	MW.sendDataToCoordinator("Hello from worker " + MW.getId() + " of " + MW.getNumWorkers() + " workers.", "hello");
-});
-
 MW.on("run_vectorDot", function() {
+    console.log(v.toString());
 	v.wkDot(w, "vectorDot");
 });
 

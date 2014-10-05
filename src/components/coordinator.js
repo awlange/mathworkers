@@ -45,6 +45,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
+            console.log("Trigger tag " + wk + " : " + tag);
 			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
@@ -56,16 +57,16 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	this.sendVectorToWorkers = function(vec, tag) {
-		// Must make a copy of the vector for each worker for transferrable object message passing
+		// Must make a copy of the vector for each worker for transferable object message passing
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-			var v = new Float64Array(vec.getArray());
+			var v = new Float64Array(vec.array);
 			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
 		}
 	};
 
 	this.sendMatrixToWorkers = function(mat, tag) {
-		// Must make a copy of each matrix row for each worker for transferrable object message passing
+		// Must make a copy of each matrix row for each worker for transferable object message passing
 		for (var wk = 0; wk < pool.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
@@ -213,6 +214,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Matrix();
 			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
+            console.log("Dude: " + data.rebroadcast);
 			if (data.rebroadcast) {
 				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {

@@ -10,7 +10,7 @@
  */
 Logger = function() {
 	var name = "";
-	var level = 2;
+	var level = 3;
 
 	this.setLevel = function(nameInput, val) {
 		if (val !== undefined && val !== null) {

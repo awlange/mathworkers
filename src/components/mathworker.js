@@ -42,7 +42,7 @@ MW.MathWorker = function() {
         // only id 0 does the sending actually
         if (pool.myWorkerId == 0) {
             self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
-                vectorBuffer: vec.buffer}, [vec.buffer]);
+                vectorBuffer: vec.array.buffer}, [vec.array.buffer]);
         }
     };
 
@@ -85,9 +85,9 @@ MW.MathWorker = function() {
  	};
 
  	var handleTrigger = function(data, obj) {
-		if (data.tag in triggers) {
+		if (triggers[data.tag]) {
 			triggers[data.tag] = triggers[data.tag] || [];
-			args = data.data || obj || [];
+			var args = data.data || obj || [];
 			triggers[data.tag].forEach( function(fn) {
 				fn.call(this, args);
 			});
@@ -123,11 +123,13 @@ MW.MathWorker.prototype = new EventEmitter();
  * MathWorker static-like functions
  */
 MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+    rebroadcast = false;
     var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
     var matBufferList = [];
@@ -139,10 +141,12 @@ MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
 };
 
 MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
+    rebroadcast = false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 

@@ -40,19 +40,18 @@
 				}
 				var mean = tot / arr.length;
 				tot = 0.0;
-				for (var i = 0; i < arr.length; ++i) {
+				for (i = 0; i < arr.length; ++i) {
 					var tmp = mean - arr[i];
 					tot += tmp * tmp;
 				}
 				var std = Math.sqrt(tot / arr.length);
-				stats = {
+				return {
 					nruns: arr.length,
 					mean: mean,
 					std: std,
 					min: amin,
 					max: amax
-				}
-				return stats;
+				};
 			}
 
 			function showStats(stats, elementId) {
