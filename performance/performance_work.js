@@ -4,9 +4,6 @@ var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
 
-var id;
-var nworkers;
-
 function getRandomVector(size) {
 	var vec = new Vector(size);
 	for (var i = 0; i < size; ++i) {
@@ -16,10 +13,10 @@ function getRandomVector(size) {
 }
 
 function getRandomMatrix(nrows, ncols) {
-	var mat = new Matrix(nrows, ncols, id, nworkers);
+	var mat = new Matrix(nrows, ncols);
 	for (var i = 0; i < nrows; ++i) {
 		for (var j = 0; j < ncols; ++j) {
-			mat.set(i, j, Math.random());
+			mat.array[i][j] = Math.random();
 		}
 	}
 	return mat;
@@ -30,8 +27,6 @@ var v, w, x;
 var A, B;
 
 MW.on("set", function() {
-	id = MW.getId();
-	nworkers = MW.getNumWorkers();
 	v = getRandomVector(2000);
 	w = getRandomVector(2000);
 	x = getRandomVector(400);
@@ -40,7 +35,6 @@ MW.on("set", function() {
 });
 
 MW.on("run_vectorDot", function() {
-    console.log(v.toString());
 	v.wkDot(w, "vectorDot");
 });
 

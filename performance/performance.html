@@ -23,7 +23,7 @@
 			var nWorkers = query.split("?w=")[1];
 			var crd = new MWs.Coordinator(nWorkers, "performance_work.js");
 			document.getElementById("nWorkers").innerHTML = nWorkers;
-			crd.on("ready", function() {
+			crd.onReady( function() {
 				crd.trigger("set");
 			});
 
