@@ -1,4 +1,4 @@
-//Built: Sun Oct  5 23:06:41 CDT 2014
+//Built: Sun Oct  5 23:11:31 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -729,7 +729,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -739,7 +739,7 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -964,7 +964,6 @@ MW.Matrix.prototype.timesVector = function(v) {
 };
 
 // matrix-matrix multiply: A.B
-// TODO: if alpha is specified: alpha * A.B
 MW.Matrix.prototype.timesMatrix = function(B) {
     var C = new MW.Matrix(this.nrows, B.ncols);
     // Transpose B for better row-major memory access
@@ -1009,7 +1008,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
     var lb = util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
@@ -1023,7 +1022,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     var lb = util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
