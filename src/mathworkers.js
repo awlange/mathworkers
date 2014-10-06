@@ -937,6 +937,27 @@ MW.Matrix.prototype.isSquare = function() {
     return this.nrows == this.ncols;
 };
 
+MW.Matrix.zeroes = function(n, m) {
+    var mat = new MW.Matrix(n, m);
+    for (var i = 0; i < n; ++i) {
+        for (var j = 0; j < m; ++j) {
+            mat.array[i][j] = 0.0;
+        }
+    }
+    return mat;
+};
+
+MW.Matrix.identity = function(n) {
+    var mat = new MW.Matrix(n, n);
+    for (var i = 0; i < n; ++i) {
+        for (var j = 0; j < n; ++j) {
+            mat.array[i][j] = 0.0;
+        }
+        mat.array[i][i] = 1.0;
+    }
+    return mat;
+};
+
 MW.Matrix.prototype.toString = function() {
     var str = "";
     for (var i = 0; i < this.nrows; ++i) {
