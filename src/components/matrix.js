@@ -71,7 +71,7 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.times = function(B) {
+MW.Matrix.prototype.timesElementwise = function(B) {
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -81,7 +81,7 @@ MW.Matrix.prototype.times = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.dividedBy = function(B) {
+MW.Matrix.prototype.divide = function(B) {
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {

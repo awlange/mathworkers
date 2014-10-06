@@ -1,16 +1,31 @@
-//Built: Sun Oct  5 16:14:50 CDT 2014
+//Built: Sun Oct  5 22:58:12 CDT 2014
 /**
  *  MathWorkers.js
  *
  *  A JavaScript math library that uses WebWorkers for parallelization
  *
- *  Adrian W. Lange, 2014
+ *  https://github.com/awlange/mathworkers
+ *
+ *  Copyright 2014 Adrian W. Lange
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 var MathWorkers = (function() {
 
 // Global MathWorkers variables
 var MW = {};
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Logging controller
@@ -59,6 +74,7 @@ Logger = function() {
 
 var log = new Logger();
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  General internal utility functions
@@ -83,6 +99,7 @@ util.loadBalance = function(n) {
 	return {ifrom: ifrom, ito: ito};
 };
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Custom event emitter
@@ -105,6 +122,7 @@ function EventEmitter() {
     };
 }
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  MathWorker Pool 
@@ -130,7 +148,7 @@ pool.create = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 };
 
-
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Coordinator for browser-side interface
@@ -402,6 +420,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 };
 MW.Coordinator.prototype = new EventEmitter();
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  MathWorker for worker-side interface
@@ -568,6 +587,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
 };
 
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Vector class
@@ -620,7 +640,7 @@ MW.Vector.prototype.minus = function(w) {
     return result;
 };
 
-MW.Vector.prototype.times = function(w) {
+MW.Vector.prototype.timesElementwise = function(w) {
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] * w.array[i];
@@ -628,7 +648,7 @@ MW.Vector.prototype.times = function(w) {
     return result;
 };
 
-MW.Vector.prototype.dividedBy = function(w) {
+MW.Vector.prototype.divide = function(w) {
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] / w.array[i];
@@ -792,6 +812,7 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
 };
 
 
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Matrix class
@@ -864,7 +885,7 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.times = function(B) {
+MW.Matrix.prototype.timesElementwise = function(B) {
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -874,7 +895,7 @@ MW.Matrix.prototype.times = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.dividedBy = function(B) {
+MW.Matrix.prototype.divide = function(B) {
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
