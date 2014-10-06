@@ -154,7 +154,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
     checkVectors(this, w);
     util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
@@ -166,7 +166,7 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     checkVectors(this, w);
     util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);

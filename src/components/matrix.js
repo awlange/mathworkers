@@ -160,7 +160,6 @@ MW.Matrix.prototype.timesVector = function(v) {
 };
 
 // matrix-matrix multiply: A.B
-// TODO: if alpha is specified: alpha * A.B
 MW.Matrix.prototype.timesMatrix = function(B) {
     checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
@@ -210,7 +209,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
     util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.nrows);
@@ -226,7 +225,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkDividedBy = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
     util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.nrows);
