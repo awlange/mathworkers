@@ -4,7 +4,7 @@
 cd components
 echo "//Built: `date`" > .tmp
 cat .tmp \
-  mathworkers_head.js \
+  mathworkers_head.js.txt \
   logger.js \
   util.js \
   event_emitter.js \
@@ -13,6 +13,6 @@ cat .tmp \
   mathworker.js \
   vector.js \
   matrix.js \
-  mathworkers_tail.js > ../mathworkers.js
+  mathworkers_tail.js.txt > ../mathworkers.js
 rm -f .tmp
 cd ..
