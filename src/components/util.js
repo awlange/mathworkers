@@ -1,3 +1,4 @@
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  General internal utility functions
