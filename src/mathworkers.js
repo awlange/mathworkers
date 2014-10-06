@@ -1,4 +1,4 @@
-//Built: Sun Oct  5 23:11:31 CDT 2014
+//Built: Sun Oct  5 23:19:52 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -848,6 +848,27 @@ MW.Matrix.prototype.setMatrix = function(arr) {
 
 MW.Matrix.prototype.isSquare = function() {
     return this.nrows == this.ncols;
+};
+
+MW.Matrix.zeroes = function(n, m) {
+    var mat = new MW.Matrix(n, m);
+    for (var i = 0; i < n; ++i) {
+        for (var j = 0; j < m; ++j) {
+            mat.array[i][j] = 0.0;
+        }
+    }
+    return mat;
+};
+
+MW.Matrix.identity = function(n) {
+    var mat = new MW.Matrix(n, n);
+    for (var i = 0; i < n; ++i) {
+        for (var j = 0; j < n; ++j) {
+            mat.array[i][j] = 0.0;
+        }
+        mat.array[i][i] = 1.0;
+    }
+    return mat;
 };
 
 MW.Matrix.prototype.toString = function() {
