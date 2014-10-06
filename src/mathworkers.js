@@ -1,4 +1,4 @@
-//Built: Tue Oct  7 23:04:01 CDT 2014
+//Built: Tue Oct  7 23:09:18 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -662,7 +662,7 @@ MW.Vector.prototype.minus = function(w) {
     return result;
 };
 
-MW.Vector.prototype.times = function(w) {
+MW.Vector.prototype.timesElementwise = function(w) {
     checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
@@ -671,7 +671,7 @@ MW.Vector.prototype.times = function(w) {
     return result;
 };
 
-MW.Vector.prototype.dividedBy = function(w) {
+MW.Vector.prototype.divide = function(w) {
     checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
@@ -974,7 +974,7 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.times = function(B) {
+MW.Matrix.prototype.timesElementwise = function(B) {
     checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
@@ -985,7 +985,7 @@ MW.Matrix.prototype.times = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.dividedBy = function(B) {
+MW.Matrix.prototype.divide = function(B) {
     checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {

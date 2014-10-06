@@ -55,7 +55,7 @@ MW.Vector.prototype.minus = function(w) {
     return result;
 };
 
-MW.Vector.prototype.times = function(w) {
+MW.Vector.prototype.timesElementwise = function(w) {
     checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
@@ -64,7 +64,7 @@ MW.Vector.prototype.times = function(w) {
     return result;
 };
 
-MW.Vector.prototype.dividedBy = function(w) {
+MW.Vector.prototype.divide = function(w) {
     checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
