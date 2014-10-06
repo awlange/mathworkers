@@ -24,8 +24,8 @@
   			<li>vectorDot<div id="vectorDot" class="pending">pending</div></li>
   			<li>vectorPlus<div id="vectorPlus" class="pending">pending</div></li>
   			<li>vectorMinus<div id="vectorMinus" class="pending">pending</div></li>
-  			<li>vectorTimes<div id="vectorTimes" class="pending">pending</div></li>
-  			<li>vectorDividedBy<div id="vectorDividedBy" class="pending">pending</div></li>
+  			<li>vectorTimesElementwise<div id="vectorTimesElementwise" class="pending">pending</div></li>
+  			<li>vectorDivide<div id="vectorDivide" class="pending">pending</div></li>
   			<li>vectorScale<div id="vectorScale" class="pending">pending</div></li>
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
   			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
@@ -38,8 +38,8 @@
   			<li>matrixTimesVector<div id="matrixTimesVector" class="pending">pending</div></li>
   			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
   			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
-  			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
-  			<li>matrixDividedBy<div id="matrixDividedBy" class="pending">pending</div></li>
+  			<li>matrixTimesElementwise<div id="matrixTimesElementwise" class="pending">pending</div></li>
+  			<li>matrixDivide<div id="matrixDivide" class="pending">pending</div></li>
   			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
   			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
@@ -158,21 +158,21 @@ crd.on("vectorMinus", function() {
 	T.vectorEqual(vec, recv);
 	T.passed();
 
-	crd.trigger("run_vectorTimes");
+	crd.trigger("run_vectorTimesElementwise");
 });
 
-crd.on("vectorTimes", function() {
-	var T = new UT.Tester("vectorTimes");
+crd.on("vectorTimesElementwise", function() {
+	var T = new UT.Tester("vectorTimesElementwise");
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([0.0, 2.0, 6.0, 12.0, 20.0]);
 	T.vectorEqual(vec, recv);
 	T.passed();
 
-	crd.trigger("run_vectorDividedBy");
+	crd.trigger("run_vectorDivide");
 });
 
-crd.on("vectorDividedBy", function() {
-	var T = new UT.Tester("vectorDividedBy");
+crd.on("vectorDivide", function() {
+	var T = new UT.Tester("vectorDivide");
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([0.0, 2.0, -2.0, 0.25, 1.0]);
 	T.vectorEqual(vec, recv);
@@ -252,20 +252,20 @@ crd.on("matrixMinus", function() {
 	T.matrixEqual(Matrix.fromArray([[-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0]]), recv);
 	T.passed();
 
-	crd.trigger("run_matrixTimes");
+	crd.trigger("run_matrixTimesElementwise");
 });
 
-crd.on("matrixTimes", function() {
-	var T = new UT.Tester("matrixTimes");
+crd.on("matrixTimesElementwise", function() {
+	var T = new UT.Tester("matrixTimesElementwise");
 	var recv = crd.getBuffer();
 	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), recv);
 	T.passed();
 
-	crd.trigger("run_matrixDividedBy");
+	crd.trigger("run_matrixDivide");
 });
 
-crd.on("matrixDividedBy", function() {
-	var T = new UT.Tester("matrixDividedBy");
+crd.on("matrixDivide", function() {
+	var T = new UT.Tester("matrixDivide");
 	var recv = crd.getBuffer();
 	T.matrixEqual(Matrix.fromArray([[1.0/3.0, 1.0, 3.0], [4.0/6.0, 1.0, 6.0/4.0], [7.0/9.0, 1.0, 9.0/7.0]]), recv);
 	T.passed();
