@@ -56,16 +56,16 @@ MW.on("run_vectorMinus", function() {
 	v.wkMinus(w, "vectorMinus");
 });
 
-MW.on("run_vectorTimes", function() {
+MW.on("run_vectorTimesElementwise", function() {
 	var v = MW.newVectorFromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
 	var w = MW.newVectorFromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkTimes(w, "vectorTimes");
+	v.wkTimes(w, "vectorTimesElementwise");
 });
 
-MW.on("run_vectorDividedBy", function() {
+MW.on("run_vectorDivide", function() {
 	var v = MW.newVectorFromArray([0.0, 4.0, -8.0, 1.0, 5.0]);
 	var w = MW.newVectorFromArray([1.0, 2.0, 4.0, 4.0, 5.0]);
-	v.wkDividedBy(w, "vectorDividedBy");
+	v.wkDividedBy(w, "vectorDivide");
 });
 
 MW.on("run_vectorScale", function() {
@@ -112,16 +112,16 @@ MW.on("run_matrixMinus", function() {
 	A.wkMinus(B, "matrixMinus");
 });
 
-MW.on("run_matrixTimes", function() {
+MW.on("run_matrixTimesElementwise", function() {
 	var A = MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = MW.newMatrixFromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkTimes(B, "matrixTimes");
+	A.wkTimes(B, "matrixTimesElementwise");
 });
 
-MW.on("run_matrixDividedBy", function() {
+MW.on("run_matrixDivide", function() {
 	var A = MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = MW.newMatrixFromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkDividedBy(B, "matrixDividedBy");
+	A.wkDividedBy(B, "matrixDivide");
 });
 
 MW.on("run_matrixScale", function() {
