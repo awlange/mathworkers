@@ -28,11 +28,11 @@ MW.MathWorker = function() {
 	};
 
 	this.newMatrix = function(nrows, ncols) {
-		return new MW.Matrix(nrows, ncols, pool.myWorkerId);
+		return new MW.Matrix(nrows, ncols);
 	};
 
 	this.newMatrixFromArray = function(arr) {
-		return MW.Matrix.fromArray(arr, pool.myWorkerId);
+		return MW.Matrix.fromArray(arr);
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {

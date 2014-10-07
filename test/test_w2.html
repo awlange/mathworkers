@@ -55,7 +55,7 @@
   			<li>vectorTimesMatrixRebroadcast<div id="vectorTimesMatrixRebroadcast" class="pending">pending</div></li>
   		</ul>
 
-        <h2>Multi-operation tests</h2>
+        <h2>Batch operation tests</h2>
         <ul>
             <li>matrixLinearCombination<div id="matrixLinearCombination" class="pending">pending</div></li>
         </ul>
@@ -368,7 +368,6 @@ crd.on("vectorTimesMatrixRebroadcast", function() {
 });
 
 crd.on("matrixLinearCombination", function() {
-
     var T = new UT.Tester("matrixLinearCombination");
     var matrices = [
         Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]),
@@ -383,7 +382,7 @@ crd.on("matrixLinearCombination", function() {
     T.matrixEqual(M, recv);
     T.passed();
 
-    // crd.trigger("");
+//    crd.trigger("run_multipleMatrixVectorProduct");
 });
 
 		</script>
