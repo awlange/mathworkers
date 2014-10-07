@@ -41,3 +41,49 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
 
     MW.MathWorker.gatherMatrix(M, lb.ifrom, tag, rebroadcast);
 };
+
+
+// D = alpha * A.B + beta * C
+MW.BatchOperation.wkScaleMatrixMatrixProductPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+    // Transpose B for better row-major memory access
+    // If square, save on memory by doing an in-place transpose
+    var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
+
+    var lb = util.loadBalance(A.nrows);
+    var D = [];
+    var offset = 0;
+
+    if (beta && C) {
+        for (var i = lb.ifrom; i < lb.ito; ++i) {
+            D.push(new Float64Array(B.ncols));
+            for (var j = 0; j < B.ncols; ++j) {
+                var tot = 0.0;
+                for (var k = 0; k < A.ncols; ++k) {
+                    tot += A.array[i][k] * Bt.array[j][k];
+                }
+                D[offset][j] = alpha * tot + beta * C.array[i][j];
+            }
+            ++offset;
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            D.push(new Float64Array(B.ncols));
+            for (j = 0; j < B.ncols; ++j) {
+                tot = 0.0;
+                for (k = 0; k < A.ncols; ++k) {
+                    tot += A.array[i][k] * Bt.array[j][k];
+                }
+                D[offset][j] = alpha * tot;
+            }
+            ++offset;
+        }
+    }
+
+    // restore B
+    if (B.isSquare) {
+        B.transposeInPlace();
+    }
+
+    MW.MathWorker.gatherMatrix(D, lb.ifrom, tag, rebroadcast);
+};
+
