@@ -3,6 +3,7 @@ importScripts("../src/mathworkers.js");
 var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
+var Batch = MathWorkers.BatchOperation;
 
 var EPSILON = 0.00000001;
 
@@ -163,5 +164,14 @@ MW.on("vtmre", function(vec) {
 		pass = pass && vec.array[i] - expected[i] < EPSILON;
 	}
 	MW.sendDataToCoordinator(pass, "vectorTimesMatrixRebroadcast");
+});
+
+MW.on("run_matrixLinearCombination", function() {
+    var matrices = [
+        MW.newMatrixFromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]),
+        MW.newMatrixFromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]),
+        MW.newMatrixFromArray([[30.0, 20.0, 10.0], [60.0, 50.0, 40.0], [90.0, 80.0, 70.0]])];
+    var coefficients = [0.5, 20.0, -1.0];
+    Batch.wkMatrixLinearCombination(matrices, coefficients, "matrixLinearCombination");
 });
 

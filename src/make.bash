@@ -13,6 +13,7 @@ cat .tmp \
   mathworker.js \
   vector.js \
   matrix.js \
+  batchoperation.js \
   mathworkers_tail.js.txt > ../mathworkers.js
 rm -f .tmp
 cd ..
