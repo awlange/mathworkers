@@ -43,6 +43,10 @@
   			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
   			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
+  			<li>matrixTimesMatrix2<div id="matrixTimesMatrix2" class="pending">pending</div></li>
+  			<li>matrixTimesMatrix3<div id="matrixTimesMatrix3" class="pending">pending</div></li>
+  			<li>matrixTimesMatrix4<div id="matrixTimesMatrix4" class="pending">pending</div></li>
+  			<li>matrixTimesMatrix5<div id="matrixTimesMatrix5" class="pending">pending</div></li>
   		</ul>
 
   		<h2>Rebroadcast tests</h2>
@@ -300,12 +304,47 @@ crd.on("matrixApply", function() {
 
 crd.on("matrixTimesMatrix1", function() {
 	var T = new UT.Tester("matrixTimesMatrix1");
-	var BA = crd.getBuffer();
-	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0],
-									[-3.0, -2.0]]), BA);
+	var AB = crd.getBuffer();
+	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0], [-3.0, -2.0]]), AB);
 	T.passed();
 
-	crd.trigger("run_vectorDotRebroadcast");
+	crd.trigger("run_matrixTimesMatrix2");
+});
+
+crd.on("matrixTimesMatrix2", function() {
+    var T = new UT.Tester("matrixTimesMatrix2");
+    var BA = crd.getBuffer();
+    T.matrixEqual(Matrix.fromArray([[1.0, 0.0], [-3.0, -4.0]]), BA);
+    T.passed();
+
+    crd.trigger("run_matrixTimesMatrix3");
+});
+
+crd.on("matrixTimesMatrix3", function() {
+    var T = new UT.Tester("matrixTimesMatrix3");
+    var AC = crd.getBuffer();
+    T.matrixEqual(Matrix.fromArray([[1.0, 2.0, 0.0], [2.0, 3.0, -1.0]]), AC);
+    T.passed();
+
+    crd.trigger("run_matrixTimesMatrix4");
+});
+
+crd.on("matrixTimesMatrix4", function() {
+    var T = new UT.Tester("matrixTimesMatrix4");
+    var CD = crd.getBuffer();
+    T.matrixEqual(Matrix.fromArray([[1.0, -1.0], [0.0, -1.0]]), CD);
+    T.passed();
+
+    crd.trigger("run_matrixTimesMatrix5");
+});
+
+crd.on("matrixTimesMatrix5", function() {
+    var T = new UT.Tester("matrixTimesMatrix5");
+    var DC = crd.getBuffer();
+    T.matrixEqual(Matrix.fromArray([[3.0, 1.0, -5.0], [-1.0, -2.0, 0.0], [1.0, 1.0, -1.0]]), DC);
+    T.passed();
+
+    crd.trigger("run_vectorDotRebroadcast");
 });
 
 crd.on("vectorDotRebroadcast", function() {

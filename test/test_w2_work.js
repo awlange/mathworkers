@@ -136,11 +136,41 @@ MW.on("run_matrixApply", function() {
 });
 
 MW.on("run_matrixTimesMatrix1", function() {
-	var A = MW.newMatrixFromArray([[1.0, 2.0], 
-							  	   [2.0, 3.0]]);
-	var B = MW.newMatrixFromArray([[-3.0, 2.0],
-							       [1.0, -2.0]]);
+	var A = MW.newMatrixFromArray([[1.0, 2.0], [2.0, 3.0]]);
+	var B = MW.newMatrixFromArray([[-3.0, 2.0], [1.0, -2.0]]);
 	A.wkTimesMatrix(B, "matrixTimesMatrix1");
+});
+
+MW.on("run_matrixTimesMatrix2", function() {
+    var A = MW.newMatrixFromArray([[1.0, 2.0], [2.0, 3.0]]);
+    var B = MW.newMatrixFromArray([[-3.0, 2.0], [1.0, -2.0]]);
+    B.wkTimesMatrix(A, "matrixTimesMatrix2");
+});
+
+MW.on("run_matrixTimesMatrix3", function() {
+    var A = MW.newMatrixFromArray([[1.0, 2.0],
+        [2.0, 3.0]]);
+    var C = MW.newMatrixFromArray([[1.0, 0.0, -2.0],
+        [0.0, 1.0, 1.0]]);
+    A.wkTimesMatrix(C, "matrixTimesMatrix3");
+});
+
+MW.on("run_matrixTimesMatrix4", function() {
+    var C = MW.newMatrixFromArray([[1.0, 0.0, -2.0],
+                                   [0.0, 1.0, 1.0]]);
+    var D = MW.newMatrixFromArray([[3.0, 1.0],
+                                   [-1.0, -2.0],
+                                   [1.0, 1.0]]);
+    C.wkTimesMatrix(D, "matrixTimesMatrix4");
+});
+
+MW.on("run_matrixTimesMatrix5", function() {
+    var C = MW.newMatrixFromArray([[1.0, 0.0, -2.0],
+        [0.0, 1.0, 1.0]]);
+    var D = MW.newMatrixFromArray([[3.0, 1.0],
+        [-1.0, -2.0],
+        [1.0, 1.0]]);
+    D.wkTimesMatrix(C, "matrixTimesMatrix5");
 });
 
 MW.on("run_vectorDotRebroadcast", function() {
