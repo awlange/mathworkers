@@ -51,6 +51,11 @@
   			<li>vectorTimesMatrixRebroadcast<div id="vectorTimesMatrixRebroadcast" class="pending">pending</div></li>
   		</ul>
 
+        <h2>Multi-operation tests</h2>
+        <ul>
+            <li>matrixLinearCombination<div id="matrixLinearCombination" class="pending">pending</div></li>
+        </ul>
+
   		<!-- Scripts to run test below (being loose with the indentation) -->
   		<script src="../src/mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
@@ -320,7 +325,26 @@ crd.on("vectorTimesMatrixRebroadcast", function() {
 	T.isTrue(messageList[1]);
 	T.passed();
 
-	// crd.trigger("");
+	crd.trigger("run_matrixLinearCombination");
+});
+
+crd.on("matrixLinearCombination", function() {
+
+    var T = new UT.Tester("matrixLinearCombination");
+    var matrices = [
+        Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]),
+        Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]),
+        Matrix.fromArray([[30.0, 20.0, 10.0], [60.0, 50.0, 40.0], [90.0, 80.0, 70.0]])];
+    var coefficients = [0.5, 20.0, -1.0];
+    var S0 = matrices[0].scale(coefficients[0]);
+    var S1 = matrices[1].scale(coefficients[1]);
+    var S2 = matrices[2].scale(coefficients[2]);
+    var M = S0.plus(S1).plus(S2);
+    var recv = crd.getBuffer();
+    T.matrixEqual(M, recv);
+    T.passed();
+
+    // crd.trigger("");
 });
 
 		</script>
