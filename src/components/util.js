@@ -3,8 +3,9 @@
 /**
  *  General internal utility functions
  */
-var util = {};
-util.loadBalance = function(n) {
+MW.util = {};
+
+MW.util.loadBalance = function(n) {
     var id = pool.myWorkerId;
 	var div = Math.floor(n / pool.nWorkers);
 	var rem = n % pool.nWorkers;
@@ -24,10 +25,9 @@ util.loadBalance = function(n) {
 };
 
 /**
- *  Verify that x is neither null or undefined.
- *  Throws Error if not.
+ *  Verify that x is neither null nor undefined.
  */
-util.checkNotNullOrUndefined = function(x) {
+MW.util.checkNullOrUndefined = function(x) {
     if (x === undefined || x === null) {
         throw new TypeError("Undefined or null variable.");
     }
@@ -36,8 +36,8 @@ util.checkNotNullOrUndefined = function(x) {
 /**
  *  Verify that x is a Number and not null or undefined
  */
-util.checkNumber = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkNumber = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (typeof x != 'number') {
         throw new TypeError("Expected type Number but is type " + typeof x);
     }
@@ -46,8 +46,8 @@ util.checkNumber = function(x) {
 /**
  *  Verify that x is a Function and not null or undefined
  */
-util.checkFunction = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkFunction = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (typeof x != 'function') {
         throw new TypeError("Expected type Function but is type " + typeof x);
     }
@@ -56,8 +56,8 @@ util.checkFunction = function(x) {
 /**
  *  Verify that x is an Array or Float64Array and not null or undefined
  */
-util.checkArray = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkArray = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (!(x instanceof Array || x instanceof Float64Array)) {
         throw new TypeError("Expected type Array but is type " + typeof x);
     }
@@ -66,8 +66,8 @@ util.checkArray = function(x) {
 /**
  *  Verify that x is a Float64Array and not null or undefined
  */
-util.checkFloat64Array = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkFloat64Array = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (!(x instanceof Float64Array)) {
         throw new TypeError("Expected type Float64Array but is type " + typeof x);
     }

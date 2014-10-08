@@ -2,8 +2,7 @@
 
 # Concatenates all the JavaScript components into a single file
 cd components
-cat .tmp \
-  mathworkers_head.js.txt \
+cat  mathworkers_head.js.txt \
   logger.js \
   util.js \
   event_emitter.js \
