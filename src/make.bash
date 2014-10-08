@@ -2,7 +2,6 @@
 
 # Concatenates all the JavaScript components into a single file
 cd components
-echo "//Built: `date`" > .tmp
 cat .tmp \
   mathworkers_head.js.txt \
   logger.js \
