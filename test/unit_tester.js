@@ -9,64 +9,62 @@ var EPSILON = 0.00000001;  // threshold for testing double precision equalities 
 
 
 T.Tester = function(testName) {
-	var that = this;
-	var pass = false;
-	var tests = [];
-	var name = testName;
+	this.pass = true;
+    this.name = testName;
+	this.tests = [];
 
 	// Test functions
 	this.passed = function() {
-		pass = true;
-		for (var i = 0; i < tests.length; ++i) {
-			pass = pass && tests[i];
+		for (var i = 0; i < this.tests.length; ++i) {
+			this.pass = this.pass && this.tests[i];
 		}
-		if (!pass) {
-			console.log("Test(s) failed for: " + name); 
+		if (!this.pass) {
+			console.log("Test(s) failed for: " + this.name);
 			console.log("Test list results:");
-			console.log(tests);
+			console.log(this.tests);
 		}
-		updatePage();
+		this.updatePage();
 	};
 
 	this.isTrue = function(comparison) {
-		tests.push(comparison == true);
+		this.tests.push(comparison == true);
 	};
 
 	this.isFalse = function(comparison) {
-		tests.push(comparison == false);
+		this.tests.push(comparison == false);
 	};
 
 	this.equal = function(expected, actual) {
-		tests.push(expected === actual); 
+		this.tests.push(expected === actual); 
 	};
 
 	this.notEqual = function(expected, actual) {
-		tests.push(expected !== actual); 
+		this.tests.push(expected !== actual); 
 	};
 
 	this.doubleEqual = function(expected, actual) {
-		tests.push(Math.abs(expected - actual) <= EPSILON);
+		this.tests.push(Math.abs(expected - actual) <= EPSILON);
 	};
 
 	this.doubleNotEqual = function(expected, actual) {
-		tests.push(Math.abs(expected - actual) > EPSILON);
+		this.tests.push(Math.abs(expected - actual) > EPSILON);
 	};
 
 	this.vectorEqual = function(expected, actual) {
 		if (!(expected.length === actual.length)) {
-			tests.push(false);
+			this.tests.push(false);
 			return;
 		}
 		var elements = true;
 		for (var i = 0; i < actual.length && elements; ++i) {
 			elements = elements && Math.abs(expected.array[i] - actual.array[i]) < EPSILON;
 		}
-		tests.push(elements);
+		this.tests.push(elements);
 	};
 
 	this.matrixEqual = function(expected, actual) {
 		if (!(expected.nrows === actual.nrows) || !(expected.ncols === actual.ncols)) {
-			tests.push(false);
+			this.tests.push(false);
 			return;
 		}
 		var elements = true;
@@ -75,13 +73,13 @@ T.Tester = function(testName) {
 				elements = elements && Math.abs(expected.array[i][j] - actual.array[i][j]) < EPSILON;
 			}
 		}
-		tests.push(elements);
+		this.tests.push(elements);
 	};
 
-	// DOM manipulation functions
-	var updatePage = function() {
-		var elem = document.getElementById(name);
-		if (pass) {
+	// DOM manipulation function(s)
+	this.updatePage = function() {
+		var elem = document.getElementById(this.name);
+		if (this.pass) {
 			elem.className = "passed";
 			elem.innerHTML = "passed";
 		} else {

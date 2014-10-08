@@ -11,7 +11,7 @@ MW.BatchOperation = {};
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
     // TODO: verify that all matrices have same dimensions, same with coefficients
-    var lb = util.loadBalance(matrices[0].nrows);
+    var lb = MW.util.loadBalance(matrices[0].nrows);
 
     // First combo initializes M
     var M = [];
@@ -49,7 +49,7 @@ MW.BatchOperation.wkScaleMatrixMatrixProductPlus = function(alpha, A, B, tag, re
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
 
-    var lb = util.loadBalance(A.nrows);
+    var lb = MW.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
 

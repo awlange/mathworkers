@@ -1,4 +1,3 @@
-//Built: Tue Oct  7 23:21:18 CDT 2014
 /**
  *  MathWorkers.js
  *
@@ -79,8 +78,9 @@ var log = new Logger();
 /**
  *  General internal utility functions
  */
-var util = {};
-util.loadBalance = function(n) {
+MW.util = {};
+
+MW.util.loadBalance = function(n) {
     var id = pool.myWorkerId;
 	var div = Math.floor(n / pool.nWorkers);
 	var rem = n % pool.nWorkers;
@@ -100,10 +100,9 @@ util.loadBalance = function(n) {
 };
 
 /**
- *  Verify that x is neither null or undefined.
- *  Throws Error if not.
+ *  Verify that x is neither null nor undefined.
  */
-util.checkNotNullOrUndefined = function(x) {
+MW.util.checkNullOrUndefined = function(x) {
     if (x === undefined || x === null) {
         throw new TypeError("Undefined or null variable.");
     }
@@ -112,8 +111,8 @@ util.checkNotNullOrUndefined = function(x) {
 /**
  *  Verify that x is a Number and not null or undefined
  */
-util.checkNumber = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkNumber = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (typeof x != 'number') {
         throw new TypeError("Expected type Number but is type " + typeof x);
     }
@@ -122,8 +121,8 @@ util.checkNumber = function(x) {
 /**
  *  Verify that x is a Function and not null or undefined
  */
-util.checkFunction = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkFunction = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (typeof x != 'function') {
         throw new TypeError("Expected type Function but is type " + typeof x);
     }
@@ -132,8 +131,8 @@ util.checkFunction = function(x) {
 /**
  *  Verify that x is an Array or Float64Array and not null or undefined
  */
-util.checkArray = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkArray = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (!(x instanceof Array || x instanceof Float64Array)) {
         throw new TypeError("Expected type Array but is type " + typeof x);
     }
@@ -142,8 +141,8 @@ util.checkArray = function(x) {
 /**
  *  Verify that x is a Float64Array and not null or undefined
  */
-util.checkFloat64Array = function(x) {
-    util.checkNotNullOrUndefined(x);
+MW.util.checkFloat64Array = function(x) {
+    MW.util.checkNullOrUndefined(x);
     if (!(x instanceof Float64Array)) {
         throw new TypeError("Expected type Float64Array but is type " + typeof x);
     }
@@ -610,7 +609,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
 /**
  *  Vector class
  *
- *  A wrapper around an array
+ *  A wrapper around a Float64Array
  */
 MW.Vector = function(size) {
     this.array = null;
@@ -622,7 +621,7 @@ MW.Vector = function(size) {
 
 // Deep copy the array
 MW.Vector.fromArray = function(arr) {
-    util.checkArray(arr);
+    MW.util.checkArray(arr);
     var vec = new MW.Vector(arr.length);
     for (var i = 0; i < arr.length; ++i) {
         vec.array[i] = arr[i];
@@ -631,7 +630,7 @@ MW.Vector.fromArray = function(arr) {
 };
 
 MW.Vector.prototype.setVector = function(arr) {
-    util.checkFloat64Array(arr);
+    MW.util.checkFloat64Array(arr);
     this.array = arr;
     this.length = arr.length;
 };
@@ -681,7 +680,7 @@ MW.Vector.prototype.divide = function(w) {
 };
 
 MW.Vector.prototype.scale = function(alpha) {
-    util.checkNumber(alpha);
+    MW.util.checkNumber(alpha);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] * alpha;
@@ -690,7 +689,7 @@ MW.Vector.prototype.scale = function(alpha) {
 };
 
 MW.Vector.prototype.apply = function(fn) {
-    util.checkFunction(fn);
+    MW.util.checkFunction(fn);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = fn(this.array[i]);
@@ -739,8 +738,8 @@ MW.Vector.prototype.timesMatrix = function(A) {
 
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     checkVectors(this, w);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -751,8 +750,8 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
 
 MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     checkVectors(this, w);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -763,8 +762,8 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
 
 MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
     checkVectors(this, w);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -775,8 +774,8 @@ MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
 
 MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     checkVectors(this, w);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -786,9 +785,9 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
-    util.checkNumber(alpha);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNumber(alpha);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -798,9 +797,9 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
-    util.checkFunction(fn);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkFunction(fn);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -810,8 +809,8 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         tot += this.array[i] * this.array[i];
@@ -821,8 +820,8 @@ MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
 
 MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
     checkVectors(this, w);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         tot += this.array[i] * w.array[i];
@@ -831,8 +830,8 @@ MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.length);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         tot += this.array[i];
@@ -843,8 +842,8 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 // vector-matrix multiply: v.A
 MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
     checkVectorMatrix(this, A);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(A.ncols);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -866,7 +865,7 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
  *  Verify that v is a Vector and is not null or undefined
  */
 function checkVector(v) {
-    util.checkNotNullOrUndefined(v);
+    MW.util.checkNullOrUndefined(v);
     if (!(v instanceof Vector)) {
         throw new TypeError("Expected type Vector but is not.");
     }
@@ -900,6 +899,8 @@ function checkVectorMatrix(v, A) {
 
 /**
  *  Matrix class
+ *
+ *  A wrapper around an array of Float64Array objects
  */
 MW.Matrix = function(nrows, ncols) {
     this.array = [];
@@ -915,7 +916,7 @@ MW.Matrix = function(nrows, ncols) {
 
 // Deep copy the array
 MW.Matrix.fromArray = function(arr) {
-    util.checkArray(arr);
+    MW.util.checkArray(arr);
     var mat = new MW.Matrix(arr.length, arr[0].length);
     for (var i = 0; i < arr.length; ++i) {
         for (var j = 0; j < arr[i].length; ++j) {
@@ -926,8 +927,8 @@ MW.Matrix.fromArray = function(arr) {
 };
 
 MW.Matrix.prototype.setMatrix = function(arr) {
-    util.checkArray(arr);
-    util.checkFloat64Array(arr[0]);
+    MW.util.checkArray(arr);
+    MW.util.checkFloat64Array(arr[0]);
     this.array = arr;
     this.nrows = arr.length;
     this.ncols = arr[0].length;
@@ -1018,7 +1019,7 @@ MW.Matrix.prototype.divide = function(B) {
 };
 
 MW.Matrix.prototype.scale = function(alpha) {
-    util.checkNumber(alpha);
+    MW.util.checkNumber(alpha);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -1029,7 +1030,7 @@ MW.Matrix.prototype.scale = function(alpha) {
 };
 
 MW.Matrix.prototype.apply = function(fn) {
-    util.checkFunction(fn);
+    MW.util.checkFunction(fn);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -1098,8 +1099,8 @@ MW.Matrix.prototype.timesMatrix = function(B) {
 
 MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1114,8 +1115,8 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1130,8 +1131,8 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
 
 MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1146,8 +1147,8 @@ MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
 
 MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     checkMatrices(this, B);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1161,9 +1162,9 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
 };
 
 MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
-    util.checkNumber(alpha);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNumber(alpha);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1177,9 +1178,9 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
 };
 
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
-    util.checkFunction(fn);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkFunction(fn);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1195,8 +1196,8 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 // matrix-vector multiply: A.v
 MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
     checkMatrixVector(this, v);
-    util.checkNotNullOrUndefined(tag);
-    var lb = util.loadBalance(this.nrows);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1212,13 +1213,13 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
 // C = A.B
 MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     checkMatrixMatrix(this, B);
-    util.checkNotNullOrUndefined(tag);
+    MW.util.checkNullOrUndefined(tag);
 
     // Transpose B for better row-major memory access
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
 
-    var lb = util.loadBalance(this.nrows);
+    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -1250,7 +1251,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
  *  Verify that A is a Matrix and is not null or undefined
  */
 function checkMatrix(A) {
-    util.checkNotNullOrUndefined(A);
+    MW.util.checkNullOrUndefined(A);
     if (!(A instanceof Matrix)) {
         throw new TypeError("Expected type Matrix but is not.");
     }
@@ -1304,7 +1305,7 @@ MW.BatchOperation = {};
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
     // TODO: verify that all matrices have same dimensions, same with coefficients
-    var lb = util.loadBalance(matrices[0].nrows);
+    var lb = MW.util.loadBalance(matrices[0].nrows);
 
     // First combo initializes M
     var M = [];
@@ -1342,7 +1343,7 @@ MW.BatchOperation.wkScaleMatrixMatrixProductPlus = function(alpha, A, B, tag, re
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
 
-    var lb = util.loadBalance(A.nrows);
+    var lb = MW.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
 
