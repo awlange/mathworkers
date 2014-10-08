@@ -19,22 +19,6 @@ MW.MathWorker = function() {
 		return objectBuffer;
 	};
 
-	this.newVector = function(size) {
-		return new MW.Vector(size);
-	};
-
-	this.newVectorFromArray = function(arr) {
-		return MW.Vector.fromArray(arr);
-	};
-
-	this.newMatrix = function(nrows, ncols) {
-		return new MW.Matrix(nrows, ncols, pool.myWorkerId);
-	};
-
-	this.newMatrixFromArray = function(arr) {
-		return MW.Matrix.fromArray(arr, pool.myWorkerId);
-	};
-
  	this.sendDataToCoordinator = function(data, tag) {
  		self.postMessage({handle: "_sendData", id: pool.myWorkerId, tag: tag, data: data});
  	};

@@ -15,6 +15,7 @@ MW.Vector = function(size) {
 
 // Deep copy the array
 MW.Vector.fromArray = function(arr) {
+    util.checkArray(arr);
     var vec = new MW.Vector(arr.length);
     for (var i = 0; i < arr.length; ++i) {
         vec.array[i] = arr[i];
@@ -23,6 +24,7 @@ MW.Vector.fromArray = function(arr) {
 };
 
 MW.Vector.prototype.setVector = function(arr) {
+    util.checkFloat64Array(arr);
     this.array = arr;
     this.length = arr.length;
 };
@@ -36,6 +38,7 @@ MW.Vector.prototype.toString = function() {
 };
 
 MW.Vector.prototype.plus = function(w) {
+    checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] + w.array[i];
@@ -44,6 +47,7 @@ MW.Vector.prototype.plus = function(w) {
 };
 
 MW.Vector.prototype.minus = function(w) {
+    checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] - w.array[i];
@@ -52,6 +56,7 @@ MW.Vector.prototype.minus = function(w) {
 };
 
 MW.Vector.prototype.times = function(w) {
+    checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] * w.array[i];
@@ -60,6 +65,7 @@ MW.Vector.prototype.times = function(w) {
 };
 
 MW.Vector.prototype.dividedBy = function(w) {
+    checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] / w.array[i];
@@ -68,6 +74,7 @@ MW.Vector.prototype.dividedBy = function(w) {
 };
 
 MW.Vector.prototype.scale = function(alpha) {
+    util.checkNumber(alpha);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] * alpha;
@@ -76,6 +83,7 @@ MW.Vector.prototype.scale = function(alpha) {
 };
 
 MW.Vector.prototype.apply = function(fn) {
+    util.checkFunction(fn);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = fn(this.array[i]);
@@ -84,6 +92,7 @@ MW.Vector.prototype.apply = function(fn) {
 };
 
 MW.Vector.prototype.dot = function(w) {
+    checkVectors(this, w);
     var tot = 0.0;
     for (var i = 0; i < this.length; ++i) {
         tot += this.array[i] * w.array[i];
@@ -109,6 +118,7 @@ MW.Vector.prototype.sum = function() {
 
 // vector-matrix multiply: v.A
 MW.Vector.prototype.timesMatrix = function(A) {
+    checkVectorMatrix(this, A);
     var w = new MW.Vector(A.ncols);
     for (var i = 0; i < A.ncols; ++i) {
         var tot = 0.0;
@@ -121,6 +131,8 @@ MW.Vector.prototype.timesMatrix = function(A) {
 };
 
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
+    checkVectors(this, w);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -131,6 +143,8 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
+    checkVectors(this, w);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -141,6 +155,8 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
+    checkVectors(this, w);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -151,6 +167,8 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
+    checkVectors(this, w);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -161,6 +179,8 @@ MW.Vector.prototype.wkDividedBy = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
+    util.checkNumber(alpha);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -171,6 +191,8 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
+    util.checkFunction(fn);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -181,6 +203,7 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -190,6 +213,8 @@ MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
+    checkVectors(this, w);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -199,6 +224,7 @@ MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(this.length);
     var tot = 0.0;
     for (var i = lb.ifrom; i < lb.ito; ++i) {
@@ -209,6 +235,8 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 
 // vector-matrix multiply: v.A
 MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
+    checkVectorMatrix(this, A);
+    util.checkNotNullOrUndefined(tag);
     var lb = util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
@@ -221,5 +249,43 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
     }
     MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
+
+
+/**
+ *  Vector helper functions
+ */
+
+/**
+ *  Verify that v is a Vector and is not null or undefined
+ */
+function checkVector(v) {
+    util.checkNotNullOrUndefined(v);
+    if (!(v instanceof Vector)) {
+        throw new TypeError("Expected type Vector but is not.");
+    }
+}
+
+/**
+ *  Verify that Vectors v and w are equal length and not null or undefined
+ */
+function checkVectors(v, w) {
+    checkVector(v);
+    checkVector(w);
+    if (v.length !== w.length) {
+        throw new Error("Vectors have unequal lengths.");
+    }
+}
+
+/**
+ *  Verify that Vector v and Matrix A are compatible for vector-matrix products
+ *  and are both not null or undefined
+ */
+function checkVectorMatrix(v, A) {
+    checkVector(v);
+    checkMatrix(A);
+    if (v.length !== A.nrows) {
+        throw new Error("Vector length and number Matrix rows are unequal.");
+    }
+}
 
 
