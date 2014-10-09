@@ -12,6 +12,7 @@ MW.BatchOperation = {};
 MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, tag, rebroadcast) {
     MW.util.checkNumber(coefficients[0]);
     MW.util.checkVector(vectors[0]);
+    MW.util.checkNullOrUndefined(tag);
 
     // First combo initializes x
     var offset = 0;
@@ -41,6 +42,7 @@ MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, ta
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
     MW.util.checkNumber(coefficients[0]);
     MW.util.checkMatrix(matrices[0]);
+    MW.util.checkNullOrUndefined(tag);
 
     // First combo initializes M
     var M = [];
@@ -74,11 +76,45 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
     MW.MathWorker.gatherMatrix(M, lb.ifrom, tag, rebroadcast);
 };
 
+// z <- alpha * A.x + beta * y
+MW.BatchOperation.wkMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, beta, y) {
+    MW.util.checkNumber(alpha);
+    MW.util.checkMatrixVector(A, x);
+    MW.util.checkNullOrUndefined(tag);
+
+    var lb = MW.util.loadBalance(A.nrows);
+    var z = new Float64Array(lb.ito - lb.ifrom);
+    var offset = 0;
+    if (beta && y) {
+        MW.util.checkNumber(beta);
+        MW.util.checkVectors(x, y);
+        for (var i = lb.ifrom; i < lb.ito; ++i) {
+            var tot = 0.0;
+            for (var j = 0; j < this.ncols; ++j) {
+                tot += A.array[i][j] * v.array[j];
+            }
+            z[offset++] = alpha * tot + beta * y[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot = 0.0;
+            for (j = 0; j < this.ncols; ++j) {
+                tot += A.array[i][j] * v.array[j];
+            }
+            z[offset++] = alpha * tot;
+        }
+    }
+    MW.MathWorker.gatherVector(z, tag, rebroadcast);
+
+
+};
+
 
 // D = alpha * A.B + beta * C
 MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
     MW.util.checkNumber(alpha);
     MW.util.checkMatrixMatrix(A, B);
+    MW.util.checkNullOrUndefined(tag);
 
     // Transpose B for better row-major memory access
     // If square, save on memory by doing an in-place transpose
@@ -89,7 +125,10 @@ MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, b
 
     if (beta && C) {
         MW.util.checkNumber(beta);
-        MW.util.checkMatrix(C);  // not really checking dimensions here, but will do for now
+        MW.util.checkMatrix(C);
+        if (!(A.nrows === C.nrows && B.ncols === C.ncols)) {
+            throw new Error("Matrix dimensions not compatible for addition.");
+        }
 
         for (var i = lb.ifrom; i < lb.ito; ++i) {
             D.push(new Float64Array(B.ncols));

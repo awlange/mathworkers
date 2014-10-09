@@ -61,6 +61,8 @@
             <li>matrixLinearCombination<div id="matrixLinearCombination" class="pending">pending</div></li>
             <li>matrixMatrixPlus1<div id="matrixMatrixPlus1" class="pending">pending</div></li>
             <li>matrixMatrixPlus2<div id="matrixMatrixPlus2" class="pending">pending</div></li>
+            <li>matrixVectorPlus1<div id="matrixVectorPlus1" class="pending">pending</div></li>
+            <li>matrixVectorPlus2<div id="matrixVectorPlus2" class="pending">pending</div></li>
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -429,6 +431,42 @@ crd.on("matrixMatrixPlus2", function() {
     var M = A.timesMatrix(B).scale(alpha);
     var recv = crd.getBuffer();
     T.matrixEqual(M, recv);
+    T.passed();
+
+    crd.trigger("run_matrixVectorPlus1");
+});
+
+crd.on("matrixVectorPlus1", function() {
+    var T = new UT.Tester("matrixVectorPlus1");
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var y = Vector.fromArray([-5.0, -7.0, -9.0]);
+    var alpha = 0.45;
+    var beta = -10.0;
+    var z = A.timesVector(x).scale(alpha).plus(y.scale(beta));
+    var recv = crd.getBuffer();
+    T.matrixEqual(z, recv);
+    T.passed();
+
+    crd.trigger("run_matrixVectorPlus2");
+});
+
+crd.on("matrixVectorPlus2", function() {
+    var T = new UT.Tester("matrixVectorPlus2");
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var alpha = 0.45;
+    var z = A.timesVector(x).scale(alpha);
+    var recv = crd.getBuffer();
+    T.matrixEqual(z, recv);
     T.passed();
 
 //    crd.trigger("run_matrixMatrixPlus2");

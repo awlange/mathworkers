@@ -252,3 +252,27 @@ MW.on("run_matrixMatrixPlus2", function() {
     var alpha = 0.38;
     Batch.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus2");
 });
+
+MW.on("run_matrixVectorPlus1", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var y = Vector.fromArray([-5.0, -7.0, -9.0]);
+    var alpha = 0.45;
+    var beta = -10.0;
+    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus1", false, beta, y);
+});
+
+MW.on("run_matrixVectorPlus2", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var alpha = 0.45;
+    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus2");
+});
