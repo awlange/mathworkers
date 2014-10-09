@@ -10,14 +10,15 @@
 MW.BatchOperation = {};
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
-    // TODO: verify that all matrices have same dimensions, same with coefficients
-    var lb = MW.util.loadBalance(matrices[0].nrows);
+    MW.util.checkNumber(coefficients[0]);
+    MW.util.checkMatrix(matrices[0]);
 
     // First combo initializes M
     var M = [];
     var offset = 0;
     var mat = matrices[0];
     var coeff = coefficients[0];
+    var lb = MW.util.loadBalance(matrices[0].nrows);
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         M.push(new Float64Array(mat.ncols));
         for (var j = 0; j < mat.ncols; ++j) {
@@ -31,6 +32,8 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
         offset = 0;
         mat = matrices[a];
         coeff = coefficients[a];
+        MW.util.checkNumber(coeff);
+        MW.util.checkMatrices(matrices[a-1], mat);
         for (i = lb.ifrom; i < lb.ito; ++i) {
             for (j = 0; j < mat.ncols; ++j) {
                 M[offset][j] += coeff * mat.array[i][j]
@@ -44,16 +47,21 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
 
 
 // D = alpha * A.B + beta * C
-MW.BatchOperation.wkScaleMatrixMatrixProductPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+    MW.util.checkNumber(alpha);
+    MW.util.checkMatrixMatrix(A, B);
+
     // Transpose B for better row-major memory access
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
-
     var lb = MW.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
 
     if (beta && C) {
+        MW.util.checkNumber(beta);
+        MW.util.checkMatrix(C);  // not really checking dimensions here, but will do for now
+
         for (var i = lb.ifrom; i < lb.ito; ++i) {
             D.push(new Float64Array(B.ncols));
             for (var j = 0; j < B.ncols; ++j) {
