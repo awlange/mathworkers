@@ -57,7 +57,12 @@
 
         <h2>Batch operation tests</h2>
         <ul>
+            <li>vectorLinearCombination<div id="vectorLinearCombination" class="pending">pending</div></li>
             <li>matrixLinearCombination<div id="matrixLinearCombination" class="pending">pending</div></li>
+            <li>matrixMatrixPlus1<div id="matrixMatrixPlus1" class="pending">pending</div></li>
+            <li>matrixMatrixPlus2<div id="matrixMatrixPlus2" class="pending">pending</div></li>
+            <li>matrixVectorPlus1<div id="matrixVectorPlus1" class="pending">pending</div></li>
+            <li>matrixVectorPlus2<div id="matrixVectorPlus2" class="pending">pending</div></li>
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -364,7 +369,25 @@ crd.on("vectorTimesMatrixRebroadcast", function() {
 	T.isTrue(messageList[1]);
 	T.passed();
 
-	crd.trigger("run_matrixLinearCombination");
+	crd.trigger("run_vectorLinearCombination");
+});
+
+crd.on("vectorLinearCombination", function() {
+    var T = new UT.Tester("vectorLinearCombination");
+    var vectors = [
+      Vector.fromArray([1.0, 2.0, 3.0]),
+      Vector.fromArray([5.0, 8.0, 22.0]),
+      Vector.fromArray([-1.0, 200.0, -30.0])
+    ];
+    var coefficients = [0.5, 20.0, -7.7];
+    var v = vectors[0].scale(coefficients[0])
+            .plus(vectors[1].scale(coefficients[1]))
+            .plus(vectors[2].scale(coefficients[2]));
+    var recv = crd.getBuffer();
+    T.vectorEqual(v, recv);
+    T.passed();
+
+    crd.trigger("run_matrixLinearCombination");
 });
 
 crd.on("matrixLinearCombination", function() {
@@ -382,7 +405,71 @@ crd.on("matrixLinearCombination", function() {
     T.matrixEqual(M, recv);
     T.passed();
 
-//    crd.trigger("run_multipleMatrixVectorProduct");
+    crd.trigger("run_matrixMatrixPlus1");
+});
+
+crd.on("matrixMatrixPlus1", function() {
+    var T = new UT.Tester("matrixMatrixPlus1");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+    var C = Matrix.fromArray([[30.0, 20.0, 10.0], [60.0, 50.0, 40.0], [90.0, 80.0, 70.0]]);
+    var alpha = 0.38;
+    var beta = -0.77;
+    var M = A.timesMatrix(B).scale(alpha).plus(C.scale(beta));
+    var recv = crd.getBuffer();
+    T.matrixEqual(M, recv);
+    T.passed();
+
+    crd.trigger("run_matrixMatrixPlus2");
+});
+
+crd.on("matrixMatrixPlus2", function() {
+    var T = new UT.Tester("matrixMatrixPlus2");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+    var alpha = 0.38;
+    var M = A.timesMatrix(B).scale(alpha);
+    var recv = crd.getBuffer();
+    T.matrixEqual(M, recv);
+    T.passed();
+
+    crd.trigger("run_matrixVectorPlus1");
+});
+
+crd.on("matrixVectorPlus1", function() {
+    var T = new UT.Tester("matrixVectorPlus1");
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var y = Vector.fromArray([-5.0, -7.0, -9.0]);
+    var alpha = 0.45;
+    var beta = -10.0;
+    var z = A.timesVector(x).scale(alpha).plus(y.scale(beta));
+    var recv = crd.getBuffer();
+    T.matrixEqual(z, recv);
+    T.passed();
+
+    crd.trigger("run_matrixVectorPlus2");
+});
+
+crd.on("matrixVectorPlus2", function() {
+    var T = new UT.Tester("matrixVectorPlus2");
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var alpha = 0.45;
+    var z = A.timesVector(x).scale(alpha);
+    var recv = crd.getBuffer();
+    T.matrixEqual(z, recv);
+    T.passed();
+
+//    crd.trigger("run_matrixMatrixPlus2");
 });
 
 		</script>

@@ -198,6 +198,16 @@ MW.on("vtmre", function(vec) {
 	MW.sendDataToCoordinator(pass, "vectorTimesMatrixRebroadcast");
 });
 
+MW.on("run_vectorLinearCombination", function() {
+    var vectors = [
+        Vector.fromArray([1.0, 2.0, 3.0]),
+        Vector.fromArray([5.0, 8.0, 22.0]),
+        Vector.fromArray([-1.0, 200.0, -30.0])
+    ];
+    var coefficients = [0.5, 20.0, -7.7];
+    Batch.wkVectorLinearCombination(vectors, coefficients, "vectorLinearCombination");
+});
+
 MW.on("run_matrixLinearCombination", function() {
     var matrices = [
         Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]),
@@ -207,3 +217,62 @@ MW.on("run_matrixLinearCombination", function() {
     Batch.wkMatrixLinearCombination(matrices, coefficients, "matrixLinearCombination");
 });
 
+MW.on("run_matrixMatrixPlus1", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var B = Matrix.fromArray([
+        [3.0, 2.0, 1.0],
+        [6.0, 5.0, 4.0],
+        [9.0, 8.0, 7.0]
+    ]);
+    var C = Matrix.fromArray([
+        [30.0, 20.0, 10.0],
+        [60.0, 50.0, 40.0],
+        [90.0, 80.0, 70.0]
+    ]);
+    var alpha = 0.38;
+    var beta = -0.77;
+    Batch.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus1", false, beta, C);
+});
+
+MW.on("run_matrixMatrixPlus2", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var B = Matrix.fromArray([
+        [3.0, 2.0, 1.0],
+        [6.0, 5.0, 4.0],
+        [9.0, 8.0, 7.0]
+    ]);
+    var alpha = 0.38;
+    Batch.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus2");
+});
+
+MW.on("run_matrixVectorPlus1", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var y = Vector.fromArray([-5.0, -7.0, -9.0]);
+    var alpha = 0.45;
+    var beta = -10.0;
+    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus1", false, beta, y);
+});
+
+MW.on("run_matrixVectorPlus2", function() {
+    var A = Matrix.fromArray([
+        [1.0, 2.0, 3.0],
+        [4.0, 5.0, 6.0],
+        [7.0, 8.0, 9.0]
+    ]);
+    var x = Vector.fromArray([2.0, 4.0, 8.0]);
+    var alpha = 0.45;
+    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus2");
+});
