@@ -76,16 +76,20 @@ var log = new Logger();
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  General internal utility functions
+ *  General utility functions intended for internal use
  */
 MW.util = {};
 
+/**
+ * Load balancing function.
+ * Divides n up evenly among the number of workers in the pool.
+ * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
+ */
 MW.util.loadBalance = function(n) {
     var id = pool.myWorkerId;
 	var div = Math.floor(n / pool.nWorkers);
 	var rem = n % pool.nWorkers;
 
-	// distribute remainder as evenly as possible
 	var ifrom;
 	var ito;
 	if (id < rem) {
@@ -145,6 +149,84 @@ MW.util.checkFloat64Array = function(x) {
     MW.util.checkNullOrUndefined(x);
     if (!(x instanceof Float64Array)) {
         throw new TypeError("Expected type Float64Array but is type " + typeof x);
+    }
+};
+
+/**
+ *  Verify that v is a Vector and is not null or undefined
+ */
+MW.util.checkVector = function(v) {
+    MW.util.checkNullOrUndefined(v);
+    if (!(v instanceof MW.Vector)) {
+        throw new TypeError("Expected type Vector but is not.");
+    }
+};
+
+/**
+ *  Verify that Vectors v and w are equal length and not null or undefined
+ */
+MW.util.checkVectors = function(v, w) {
+    MW.util.checkVector(v);
+    MW.util.checkVector(w);
+    if (v.length !== w.length) {
+        throw new Error("Vectors have unequal lengths.");
+    }
+};
+
+/**
+ *  Verify that Vector v and Matrix A are compatible for vector-matrix products
+ *  and are both not null or undefined
+ */
+MW.util.checkVectorMatrix = function(v, A) {
+    MW.util.checkVector(v);
+    MW.util.checkMatrix(A);
+    if (v.length !== A.nrows) {
+        throw new Error("Vector length and number Matrix rows are unequal.");
+    }
+};
+
+/**
+ *  Verify that A is a Matrix and is not null or undefined
+ */
+MW.util.checkMatrix = function(A) {
+    MW.util.checkNullOrUndefined(A);
+    if (!(A instanceof MW.Matrix)) {
+        throw new TypeError("Expected type Matrix but is not.");
+    }
+};
+
+/**
+ *  Verify that Matrix A and Matrix B have equal dimensions and are neither null nor undefined
+ */
+MW.util.checkMatrices = function(A, B) {
+    MW.util.checkMatrix(A);
+    MW.util.checkMatrix(B);
+    if (!(A.nrows === B.nrows && A.ncols === B.ncols)) {
+        throw new Error("Matrices do not have equal numbers of rows and columns.");
+    }
+};
+
+/**
+ *  Verify that Matrix A and Vector v are compatible for matrix-vector products
+ *  and are both not null or undefined
+ */
+MW.util.checkMatrixVector = function(A, v) {
+    MW.util.checkMatrix(A);
+    MW.util.checkVector(v);
+    if (v.length !== A.ncols) {
+        throw new Error("Vector length and number Matrix columns are unequal.");
+    }
+};
+
+/**
+ *  Verify that Matrix A and Matrix B have compatible dimensions for matrix-matrix
+ *  multiplication and are neither null nor undefined
+ */
+MW.util.checkMatrixMatrix = function(A, B) {
+    MW.util.checkMatrix(A);
+    MW.util.checkMatrix(B);
+    if (A.ncols !== B.nrows) {
+        throw new Error("Matrices do not have compatible dimensions for matrix-matrix multiplication.");
     }
 };
 
@@ -644,7 +726,7 @@ MW.Vector.prototype.toString = function() {
 };
 
 MW.Vector.prototype.plus = function(w) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] + w.array[i];
@@ -653,7 +735,7 @@ MW.Vector.prototype.plus = function(w) {
 };
 
 MW.Vector.prototype.minus = function(w) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] - w.array[i];
@@ -662,7 +744,7 @@ MW.Vector.prototype.minus = function(w) {
 };
 
 MW.Vector.prototype.timesElementwise = function(w) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] * w.array[i];
@@ -671,7 +753,7 @@ MW.Vector.prototype.timesElementwise = function(w) {
 };
 
 MW.Vector.prototype.divide = function(w) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
         result.array[i] = this.array[i] / w.array[i];
@@ -698,7 +780,7 @@ MW.Vector.prototype.apply = function(fn) {
 };
 
 MW.Vector.prototype.dot = function(w) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     var tot = 0.0;
     for (var i = 0; i < this.length; ++i) {
         tot += this.array[i] * w.array[i];
@@ -724,7 +806,7 @@ MW.Vector.prototype.sum = function() {
 
 // vector-matrix multiply: v.A
 MW.Vector.prototype.timesMatrix = function(A) {
-    checkVectorMatrix(this, A);
+    MW.util.checkVectorMatrix(this, A);
     var w = new MW.Vector(A.ncols);
     for (var i = 0; i < A.ncols; ++i) {
         var tot = 0.0;
@@ -737,7 +819,7 @@ MW.Vector.prototype.timesMatrix = function(A) {
 };
 
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
@@ -749,7 +831,7 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
@@ -761,7 +843,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
@@ -773,7 +855,7 @@ MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
@@ -819,7 +901,7 @@ MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
 };
 
 MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
-    checkVectors(this, w);
+    MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var tot = 0.0;
@@ -841,7 +923,7 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 
 // vector-matrix multiply: v.A
 MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
-    checkVectorMatrix(this, A);
+    MW.util.checkVectorMatrix(this, A);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
@@ -855,44 +937,6 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
     }
     MW.MathWorker.gatherVector(w, tag, rebroadcast);
 };
-
-
-/**
- *  Vector helper functions
- */
-
-/**
- *  Verify that v is a Vector and is not null or undefined
- */
-function checkVector(v) {
-    MW.util.checkNullOrUndefined(v);
-    if (!(v instanceof Vector)) {
-        throw new TypeError("Expected type Vector but is not.");
-    }
-}
-
-/**
- *  Verify that Vectors v and w are equal length and not null or undefined
- */
-function checkVectors(v, w) {
-    checkVector(v);
-    checkVector(w);
-    if (v.length !== w.length) {
-        throw new Error("Vectors have unequal lengths.");
-    }
-}
-
-/**
- *  Verify that Vector v and Matrix A are compatible for vector-matrix products
- *  and are both not null or undefined
- */
-function checkVectorMatrix(v, A) {
-    checkVector(v);
-    checkMatrix(A);
-    if (v.length !== A.nrows) {
-        throw new Error("Vector length and number Matrix rows are unequal.");
-    }
-}
 
 
 // Copyright 2014 Adrian W. Lange
@@ -975,7 +1019,7 @@ MW.Matrix.prototype.toString = function() {
 };
 
 MW.Matrix.prototype.plus = function(B) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -986,7 +1030,7 @@ MW.Matrix.prototype.plus = function(B) {
 };
 
 MW.Matrix.prototype.minus = function(B) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -997,7 +1041,7 @@ MW.Matrix.prototype.minus = function(B) {
 };
 
 MW.Matrix.prototype.timesElementwise = function(B) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -1008,7 +1052,7 @@ MW.Matrix.prototype.timesElementwise = function(B) {
 };
 
 MW.Matrix.prototype.divide = function(B) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
         for (var j = 0; j < this.ncols; ++j) {
@@ -1067,7 +1111,7 @@ MW.Matrix.prototype.transposeInPlace = function() {
 
 // matrix-vector multiply: A.v
 MW.Matrix.prototype.timesVector = function(v) {
-    checkMatrixVector(this, v);
+    MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
     for (var i = 0; i < this.nrows; ++i) {
         var tot = 0.0;
@@ -1081,7 +1125,7 @@ MW.Matrix.prototype.timesVector = function(v) {
 
 // matrix-matrix multiply: A.B
 MW.Matrix.prototype.timesMatrix = function(B) {
-    checkMatrixMatrix(this, B);
+    MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
     // Transpose B for better row-major memory access
     var Bt = B.transpose();
@@ -1098,7 +1142,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
 };
 
 MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
@@ -1114,7 +1158,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
 };
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
@@ -1130,7 +1174,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
 };
 
 MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
@@ -1146,7 +1190,7 @@ MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
 };
 
 MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
-    checkMatrices(this, B);
+    MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
@@ -1195,7 +1239,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 
 // matrix-vector multiply: A.v
 MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
-    checkMatrixVector(this, v);
+    MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var w = new Float64Array(lb.ito - lb.ifrom);
@@ -1212,7 +1256,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
 
 // C = A.B
 MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
-    checkMatrixMatrix(this, B);
+    MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
     // Transpose B for better row-major memory access
@@ -1247,50 +1291,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
  *  Matrix helper functions
  */
 
-/**
- *  Verify that A is a Matrix and is not null or undefined
- */
-function checkMatrix(A) {
-    MW.util.checkNullOrUndefined(A);
-    if (!(A instanceof Matrix)) {
-        throw new TypeError("Expected type Matrix but is not.");
-    }
-}
 
-/**
- *  Verify that Matrix A and Matrix B have equal dimensions and are neither null nor undefined
- */
-function checkMatrices(A, B) {
-    checkMatrix(A);
-    checkMatrix(B);
-    if (!(A.nrows === B.nrows && A.ncols === B.ncols)) {
-        throw new Error("Matrices do not have equal numbers of rows and columns.");
-    }
-}
-
-/**
- *  Verify that Matrix A and Vector v are compatible for matrix-vector products
- *  and are both not null or undefined
- */
-function checkMatrixVector(A, v) {
-    checkMatrix(A);
-    checkVector(v);
-    if (v.length !== A.ncols) {
-        throw new Error("Vector length and number Matrix columns are unequal.");
-    }
-}
-
-/**
- *  Verify that Matrix A and Matrix B have compatible dimensions for matrix-matrix
- *  multiplication and are neither null nor undefined
- */
-function checkMatrixMatrix(A, B) {
-    checkMatrix(A);
-    checkMatrix(B);
-    if (A.ncols !== B.nrows) {
-        throw new Error("Matrices do not have compatible dimensions for matrix-matrix multiplication.");
-    }
-}
 
 // Copyright 2014 Adrian W. Lange
 
@@ -1304,14 +1305,15 @@ function checkMatrixMatrix(A, B) {
 MW.BatchOperation = {};
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
-    // TODO: verify that all matrices have same dimensions, same with coefficients
-    var lb = MW.util.loadBalance(matrices[0].nrows);
+    MW.util.checkNumber(coefficients[0]);
+    MW.util.checkMatrix(matrices[0]);
 
     // First combo initializes M
     var M = [];
     var offset = 0;
     var mat = matrices[0];
     var coeff = coefficients[0];
+    var lb = MW.util.loadBalance(matrices[0].nrows);
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         M.push(new Float64Array(mat.ncols));
         for (var j = 0; j < mat.ncols; ++j) {
@@ -1325,6 +1327,8 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
         offset = 0;
         mat = matrices[a];
         coeff = coefficients[a];
+        MW.util.checkNumber(coeff);
+        MW.util.checkMatrices(matrices[a-1], mat);
         for (i = lb.ifrom; i < lb.ito; ++i) {
             for (j = 0; j < mat.ncols; ++j) {
                 M[offset][j] += coeff * mat.array[i][j]
@@ -1338,16 +1342,21 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
 
 
 // D = alpha * A.B + beta * C
-MW.BatchOperation.wkScaleMatrixMatrixProductPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+    MW.util.checkNumber(alpha);
+    MW.util.checkMatrixMatrix(A, B);
+
     // Transpose B for better row-major memory access
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
-
     var lb = MW.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
 
     if (beta && C) {
+        MW.util.checkNumber(beta);
+        MW.util.checkMatrix(C);  // not really checking dimensions here, but will do for now
+
         for (var i = lb.ifrom; i < lb.ito; ++i) {
             D.push(new Float64Array(B.ncols));
             for (var j = 0; j < B.ncols; ++j) {

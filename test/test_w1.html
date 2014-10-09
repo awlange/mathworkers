@@ -50,6 +50,13 @@
             <li>checkFunction<div id="checkFunction" class="pending">pending</div></li>
             <li>checkArray<div id="checkArray" class="pending">pending</div></li>
             <li>checkFloat64Array<div id="checkFloat64Array" class="pending">pending</div></li>
+            <li>checkVector<div id="checkVector" class="pending">pending</div></li>
+            <li>checkVectors<div id="checkVectors" class="pending">pending</div></li>
+            <li>checkMatrix<div id="checkMatrix" class="pending">pending</div></li>
+            <li>checkMatrices<div id="checkMatrices" class="pending">pending</div></li>
+            <li>checkMatrixVector<div id="checkMatrixVector" class="pending">pending</div></li>
+            <li>checkVectorMatrix<div id="checkVectorMatrix" class="pending">pending</div></li>
+            <li>checkMatrixMatrix<div id="checkMatrixMatrix" class="pending">pending</div></li>
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
@@ -428,6 +435,198 @@ serialTests.push( function() {
         util.checkFloat64Array([]);
     } catch (err) {
         T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVector");
+    T.tests = [true, false, false];
+    try {
+        util.checkVector(new Vector(3));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVector("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVector(null);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVectors");
+    T.tests = [true, false, false, false];
+    try {
+        util.checkVectors(new Vector(5), new Vector(5));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVectors(new Vector(10), new Vector(20));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVectors(null, new Vector(3));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkVectors(new Vector(3), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrix");
+    T.tests = [true, false, false];
+    try {
+        util.checkMatrix(new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrix(new Vector(10));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrix(null);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrices");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkMatrices(new Matrix(5, 4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrices(new Vector(10), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrices(null, new Matrix(3, 2));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrices(new Matrix(2, 2), new Matrix(3, 2));
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrices(new Matrix(2, 2), new Matrix(2, 3));
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrixVector");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkMatrixVector(new Matrix(5, 4), new Vector(4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrixVector(new Vector(4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrixVector(null, new Vector(4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrixVector(new Matrix(5, 4), new Vector(3));
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrixVector(new Matrix(2, 2), null);
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVectorMatrix");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkVectorMatrix(new Vector(5), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVectorMatrix(new Vector(4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVectorMatrix(null, new Matrix(5, 4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkVectorMatrix(new Vector(5), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkVectorMatrix(new Matrix(2, 2), new Vector(2));
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrixMatrix");
+    T.tests = [true, true, false, false, false];
+    try {
+        util.checkMatrixMatrix(new Matrix(5, 4), new Matrix(4, 3));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(2, 2), new Matrix(2, 2));
+    } catch (err) {
+        T.tests[1] = false;
+    }
+    try {
+        util.checkMatrixMatrix(null, new Matrix(5, 4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(5, 4), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(2, 2), new Vector(2));
+    } catch (err) {
+        T.tests[4] = true;
     }
     T.passed();
 });
