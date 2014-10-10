@@ -717,6 +717,14 @@ MW.Vector.prototype.setVector = function(arr) {
     this.length = arr.length;
 };
 
+MW.Vector.randomVector = function(size) {
+    var vec = new Vector(size);
+    for (var i = 0; i < size; ++i) {
+        vec.array[i] = Math.random();
+    }
+    return vec;
+};
+
 MW.Vector.prototype.toString = function() {
     var str = "[";
     for (var i = 0; i < this.length - 1; ++i) {
@@ -1003,6 +1011,16 @@ MW.Matrix.identity = function(n) {
     return mat;
 };
 
+MW.Matrix.randomMatrix = function(nrows, ncols) {
+    var mat = new Matrix(nrows, ncols);
+    for (var i = 0; i < nrows; ++i) {
+        for (var j = 0; j < ncols; ++j) {
+            mat.array[i][j] = Math.random();
+        }
+    }
+    return mat;
+};
+
 MW.Matrix.prototype.toString = function() {
     var str = "";
     for (var i = 0; i < this.nrows; ++i) {
@@ -1285,12 +1303,6 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
 
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
-
-
-/**
- *  Matrix helper functions
- */
-
 
 
 // Copyright 2014 Adrian W. Lange

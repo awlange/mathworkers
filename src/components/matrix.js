@@ -62,6 +62,16 @@ MW.Matrix.identity = function(n) {
     return mat;
 };
 
+MW.Matrix.randomMatrix = function(nrows, ncols) {
+    var mat = new Matrix(nrows, ncols);
+    for (var i = 0; i < nrows; ++i) {
+        for (var j = 0; j < ncols; ++j) {
+            mat.array[i][j] = Math.random();
+        }
+    }
+    return mat;
+};
+
 MW.Matrix.prototype.toString = function() {
     var str = "";
     for (var i = 0; i < this.nrows; ++i) {
@@ -344,11 +354,5 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
 
     MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
 };
-
-
-/**
- *  Matrix helper functions
- */
-
 
 
