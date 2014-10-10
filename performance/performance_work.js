@@ -4,34 +4,16 @@ var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
 
-function getRandomVector(size) {
-	var vec = new Vector(size);
-	for (var i = 0; i < size; ++i) {
-		vec.array[i] = Math.random();
-	}
-	return vec;
-}
-
-function getRandomMatrix(nrows, ncols) {
-	var mat = new Matrix(nrows, ncols);
-	for (var i = 0; i < nrows; ++i) {
-		for (var j = 0; j < ncols; ++j) {
-			mat.array[i][j] = Math.random();
-		}
-	}
-	return mat;
-}
-
 // Some vectors and matrices to play with
 var v, w, x;
 var A, B;
 
 MW.on("set", function() {
-	v = getRandomVector(2000);
-	w = getRandomVector(2000);
-	x = getRandomVector(400);
-	A = getRandomMatrix(400, 400);
-	B = getRandomMatrix(400, 400);
+	v = Vector.randomVector(2000);
+	w = Vector.randomVector(2000);
+	x = Vector.randomVector(400);
+	A = Matrix.randomMatrix(400, 400);
+	B = Matrix.randomMatrix(400, 400);
 });
 
 MW.on("run_vectorDot", function() {
@@ -44,4 +26,11 @@ MW.on("run_vectorMatrixProduct", function() {
 
 MW.on("run_matrixMatrixProduct", function() {
 	A.wkTimesMatrix(B, "matrixMatrixProduct");
+});
+
+MW.on("run_matrixMatrixPlus", function() {
+    var C = Matrix.randomMatrix(400, 400);
+    var alpha = 0.5;
+    var beta = 0.96;
+    MathWorkers.BatchOperation.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus", false, beta, C);
 });
