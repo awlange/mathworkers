@@ -73,7 +73,7 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
         }
     }
 
-    MW.MathWorker.gatherMatrixRows(M, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(M, mat.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 // z <- alpha * A.x + beta * y
@@ -160,6 +160,6 @@ MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, b
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrixRows(D, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
 };
 

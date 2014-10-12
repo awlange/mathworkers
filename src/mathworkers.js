@@ -27,6 +27,33 @@ var MW = {};
 // Copyright 2014 Adrian W. Lange
 
 /**
+ *  MathWorkers globally available data
+ */
+var global = {};
+
+// Globally scoped useful variables, defaults
+global.workerPool = [];
+global.nWorkers = 1;
+global.myWorkerId = 0;
+global.unrollLoops = false;  // if true, use the loop unrolled versions of certain functions
+
+global.createPool = function(nWorkersInput, workerScriptName, logLevel) {
+	for (var i = 0; i < nWorkersInput; ++i) {
+		var worker = new Worker(workerScriptName);
+		worker.postMessage({handle: "_init", id: i,
+			nWorkers: nWorkersInput, logLevel: logLevel, unrollLoops: global.unrollLoops});
+		this.workerPool.push(worker);
+        this.nWorkers = this.workerPool.length;
+	}
+
+	this.getWorker = function(workerId) {
+		return this.workerPool[workerId];
+	};
+};
+
+// Copyright 2014 Adrian W. Lange
+
+/**
  *  Logging controller
  *
  *  levels:
@@ -86,9 +113,9 @@ MW.util = {};
  * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
  */
 MW.util.loadBalance = function(n) {
-    var id = pool.myWorkerId;
-	var div = Math.floor(n / pool.nWorkers);
-	var rem = n % pool.nWorkers;
+    var id = global.myWorkerId;
+	var div = Math.floor(n / global.nWorkers);
+	var rem = n % global.nWorkers;
 
 	var ifrom;
 	var ito;
@@ -256,35 +283,9 @@ function EventEmitter() {
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  MathWorker Pool 
- */
-var pool = {};
-
-// Globally scoped useful variables, defaults
-pool.workerPool = [];
-pool.nWorkers = 1;
-pool.myWorkerId = 0;
-
-pool.create = function(nWorkersInput, workerScriptName, logLevel) {
-	for (var i = 0; i < nWorkersInput; ++i) {
-		var worker = new Worker(workerScriptName);
-		worker.postMessage({handle: "_init", id: i,
-			nWorkers: nWorkersInput, logLevel: logLevel});
-		this.workerPool.push(worker);
-        this.nWorkers = this.workerPool.length;
-	}
-
-	this.getWorker = function(workerId) {
-		return this.workerPool[workerId];
-	};
-};
-
-// Copyright 2014 Adrian W. Lange
-
-/**
  *  Coordinator for browser-side interface
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
+MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
@@ -293,8 +294,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
     logLevel = logLevel || 2;
 	log.setLevel("coord", logLevel);
 
+    // Whether or not to use loop unrolling in certain functions
+    if (unrollLoops !== undefined && unrollLoops !== null) {
+        global.unrollLoops = unrollLoops;
+    }
+
 	// Create the worker pool, which starts the workers
-	pool.create(nWorkersInput, workerScriptName, logLevel);
+	global.createPool(nWorkersInput, workerScriptName, logLevel);
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -305,29 +311,29 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	};
 
 	this.trigger = function(tag, args) {
-		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-			pool.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
+		for (var wk = 0; wk < global.nWorkers; ++wk) {
+			global.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
 	this.sendDataToWorkers = function(dat, tag) {
-		for (var wk = 0; wk < pool.nWorkers; ++wk) {
-			pool.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
+		for (var wk = 0; wk < global.nWorkers; ++wk) {
+			global.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
 		}
 	};
 
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferable object message passing
-		for (var wk = 0; wk < pool.nWorkers; ++wk) {
+		for (var wk = 0; wk < global.nWorkers; ++wk) {
 			var v = new Float64Array(vec.array);
-			pool.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
+			global.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
 		}
 	};
 
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferable object message passing
-		for (var wk = 0; wk < pool.nWorkers; ++wk) {
+		for (var wk = 0; wk < global.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
 			for (var i = 0; i < mat.nrows; ++i) {
@@ -335,7 +341,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 				matObject[i] = row.buffer;
 				matBufferList.push(row.buffer);
 			}
-			pool.getWorker(wk).postMessage(matObject, matBufferList);
+			global.getWorker(wk).postMessage(matObject, matBufferList);
 		}
 	};
 
@@ -382,8 +388,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	// Register the above onmessageHandler for each worker in the pool
  	// Also, initialize the message data buffer with empty objects
- 	for (var wk = 0; wk < pool.nWorkers; ++wk) {
- 		pool.getWorker(wk).onmessage = onmessageHandler;
+ 	for (var wk = 0; wk < global.nWorkers; ++wk) {
+ 		global.getWorker(wk).onmessage = onmessageHandler;
  		messageDataBuffer.push({});
  	}
 
@@ -395,7 +401,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.nWorkers) {
+ 		if (nWorkersReported == global.nWorkers) {
  			that.ready = true;
  			that.emit("_ready");
  			// reset for next message
@@ -406,7 +412,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  	var handleSendData = function(data) {
  		messageDataBuffer[data.id] = data.data;
  		nWorkersReported += 1;
- 		if (nWorkersReported == pool.nWorkers) {
+ 		if (nWorkersReported == global.nWorkers) {
  			that.emit(data.tag);
  			// reset for next message
 			nWorkersReported = 0;	
@@ -436,7 +442,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		tot += data.len;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.nWorkers) {
+		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			objectBuffer = new MW.Vector();
 			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
@@ -456,7 +462,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var buildVectorFromParts = function(gatherVector, totalLength) {
 		var vec = new Float64Array(totalLength);
 		var offset = 0;
-		for (var i = 0; i < pool.nWorkers; ++i) {
+		for (var i = 0; i < global.nWorkers; ++i) {
 			for (var j = 0; j < gatherVector[i].length; ++j) {
 				vec[offset + j] = gatherVector[i][j];
 			}
@@ -465,27 +471,19 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		return vec;
 	};
 
-    var buildMatrixFromParts = function(gatherMatrix, totalRows) {
-        var result = [];
-        for (var i = 0; i < totalRows; ++i) {
-            result.push(gatherMatrix[i]);
-        }
-        return result;
-    };
-
 	var handleGatherMatrixRows = function(data) {
 		// Reduce the matrix rows from each worker
         var offset = data.offset;
-		for (var i = 0; i < data.nrows; ++i) {
-			gatherMatrix[offset + i] = new Float64Array(data[i]);
+        if (nWorkersReported == 0) {
+            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
+        }
+        for (var i = 0; i < data.nrowsPart; ++i) {
+			objectBuffer.array[offset + i] = new Float64Array(data[i]);
 		}
-		tot += data.nrows;
 
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.nWorkers) {
+		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
-			objectBuffer = new MW.Matrix();
-			objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, tot));
 			if (data.rebroadcast) {
 				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
@@ -503,25 +501,23 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
         // Reduce the matrix columns from each worker
         var i, k;
         if (nWorkersReported == 0) {
-            for (i = 0; i < data.nrows; ++i) {
-                gatherMatrix[i] = new Float64Array(data.ncols);
-            }
+            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
         }
 
+        // array in data is transposed
         var tmpArray;
         var offset = data.offset;
-        for (i = 0; i < data.nrows; ++i) {
-            tmpArray = new Float64Array(data[i]);
-            for (k = 0; k < tmpArray.length; ++k) {
-                gatherMatrix[i][offset + k] = tmpArray[k];
+        var offsetk;
+        for (k = 0; k < data.nrowsPart; ++k) {
+            tmpArray = new Float64Array(data[k]);
+            offsetk = offset + k;
+            for (i = 0; i < tmpArray.length; ++i) {
+                objectBuffer.array[i][offsetk] = tmpArray[i];
             }
         }
 
         nWorkersReported += 1;
-        if (nWorkersReported == pool.nWorkers) {
-            // build the full vector and save to buffer
-            objectBuffer = new MW.Matrix();
-            objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, data.nrows));
+        if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
                 that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
@@ -531,14 +527,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
             //reset
             nWorkersReported = 0;
             tot = 0;
-            gatherMatrix = {};
         }
     };
 
 	var handleVectorNorm = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.nWorkers) {
+		if (nWorkersReported == global.nWorkers) {
 			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
@@ -557,7 +552,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var handleVectorSum = function(data) {
 		tot += data.tot;
 		nWorkersReported += 1;
-		if (nWorkersReported == pool.nWorkers) {
+		if (nWorkersReported == global.nWorkers) {
 			objectBuffer = tot;
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
@@ -585,11 +580,11 @@ MW.MathWorker = function() {
  	var triggers = {};
 
  	this.getId = function() {
- 		return pool.myWorkerId;
+ 		return global.myWorkerId;
  	};
 
  	this.getNumWorkers = function() {
- 		return pool.nWorkers;
+ 		return global.nWorkers;
  	};
 
 	this.getBuffer = function() {
@@ -597,12 +592,12 @@ MW.MathWorker = function() {
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "_sendData", id: pool.myWorkerId, tag: tag, data: data});
+ 		self.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
  	};
 
     this.sendVectorToCoordinator = function(vec, tag) {
         // only id 0 does the sending actually
-        if (pool.myWorkerId == 0) {
+        if (global.myWorkerId == 0) {
             self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
                 vectorBuffer: vec.array.buffer}, [vec.array.buffer]);
         }
@@ -652,10 +647,11 @@ MW.MathWorker = function() {
     };
 
  	var handleInit = function(data) {
-        pool.myWorkerId = data.id;
-        pool.nWorkers = data.nWorkers;
- 		log.setLevel("w" + pool.myWorkerId, data.logLevel);
- 		log.debug("Initialized MathWorker: " + pool.myWorkerId + " of " + pool.nWorkers + " workers.");
+        global.myWorkerId = data.id;
+        global.nWorkers = data.nWorkers;
+        global.unrollLoops = data.unrollLoops;
+ 		log.setLevel("w" + global.myWorkerId, data.logLevel);
+ 		log.debug("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
  		self.postMessage({handle: "_workerReady"});
  	};
 
@@ -699,14 +695,14 @@ MW.MathWorker.prototype = new EventEmitter();
  */
 MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
+    self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
-MW.MathWorker.gatherMatrixRows = function(mat, offset, tag, rebroadcast) {
+MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    var matObject = {handle: "_gatherMatrixRows", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
-        nrows: mat.length, offset: offset};
+    var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {
         matObject[i] = mat[i].buffer;
@@ -715,10 +711,10 @@ MW.MathWorker.gatherMatrixRows = function(mat, offset, tag, rebroadcast) {
     self.postMessage(matObject, matBufferList);
 };
 
-MW.MathWorker.gatherMatrixColumns = function(mat, totalCols, offset, tag, rebroadcast) {
+MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
-        nrows: mat.length, ncols: totalCols, offset: offset};
+    var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {
         matObject[i] = mat[i].buffer;
@@ -1012,8 +1008,9 @@ MW.Matrix = function(nrows, ncols) {
     this.ncols = ncols || 0;
 
     if (nrows > 0 && ncols > 0) {
+        this.array = new Array(nrows);
         for (var r = 0; r < nrows; ++r) {
-            this.array.push(new Float64Array(ncols));
+            this.array[r] = new Float64Array(ncols);
         }
     }
 };
@@ -1215,15 +1212,36 @@ MW.Matrix.prototype.timesMatrix = function(B) {
     var nj = this.ncols;
     var nk = B.ncols;
 
+    var nj1 = nj - 3;
+
     var Bk = new Float64Array(nj);
-    for (k = 0; k < nk; ++k) {
-        B.copyColumn(k, Bk);
-        for (i = 0; i < ni; ++i) {
-            tot = this.array[i][0] * Bk[0];
-            for (j = 1; j < nj; ++j) {
-                tot += this.array[i][j] * Bk[j];
+    if (global.unrollLoops) {
+        for (k = 0; k < nk; ++k) {
+            B.copyColumn(k, Bk);
+            for (i = 0; i < ni; ++i) {
+                tot = 0.0;
+                for (j = 0; j < nj1; j += 4) {
+                    tot += this.array[i][j] * Bk[j]
+                        + this.array[i][j + 1] * Bk[j + 1]
+                        + this.array[i][j + 2] * Bk[j + 2]
+                        + this.array[i][j + 3] * Bk[j + 3];
+                }
+                for (; j < nj; ++j) {
+                    tot += this.array[i][j] * Bk[j];
+                }
+                C.array[i][k] = tot;
             }
-            C.array[i][k] = tot;
+        }
+    } else {
+        for (k = 0; k < nk; ++k) {
+            B.copyColumn(k, Bk);
+            for (i = 0; i < ni; ++i) {
+                tot = 0.0;
+                for (j = 0; j < nj; ++j) {
+                    tot += this.array[i][j] * Bk[j];
+                }
+                C.array[i][k] = tot;
+            }
         }
     }
     return C;
@@ -1242,7 +1260,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
@@ -1258,7 +1276,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
@@ -1274,7 +1292,7 @@ MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
@@ -1290,7 +1308,7 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -1306,7 +1324,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -1322,7 +1340,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 // matrix-vector multiply: A.v
@@ -1347,30 +1365,52 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
-    var C = [];
     var i, j, k, tot;
     var ni = this.nrows;
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
 
-    for (i = 0; i < ni; ++i) {
-        C.push(new Float64Array(nk));
+    var nj1 = nj - 3;
+
+    // transposed
+    var C = new Array(nk);
+    for (k = 0; k < nk; ++k) {
+        C[k] = new Float64Array(ni);
     }
 
     var Bk = new Float64Array(nj);
-    for (k = 0; k < nk; ++k) {
-        B.copyColumn(lb.ifrom + k, Bk);
-        for (i = 0; i < ni; ++i) {
-            tot = this.array[i][0] * Bk[0];
-            for (j = 1; j < nj; ++j) {
-                tot += this.array[i][j] * Bk[j];
+    if (global.unrollLoops) {
+        for (k = 0; k < nk; ++k) {
+            B.copyColumn(lb.ifrom + k, Bk);
+            for (i = 0; i < ni; ++i) {
+                tot = 0.0;
+                for (j = 0; j < nj1; j += 4) {
+                    tot += this.array[i][j] * Bk[j]
+                        + this.array[i][j + 1] * Bk[j + 1]
+                        + this.array[i][j + 2] * Bk[j + 2]
+                        + this.array[i][j + 3] * Bk[j + 3];
+                }
+                for (; j < nj; ++j) {
+                    tot += this.array[i][j] * Bk[j];
+                }
+                C[k][i] = tot;
             }
-            C[i][k] = tot;
+        }
+    } else {
+        for (k = 0; k < nk; ++k) {
+            B.copyColumn(lb.ifrom + k, Bk);
+            for (i = 0; i < ni; ++i) {
+                tot = 0.0;
+                for (j = 0; j < nj; ++j) {
+                    tot += this.array[i][j] * Bk[j];
+                }
+                C[k][i] = tot;
+            }
         }
     }
 
-    MW.MathWorker.gatherMatrixColumns(C, B.ncols, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
 
@@ -1449,7 +1489,7 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
         }
     }
 
-    MW.MathWorker.gatherMatrixRows(M, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(M, mat.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 // z <- alpha * A.x + beta * y
@@ -1536,7 +1576,7 @@ MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, b
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrixRows(D, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 

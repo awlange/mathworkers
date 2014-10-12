@@ -3,10 +3,10 @@
 # Concatenates all the JavaScript components into a single file
 cd components
 cat  mathworkers_head.js.txt \
+  global.js \
   logger.js \
   util.js \
   event_emitter.js \
-  pool.js \
   coordinator.js \
   mathworker.js \
   vector.js \

@@ -310,7 +310,6 @@ crd.on("matrixApply", function() {
 crd.on("matrixTimesMatrix1", function() {
 	var T = new UT.Tester("matrixTimesMatrix1");
 	var AB = crd.getBuffer();
-    console.log(AB.toString());
 	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0], [-3.0, -2.0]]), AB);
 	T.passed();
 
