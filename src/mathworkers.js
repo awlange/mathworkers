@@ -512,8 +512,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
         var offset = data.offset;
         for (i = 0; i < data.nrows; ++i) {
             tmpArray = new Float64Array(data[i]);
-            var tl = tmpArray.length;
-            for (k = 0; k < tl; ++k) {
+            for (k = 0; k < tmpArray.length; ++k) {
                 gatherMatrix[i][offset + k] = tmpArray[k];
             }
         }
