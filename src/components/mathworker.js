@@ -126,10 +126,22 @@ MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
         len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
-MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+MW.MathWorker.gatherMatrixRows = function(mat, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
+    var matObject = {handle: "_gatherMatrixRows", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
         nrows: mat.length, offset: offset};
+    var matBufferList = [];
+    for (var i = 0; i < mat.length; ++i) {
+        matObject[i] = mat[i].buffer;
+        matBufferList.push(mat[i].buffer);
+    }
+    self.postMessage(matObject, matBufferList);
+};
+
+MW.MathWorker.gatherMatrixColumns = function(mat, totalCols, offset, tag, rebroadcast) {
+    rebroadcast = rebroadcast || false;
+    var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
+        nrows: mat.length, ncols: totalCols, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {
         matObject[i] = mat[i].buffer;

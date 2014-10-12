@@ -82,9 +82,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
  			case "_matrixSendToCoordinator":
  				handleMatrixSendToCoordinator(data);
  				break;
- 			 case "_gatherMatrix":
- 				handleGatherMatrix(data);
+ 			 case "_gatherMatrixRows":
+ 				handleGatherMatrixRows(data);
  				break;
+            case "_gatherMatrixColumns":
+                handleGatherMatrixColumns(data);
+                break;
   			case "_vectorNorm":
  				handleVectorNorm(data);
  				break;
@@ -181,10 +184,19 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		return vec;
 	};
 
-	var handleGatherMatrix = function(data) {
+    var buildMatrixFromParts = function(gatherMatrix, totalRows) {
+        var result = [];
+        for (var i = 0; i < totalRows; ++i) {
+            result.push(gatherMatrix[i]);
+        }
+        return result;
+    };
+
+	var handleGatherMatrixRows = function(data) {
 		// Reduce the matrix rows from each worker
+        var offset = data.offset;
 		for (var i = 0; i < data.nrows; ++i) {
-			gatherMatrix[data.offset + i] = new Float64Array(data[i]);
+			gatherMatrix[offset + i] = new Float64Array(data[i]);
 		}
 		tot += data.nrows;
 
@@ -206,13 +218,41 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 		}
 	};
 
-	var buildMatrixFromParts = function(gatherMatrix, totalRows) {
-		var result = [];
-		for (var i = 0; i < totalRows; ++i) {
-			result.push(gatherMatrix[i]);
-		}
-		return result;
-	};
+    var handleGatherMatrixColumns = function(data) {
+        // Reduce the matrix columns from each worker
+        var i, k;
+        if (nWorkersReported == 0) {
+            for (i = 0; i < data.nrows; ++i) {
+                gatherMatrix[i] = new Float64Array(data.ncols);
+            }
+        }
+
+        var tmpArray;
+        var offset = data.offset;
+        for (i = 0; i < data.nrows; ++i) {
+            tmpArray = new Float64Array(data[i]);
+            for (k = 0; k < tmpArray.length; ++k) {
+                gatherMatrix[i][offset + k] = tmpArray[k];
+            }
+        }
+
+        nWorkersReported += 1;
+        if (nWorkersReported == pool.nWorkers) {
+            // build the full vector and save to buffer
+            objectBuffer = new MW.Matrix();
+            objectBuffer.setMatrix(buildMatrixFromParts(gatherMatrix, data.nrows));
+            if (data.rebroadcast) {
+                that.sendMatrixToWorkers(objectBuffer, data.tag);
+            } else {
+                // emit
+                that.emit(data.tag);
+            }
+            //reset
+            nWorkersReported = 0;
+            tot = 0;
+            gatherMatrix = {};
+        }
+    };
 
 	var handleVectorNorm = function(data) {
 		tot += data.tot;

@@ -37,6 +37,18 @@ MW.Matrix.prototype.setMatrix = function(arr) {
     this.ncols = arr[0].length;
 };
 
+MW.Matrix.prototype.copyColumn = function(j, vec) {
+    for (var i = 0, ni = this.nrows; i < ni; ++i) {
+        vec[i] = this.array[i][j];
+    }
+};
+
+MW.Matrix.prototype.copyRow = function(i, vec) {
+    for (var j = 0, nj = this.ncols; j < nj; ++j) {
+        vec[j] = this.array[i][j];
+    }
+};
+
 MW.Matrix.prototype.isSquare = function() {
     return this.nrows == this.ncols;
 };
@@ -196,15 +208,21 @@ MW.Matrix.prototype.timesVector = function(v) {
 MW.Matrix.prototype.timesMatrix = function(B) {
     MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
-    // Transpose B for better row-major memory access
-    var Bt = B.transpose();
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < B.ncols; ++j) {
-            var tot = 0.0;
-            for (var k = 0; k < this.ncols; ++k) {
-                tot += this.array[i][k] * Bt.array[j][k];
+
+    var i, j, k, tot;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    var nk = B.ncols;
+
+    var Bk = new Float64Array(nj);
+    for (k = 0; k < nk; ++k) {
+        B.copyColumn(k, Bk);
+        for (i = 0; i < ni; ++i) {
+            tot = this.array[i][0] * Bk[0];
+            for (j = 1; j < nj; ++j) {
+                tot += this.array[i][j] * Bk[j];
             }
-            C.array[i][j] = tot;
+            C.array[i][k] = tot;
         }
     }
     return C;
@@ -223,7 +241,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
@@ -239,7 +257,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
@@ -255,7 +273,7 @@ MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
@@ -271,7 +289,7 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -287,7 +305,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -303,7 +321,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
         }
         ++offset;
     }
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(C, lb.ifrom, tag, rebroadcast);
 };
 
 // matrix-vector multiply: A.v
@@ -328,31 +346,30 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
-    // Transpose B for better row-major memory access
-    // If square, save on memory by doing an in-place transpose
-    var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
-
-    var lb = MW.util.loadBalance(this.nrows);
     var C = [];
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(B.ncols));
-        for (var j = 0; j < B.ncols; ++j) {
-            var tot = 0.0;
-            for (var k = 0; k < this.ncols; ++k) {
-                tot += this.array[i][k] * Bt.array[j][k];
+    var i, j, k, tot;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    var lb = MW.util.loadBalance(B.ncols);
+    var nk = lb.ito - lb.ifrom;
+
+    for (i = 0; i < ni; ++i) {
+        C.push(new Float64Array(nk));
+    }
+
+    var Bk = new Float64Array(nj);
+    for (k = 0; k < nk; ++k) {
+        B.copyColumn(lb.ifrom + k, Bk);
+        for (i = 0; i < ni; ++i) {
+            tot = this.array[i][0] * Bk[0];
+            for (j = 1; j < nj; ++j) {
+                tot += this.array[i][j] * Bk[j];
             }
-            C[offset][j] = tot;
+            C[i][k] = tot;
         }
-        ++offset;
     }
 
-    // restore B
-    if (B.isSquare) {
-        B.transposeInPlace();
-    }
-
-    MW.MathWorker.gatherMatrix(C, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixColumns(C, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
 
