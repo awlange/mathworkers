@@ -15,6 +15,10 @@ global.logLevel = 1;
 
 // If true, use loop unrolled versions of functions if available. If false, do not.
 global.unrollLoops = true;
+MW.unrollLoops = function(unroll) {
+    MW.util.checkNullOrUndefined(unroll);
+    global.unrollLoops = unroll;
+};
 
 global.createPool = function(nWorkersInput, workerScriptName) {
 	for (var i = 0; i < nWorkersInput; ++i) {

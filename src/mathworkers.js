@@ -41,8 +41,12 @@ global.logLevel = 1;
 
 // If true, use loop unrolled versions of functions if available. If false, do not.
 global.unrollLoops = true;
+MW.unrollLoops = function(unroll) {
+    MW.util.checkNullOrUndefined(unroll);
+    global.unrollLoops = unroll;
+};
 
-global.createPool = function(nWorkersInput, workerScriptName, logLevel) {
+global.createPool = function(nWorkersInput, workerScriptName) {
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i,
@@ -239,7 +243,7 @@ function EventEmitter() {
 /**
  *  Coordinator for browser-side interface
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops) {
+MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
@@ -248,11 +252,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
     // Set log level if specified
     if (logLevel !== undefined && logLevel !== null) {
         global.logLevel = logLevel;
-    }
-
-    // Whether or not to use loop unrolling in certain functions
-    if (unrollLoops !== undefined && unrollLoops !== null) {
-        global.unrollLoops = unrollLoops;
     }
 
 	// Create the worker pool, which starts the workers
@@ -1321,7 +1320,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
 
-    var nj1 = nj - 3;
+    var nj1 = nj - 1;
 
     // transposed
     var C = new Array(nk);
@@ -1335,11 +1334,11 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
-                for (j = 0; j < nj1; j += 4) {
+                for (j = 0; j < nj1; j += 2) {
                     tot += this.array[i][j] * Bk[j]
-                        + this.array[i][j + 1] * Bk[j + 1]
-                        + this.array[i][j + 2] * Bk[j + 2]
-                        + this.array[i][j + 3] * Bk[j + 3];
+                        + this.array[i][j + 1] * Bk[j + 1];
+//                        + this.array[i][j + 2] * Bk[j + 2]
+//                        + this.array[i][j + 3] * Bk[j + 3];
                 }
                 for (; j < nj; ++j) {
                     tot += this.array[i][j] * Bk[j];

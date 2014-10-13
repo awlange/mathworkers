@@ -3,7 +3,7 @@
 /**
  *  Coordinator for browser-side interface
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops) {
+MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
@@ -12,11 +12,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
     // Set log level if specified
     if (logLevel !== undefined && logLevel !== null) {
         global.logLevel = logLevel;
-    }
-
-    // Whether or not to use loop unrolling in certain functions
-    if (unrollLoops !== undefined && unrollLoops !== null) {
-        global.unrollLoops = unrollLoops;
     }
 
 	// Create the worker pool, which starts the workers
