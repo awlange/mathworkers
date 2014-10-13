@@ -211,11 +211,9 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
         // array in data is transposed
         var tmpArray;
-        var offset = data.offset;
         var offsetk;
-        for (k = 0; k < data.nrowsPart; ++k) {
+        for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
             tmpArray = new Float64Array(data[k]);
-            offsetk = offset + k;
             for (i = 0; i < tmpArray.length; ++i) {
                 objectBuffer.array[i][offsetk] = tmpArray[i];
             }

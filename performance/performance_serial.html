@@ -155,25 +155,13 @@ var run_3 = document.getElementById('run_3');
 run_3.addEventListener('click', function() {
 	
 	var n = 600;
-	var A = [];
-    var B = [];
-    var C = [];
-	for (var i = 0; i < n; ++i) {
-		A.push(new Float64Array(n));
-		B.push(new Float64Array(n));
-		C.push(new Float64Array(n));
-		for (var j = 0; j < n; ++j) {
-			A[i][j] = Math.random();
-			B[i][j] = Math.random();
-		}
-	}
-	A = MathWorkers.Matrix.fromArray(A);
-	B = MathWorkers.Matrix.fromArray(B);
+	var A = MathWorkers.Matrix.randomMatrix(n, n);
+	var B = MathWorkers.Matrix.randomMatrix(n, n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		C = A.timesMatrix(B);
+		A.timesMatrix(B);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_3");

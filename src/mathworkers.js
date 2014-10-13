@@ -451,11 +451,9 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
 
         // array in data is transposed
         var tmpArray;
-        var offset = data.offset;
         var offsetk;
-        for (k = 0; k < data.nrowsPart; ++k) {
+        for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
             tmpArray = new Float64Array(data[k]);
-            offsetk = offset + k;
             for (i = 0; i < tmpArray.length; ++i) {
                 objectBuffer.array[i][offsetk] = tmpArray[i];
             }
@@ -1320,7 +1318,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
 
-    var nj1 = nj - 1;
+    var nj1 = nj - 3;
 
     // transposed
     var C = new Array(nk);
@@ -1334,11 +1332,11 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
-                for (j = 0; j < nj1; j += 2) {
+                for (j = 0; j < nj1; j += 4) {
                     tot += this.array[i][j] * Bk[j]
-                        + this.array[i][j + 1] * Bk[j + 1];
-//                        + this.array[i][j + 2] * Bk[j + 2]
-//                        + this.array[i][j + 3] * Bk[j + 3];
+                        + this.array[i][j + 1] * Bk[j + 1]
+                        + this.array[i][j + 2] * Bk[j + 2]
+                        + this.array[i][j + 3] * Bk[j + 3];
                 }
                 for (; j < nj; ++j) {
                     tot += this.array[i][j] * Bk[j];
