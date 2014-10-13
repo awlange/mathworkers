@@ -7,14 +7,14 @@ var Matrix = MathWorkers.Matrix;
 // Some vectors and matrices to play with
 var v, w, x;
 var A, B;
-var N = 2000;
+var N = 500;
 
 MW.on("set", function() {
 	v = Vector.randomVector(2000);
 	w = Vector.randomVector(2000);
 	x = Vector.randomVector(N);
 	A = Matrix.randomMatrix(N, N);
-//	B = Matrix.randomMatrix(N, N);
+	B = Matrix.randomMatrix(N, N);
 });
 
 MW.on("run_vectorDot", function() {
