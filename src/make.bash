@@ -4,7 +4,6 @@
 cd components
 cat  mathworkers_head.js.txt \
   global.js \
-  logger.js \
   util.js \
   event_emitter.js \
   coordinator.js \

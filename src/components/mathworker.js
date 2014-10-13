@@ -70,7 +70,9 @@ MW.MathWorker = function() {
 
  	// registers the callback for a trigger
  	this.on = function(tag, callback) {
-        log.debug("registering trigger: " + tag);
+        if (global.logLevel > 2) {
+            console.log("registering trigger: " + tag);
+        }
         triggers[tag] = [callback];
     };
 
@@ -78,9 +80,11 @@ MW.MathWorker = function() {
         global.myWorkerId = data.id;
         global.nWorkers = data.nWorkers;
         global.unrollLoops = data.unrollLoops;
- 		log.setLevel("w" + global.myWorkerId, data.logLevel);
- 		log.debug("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
- 		self.postMessage({handle: "_workerReady"});
+        global.logLevel = data.logLevel;
+ 		if (global.logLevel > 2) {
+            console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
+        }
+        self.postMessage({handle: "_workerReady"});
  	};
 
  	var handleTrigger = function(data, obj) {
@@ -91,7 +95,7 @@ MW.MathWorker = function() {
 				fn.call(this, args);
 			});
 		} else {
-			log.error("Unregistered trigger tag: " + data.tag);
+			console.error("Unregistered trigger tag: " + data.tag);
 		}
  	};
 

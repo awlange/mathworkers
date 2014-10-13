@@ -35,13 +35,18 @@ var global = {};
 global.workerPool = [];
 global.nWorkers = 1;
 global.myWorkerId = 0;
-global.unrollLoops = false;  // if true, use the loop unrolled versions of certain functions
+
+// Log
+global.logLevel = 1;
+
+// If true, use loop unrolled versions of functions if available. If false, do not.
+global.unrollLoops = true;
 
 global.createPool = function(nWorkersInput, workerScriptName, logLevel) {
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i,
-			nWorkers: nWorkersInput, logLevel: logLevel, unrollLoops: global.unrollLoops});
+			nWorkers: nWorkersInput, logLevel: global.logLevel, unrollLoops: global.unrollLoops});
 		this.workerPool.push(worker);
         this.nWorkers = this.workerPool.length;
 	}
@@ -50,55 +55,6 @@ global.createPool = function(nWorkersInput, workerScriptName, logLevel) {
 		return this.workerPool[workerId];
 	};
 };
-
-// Copyright 2014 Adrian W. Lange
-
-/**
- *  Logging controller
- *
- *  levels:
- *  < 1 = no printing
- *  1   = error + info 
- *  2   = error + info + warning (the default level)
- *  > 2 = error + info + warning + debug
- */
-Logger = function() {
-	var name = "";
-	var level = 3;
-
-	this.setLevel = function(nameInput, val) {
-		if (val !== undefined && val !== null) {
-			name = nameInput;
-			level = val;
-		}
-	};
-
-	this.error = function(message) {
-		if (level >= 1) {
-			console.error("ERROR:" + name + ": " + message);
-		}
-	};
-
-	this.info = function(message) {
-		if (level >= 1) {
-			console.info("INFO:" + name + ": " + message);
-		}
-	};
-
-	this.warn = function(message) {
-		if (level >= 2) {
-			console.warn("WARN:" + name + ": " + message);
-		}
-	};
-
-	this.debug = function(message) {
-		if (level >= 3) {
-			console.log("DEBUG:" + name + ": " + message);
-		}
-	};
-};
-
-var log = new Logger();
 
 // Copyright 2014 Adrian W. Lange
 
@@ -266,12 +222,10 @@ function EventEmitter() {
     var events = {};
 
     this.on = function(name, callback) {
-        log.debug("registering event: " + name);
         events[name] = [callback];
     };
 
     this.emit = function(name, args) {
-        log.debug("emitting event: " + name);
         events[name] = events[name] || [];
         args = args || [];
         events[name].forEach( function(fn) {
@@ -291,8 +245,10 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
 	var messageDataBuffer = [];
 	this.ready = false;
 
-    logLevel = logLevel || 2;
-	log.setLevel("coord", logLevel);
+    // Set log level if specified
+    if (logLevel !== undefined && logLevel !== null) {
+        global.logLevel = logLevel;
+    }
 
     // Whether or not to use loop unrolling in certain functions
     if (unrollLoops !== undefined && unrollLoops !== null) {
@@ -300,7 +256,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
     }
 
 	// Create the worker pool, which starts the workers
-	global.createPool(nWorkersInput, workerScriptName, logLevel);
+	global.createPool(nWorkersInput, workerScriptName);
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -382,7 +338,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
  				handleVectorSum(data);
  				break;
  			default:
- 				log.error("Invalid Coordinator handle: " + data.handle);
+ 				console.error("Invalid Coordinator handle: " + data.handle);
  		}
  	};
 
@@ -642,7 +598,9 @@ MW.MathWorker = function() {
 
  	// registers the callback for a trigger
  	this.on = function(tag, callback) {
-        log.debug("registering trigger: " + tag);
+        if (global.logLevel > 2) {
+            console.log("registering trigger: " + tag);
+        }
         triggers[tag] = [callback];
     };
 
@@ -650,9 +608,11 @@ MW.MathWorker = function() {
         global.myWorkerId = data.id;
         global.nWorkers = data.nWorkers;
         global.unrollLoops = data.unrollLoops;
- 		log.setLevel("w" + global.myWorkerId, data.logLevel);
- 		log.debug("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
- 		self.postMessage({handle: "_workerReady"});
+        global.logLevel = data.logLevel;
+ 		if (global.logLevel > 2) {
+            console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
+        }
+        self.postMessage({handle: "_workerReady"});
  	};
 
  	var handleTrigger = function(data, obj) {
@@ -663,7 +623,7 @@ MW.MathWorker = function() {
 				fn.call(this, args);
 			});
 		} else {
-			log.error("Unregistered trigger tag: " + data.tag);
+			console.error("Unregistered trigger tag: " + data.tag);
 		}
  	};
 

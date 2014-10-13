@@ -9,8 +9,10 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
 	var messageDataBuffer = [];
 	this.ready = false;
 
-    logLevel = logLevel || 2;
-	log.setLevel("coord", logLevel);
+    // Set log level if specified
+    if (logLevel !== undefined && logLevel !== null) {
+        global.logLevel = logLevel;
+    }
 
     // Whether or not to use loop unrolling in certain functions
     if (unrollLoops !== undefined && unrollLoops !== null) {
@@ -18,7 +20,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
     }
 
 	// Create the worker pool, which starts the workers
-	global.createPool(nWorkersInput, workerScriptName, logLevel);
+	global.createPool(nWorkersInput, workerScriptName);
 
 	this.getBuffer = function() {
 		return objectBuffer;
@@ -100,7 +102,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
  				handleVectorSum(data);
  				break;
  			default:
- 				log.error("Invalid Coordinator handle: " + data.handle);
+ 				console.error("Invalid Coordinator handle: " + data.handle);
  		}
  	};
 
