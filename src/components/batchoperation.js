@@ -36,7 +36,7 @@ MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, ta
         }
     }
 
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, vec.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
@@ -104,9 +104,7 @@ MW.BatchOperation.wkMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, b
             z[offset++] = alpha * tot;
         }
     }
-    MW.MathWorker.gatherVector(z, tag, rebroadcast);
-
-
+    MW.MathWorker.gatherVector(z, x.length, lb.ifrom, tag, rebroadcast);
 };
 
 

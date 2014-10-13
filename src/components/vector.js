@@ -147,7 +147,7 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] + w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
@@ -159,7 +159,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] - w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
@@ -171,7 +171,7 @@ MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] * w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
@@ -183,7 +183,7 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] / w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -195,7 +195,7 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] * alpha;
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -207,7 +207,7 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = fn(this.array[i]);
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
@@ -255,7 +255,7 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, rebroadcast);
+    MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 

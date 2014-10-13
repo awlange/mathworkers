@@ -392,16 +392,18 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
 	};
 
 	var handleGatherVector = function(data) {
-		// Reduce the vector parts from each worker
-		var id = data.id;
-		gatherVector[id] = new Float64Array(data.vectorPart);
-		tot += data.len;
+		// Gather the vector parts from each worker
+        if (nWorkersReported == 0) {
+            objectBuffer = new MW.Vector(data.len);
+        }
+        var tmpArray = new Float64Array(data.vectorPart);
+        var offset = data.offset;
+        for (var i = 0; i < tmpArray.length; ++i) {
+            objectBuffer.array[offset + i] = tmpArray[i];
+        }
 
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
-			// build the full vector and save to buffer
-			objectBuffer = new MW.Vector();
-			objectBuffer.setVector(buildVectorFromParts(gatherVector, tot));
 			if (data.rebroadcast) {
 				that.sendVectorToWorkers(objectBuffer, data.tag);
 			} else {
@@ -415,20 +417,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
 		}
 	};
 
-	var buildVectorFromParts = function(gatherVector, totalLength) {
-		var vec = new Float64Array(totalLength);
-		var offset = 0;
-		for (var i = 0; i < global.nWorkers; ++i) {
-			for (var j = 0; j < gatherVector[i].length; ++j) {
-				vec[offset + j] = gatherVector[i][j];
-			}
-			offset += gatherVector[i].length;
-		}
-		return vec;
-	};
-
 	var handleGatherMatrixRows = function(data) {
-		// Reduce the matrix rows from each worker
+		// Gather the matrix rows from each worker
         var offset = data.offset;
         if (nWorkersReported == 0) {
             objectBuffer = new MW.Matrix(data.nrows, data.ncols);
@@ -454,7 +444,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel, unrollLoops
 	};
 
     var handleGatherMatrixColumns = function(data) {
-        // Reduce the matrix columns from each worker
+        // Gather the matrix columns from each worker
         var i, k;
         if (nWorkersReported == 0) {
             objectBuffer = new MW.Matrix(data.nrows, data.ncols);
@@ -653,10 +643,10 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * MathWorker static-like functions
  */
-MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
-        len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+        len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
@@ -843,7 +833,7 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] + w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
@@ -855,7 +845,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] - w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
@@ -867,7 +857,7 @@ MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] * w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
@@ -879,7 +869,7 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] / w.array[i];
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
@@ -891,7 +881,7 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = this.array[i] * alpha;
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
@@ -903,7 +893,7 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     for (var i = lb.ifrom; i < lb.ito; ++i) {
         x[offset++] = fn(this.array[i]);
     }
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
@@ -951,7 +941,7 @@ MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, rebroadcast);
+    MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 
@@ -1317,7 +1307,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, rebroadcast);
+    MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
 
 // C = A.B
@@ -1412,7 +1402,7 @@ MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, ta
         }
     }
 
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, vec.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
@@ -1480,9 +1470,7 @@ MW.BatchOperation.wkMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, b
             z[offset++] = alpha * tot;
         }
     }
-    MW.MathWorker.gatherVector(z, tag, rebroadcast);
-
-
+    MW.MathWorker.gatherVector(z, x.length, lb.ifrom, tag, rebroadcast);
 };
 
 

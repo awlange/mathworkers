@@ -125,10 +125,10 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * MathWorker static-like functions
  */
-MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
-        len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+        len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
 MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {

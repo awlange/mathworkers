@@ -360,7 +360,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
         }
         w[offset++] = tot;
     }
-    MW.MathWorker.gatherVector(w, tag, rebroadcast);
+    MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
 
 // C = A.B
