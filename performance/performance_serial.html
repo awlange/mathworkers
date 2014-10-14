@@ -21,7 +21,7 @@
 
 			// How many runs to perform for run statistics
 			// TODO: make this part of the query
-			var nRuns = 10;
+			var nRuns = 20;
 
 			function getStats(arr) {
 				var tot = 0.0;
@@ -84,20 +84,13 @@ var run_1 = document.getElementById('run_1');
 run_1.addEventListener('click', function() {
 	
 	var n = 2000;
-	var v = new Float64Array(n);
-	var w = new Float64Array(n);
-	for (var i = 0; i < n; ++i) {
-		v[i] = Math.random();
-		w[i] = Math.random();
-	}
+    var v = MathWorkers.Vector.randomVector(n);
+    var w = MathWorkers.Vector.randomVector(n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		var tot = 0.0;
-		for (i = 0; i < n; ++i) {
-			tot += v[i] * w[i];
-		}
+        v.dot(w);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_1");
@@ -116,27 +109,13 @@ var run_2 = document.getElementById('run_2');
 run_2.addEventListener('click', function() {
 	
 	var n = 2000;
-	var v = new Float64Array(n);
-	var w = new Float64Array(n);
-	var A = [];
-	for (var i = 0; i < n; ++i) {
-		v[i] = Math.random();
-		A.push(new Float64Array(n));
-		for (j = 0; j < n; ++j) {
-			A[i][j] = Math.random();
-		}
-	}
+	var v = MathWorkers.Vector.randomVector(n);
+	var A = MathWorkers.Matrix.randomMatrix(n, n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		for (i = 0; i < n; ++i) {
-			var tot = 0.0;
-			for (var j = 0; j < n; ++j) {
-				tot += v[j] * A[j][i];
-			}
-			w[i] = tot;
-		}
+        v.timesMatrix(A);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_2");
@@ -154,7 +133,7 @@ run_2.addEventListener('click', function() {
 var run_3 = document.getElementById('run_3');
 run_3.addEventListener('click', function() {
 	
-	var n = 600;
+	var n = 800;
 	var A = MathWorkers.Matrix.randomMatrix(n, n);
 	var B = MathWorkers.Matrix.randomMatrix(n, n);
 

@@ -210,7 +210,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
     MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
 
-    var i, j, k, tot;
+    var i, j, k, tot, ai;
     var ni = this.nrows;
     var nj = this.ncols;
     var nk = B.ncols;
@@ -223,14 +223,15 @@ MW.Matrix.prototype.timesMatrix = function(B) {
             B.copyColumn(k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
+                ai = this.array[i];
                 for (j = 0; j < nj1; j += 4) {
-                    tot += this.array[i][j] * Bk[j]
-                        + this.array[i][j + 1] * Bk[j + 1]
-                        + this.array[i][j + 2] * Bk[j + 2]
-                        + this.array[i][j + 3] * Bk[j + 3];
+                    tot += ai[j] * Bk[j]
+                        + ai[j + 1] * Bk[j + 1]
+                        + ai[j + 2] * Bk[j + 2]
+                        + ai[j + 3] * Bk[j + 3];
                 }
                 for (; j < nj; ++j) {
-                    tot += this.array[i][j] * Bk[j];
+                    tot += ai[j] * Bk[j];
                 }
                 C.array[i][k] = tot;
             }
@@ -240,8 +241,9 @@ MW.Matrix.prototype.timesMatrix = function(B) {
             B.copyColumn(k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
+                ai = this.array[i];
                 for (j = 0; j < nj; ++j) {
-                    tot += this.array[i][j] * Bk[j];
+                    tot += ai * Bk[j];
                 }
                 C.array[i][k] = tot;
             }
@@ -368,7 +370,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
-    var i, j, k, tot;
+    var i, j, k, tot, ai;
     var ni = this.nrows;
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
@@ -388,14 +390,15 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
+                ai = this.array[i];
                 for (j = 0; j < nj1; j += 4) {
-                    tot += this.array[i][j] * Bk[j]
-                        + this.array[i][j + 1] * Bk[j + 1]
-                        + this.array[i][j + 2] * Bk[j + 2]
-                        + this.array[i][j + 3] * Bk[j + 3];
+                    tot += ai[j] * Bk[j]
+                        + ai[j + 1] * Bk[j + 1]
+                        + ai[j + 2] * Bk[j + 2]
+                        + ai[j + 3] * Bk[j + 3];
                 }
                 for (; j < nj; ++j) {
-                    tot += this.array[i][j] * Bk[j];
+                    tot += ai[j] * Bk[j];
                 }
                 C[k][i] = tot;
             }
@@ -405,8 +408,9 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
+                ai = this.array[i];
                 for (j = 0; j < nj; ++j) {
-                    tot += this.array[i][j] * Bk[j];
+                    tot += ai[j] * Bk[j];
                 }
                 C[k][i] = tot;
             }
