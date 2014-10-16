@@ -11,9 +11,9 @@ MW.util = {};
  * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
  */
 MW.util.loadBalance = function(n) {
-    var id = pool.myWorkerId;
-	var div = Math.floor(n / pool.nWorkers);
-	var rem = n % pool.nWorkers;
+    var id = global.myWorkerId;
+	var div = Math.floor(n / global.nWorkers);
+	var rem = n % global.nWorkers;
 
 	var ifrom;
 	var ito;

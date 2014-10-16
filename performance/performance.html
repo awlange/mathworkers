@@ -16,6 +16,7 @@
 			// Globally available variable aliases
 			var MWs = MathWorkers;
 			var Vector = MWs.Vector;
+//            MWs.unrollLoops(false);
 			var Matrix = MWs.Matrix;
 
 			// Get the requested number of workers from the URI query and create workers for duration of tests
@@ -29,7 +30,7 @@
 
 			// How many runs to perform for run statistics
 			// TODO: make this part of the query
-			var nRuns = 10;
+			var nRuns = 20;
 
 			function getStats(arr) {
 				var tot = 0.0;

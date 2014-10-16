@@ -36,7 +36,7 @@ MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, ta
         }
     }
 
-    MW.MathWorker.gatherVector(x, tag, rebroadcast);
+    MW.MathWorker.gatherVector(x, vec.length, lb.ifrom, tag, rebroadcast);
 };
 
 MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
@@ -73,7 +73,7 @@ MW.BatchOperation.wkMatrixLinearCombination = function(matrices, coefficients, t
         }
     }
 
-    MW.MathWorker.gatherMatrix(M, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(M, mat.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 // z <- alpha * A.x + beta * y
@@ -104,9 +104,7 @@ MW.BatchOperation.wkMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, b
             z[offset++] = alpha * tot;
         }
     }
-    MW.MathWorker.gatherVector(z, tag, rebroadcast);
-
-
+    MW.MathWorker.gatherVector(z, x.length, lb.ifrom, tag, rebroadcast);
 };
 
 
@@ -160,6 +158,6 @@ MW.BatchOperation.wkMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, b
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrix(D, lb.ifrom, tag, rebroadcast);
+    MW.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
 };
 

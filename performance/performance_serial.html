@@ -15,12 +15,13 @@
 		<script>
 			// Globally available variable aliases
 			var MWs = MathWorkers;
+//            MWs.unrollLoops(false);
 			var Vector = MWs.Vector;
 			var Matrix = MWs.Matrix;
 
 			// How many runs to perform for run statistics
 			// TODO: make this part of the query
-			var nRuns = 10;
+			var nRuns = 20;
 
 			function getStats(arr) {
 				var tot = 0.0;
@@ -83,20 +84,13 @@ var run_1 = document.getElementById('run_1');
 run_1.addEventListener('click', function() {
 	
 	var n = 2000;
-	var v = new Float64Array(n);
-	var w = new Float64Array(n);
-	for (var i = 0; i < n; ++i) {
-		v[i] = Math.random();
-		w[i] = Math.random();
-	}
+    var v = MathWorkers.Vector.randomVector(n);
+    var w = MathWorkers.Vector.randomVector(n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		var tot = 0.0;
-		for (var i = 0; i < n; ++i) {
-			tot += v[i] * w[i];
-		}
+        v.dot(w);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_1");
@@ -114,28 +108,14 @@ run_1.addEventListener('click', function() {
 var run_2 = document.getElementById('run_2');
 run_2.addEventListener('click', function() {
 	
-	var n = 400;
-	var v = new Float64Array(n);
-	var w = new Float64Array(n);
-	var A = [];
-	for (var i = 0; i < n; ++i) {
-		v[i] = Math.random();
-		A.push(new Float64Array(n));
-		for (var j = 0; j < n; ++j) {
-			A[i][j] = Math.random();
-		}
-	}
+	var n = 2000;
+	var v = MathWorkers.Vector.randomVector(n);
+	var A = MathWorkers.Matrix.randomMatrix(n, n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		for (var i = 0; i < n; ++i) {
-			var tot = 0.0;
-			for (var j = 0; j < n; ++j) {
-				tot += v[j] * A[j][i];
-			}
-			w[i] = tot;
-		}
+        v.timesMatrix(A);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_2");
@@ -153,26 +133,14 @@ run_2.addEventListener('click', function() {
 var run_3 = document.getElementById('run_3');
 run_3.addEventListener('click', function() {
 	
-	var n = 400;
-	var A = [];
-    var B = [];
-    var C = [];
-	for (var i = 0; i < n; ++i) {
-		A.push(new Float64Array(n));
-		B.push(new Float64Array(n));
-		C.push(new Float64Array(n));
-		for (var j = 0; j < n; ++j) {
-			A[i][j] = Math.random();
-			B[i][j] = Math.random();
-		}
-	}
-	A = MathWorkers.Matrix.fromArray(A);
-	B = MathWorkers.Matrix.fromArray(B);
+	var n = 800;
+	var A = MathWorkers.Matrix.randomMatrix(n, n);
+	var B = MathWorkers.Matrix.randomMatrix(n, n);
 
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		var C = A.timesMatrix(B);
+		A.timesMatrix(B);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_3");

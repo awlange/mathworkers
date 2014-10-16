@@ -8,11 +8,11 @@ MW.MathWorker = function() {
  	var triggers = {};
 
  	this.getId = function() {
- 		return pool.myWorkerId;
+ 		return global.myWorkerId;
  	};
 
  	this.getNumWorkers = function() {
- 		return pool.nWorkers;
+ 		return global.nWorkers;
  	};
 
 	this.getBuffer = function() {
@@ -20,12 +20,12 @@ MW.MathWorker = function() {
 	};
 
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "_sendData", id: pool.myWorkerId, tag: tag, data: data});
+ 		self.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
  	};
 
     this.sendVectorToCoordinator = function(vec, tag) {
         // only id 0 does the sending actually
-        if (pool.myWorkerId == 0) {
+        if (global.myWorkerId == 0) {
             self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
                 vectorBuffer: vec.array.buffer}, [vec.array.buffer]);
         }
@@ -70,16 +70,21 @@ MW.MathWorker = function() {
 
  	// registers the callback for a trigger
  	this.on = function(tag, callback) {
-        log.debug("registering trigger: " + tag);
+        if (global.logLevel > 2) {
+            console.log("registering trigger: " + tag);
+        }
         triggers[tag] = [callback];
     };
 
  	var handleInit = function(data) {
-        pool.myWorkerId = data.id;
-        pool.nWorkers = data.nWorkers;
- 		log.setLevel("w" + pool.myWorkerId, data.logLevel);
- 		log.debug("Initialized MathWorker: " + pool.myWorkerId + " of " + pool.nWorkers + " workers.");
- 		self.postMessage({handle: "_workerReady"});
+        global.myWorkerId = data.id;
+        global.nWorkers = data.nWorkers;
+        global.unrollLoops = data.unrollLoops;
+        global.logLevel = data.logLevel;
+ 		if (global.logLevel > 2) {
+            console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
+        }
+        self.postMessage({handle: "_workerReady"});
  	};
 
  	var handleTrigger = function(data, obj) {
@@ -90,7 +95,7 @@ MW.MathWorker = function() {
 				fn.call(this, args);
 			});
 		} else {
-			log.error("Unregistered trigger tag: " + data.tag);
+			console.error("Unregistered trigger tag: " + data.tag);
 		}
  	};
 
@@ -120,16 +125,28 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * MathWorker static-like functions
  */
-MW.MathWorker.gatherVector = function(vec, tag, rebroadcast) {
+MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_gatherVector", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
-        len: vec.length, vectorPart: vec.buffer}, [vec.buffer]);
+    self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
-MW.MathWorker.gatherMatrix = function(mat, offset, tag, rebroadcast) {
+MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    var matObject = {handle: "_gatherMatrix", tag: tag, id: pool.myWorkerId, rebroadcast: rebroadcast,
-        nrows: mat.length, offset: offset};
+    var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
+    var matBufferList = [];
+    for (var i = 0; i < mat.length; ++i) {
+        matObject[i] = mat[i].buffer;
+        matBufferList.push(mat[i].buffer);
+    }
+    self.postMessage(matObject, matBufferList);
+};
+
+MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
+    rebroadcast = rebroadcast || false;
+    var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
     var matBufferList = [];
     for (var i = 0; i < mat.length; ++i) {
         matObject[i] = mat[i].buffer;
