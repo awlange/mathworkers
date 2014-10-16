@@ -746,7 +746,7 @@ MW.Vector.prototype.minus = function(w) {
     return result;
 };
 
-MW.Vector.prototype.timesElementwise = function(w) {
+MW.Vector.prototype.times = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
     for (var i = 0; i < this.length; ++i) {
@@ -782,7 +782,7 @@ MW.Vector.prototype.apply = function(fn) {
     return result;
 };
 
-MW.Vector.prototype.dot = function(w) {
+MW.Vector.prototype.dotVector = function(w) {
     MW.util.checkVectors(this, w);
     var tot = 0.0;
     for (var i = 0; i < this.length; ++i) {
@@ -808,12 +808,15 @@ MW.Vector.prototype.sum = function() {
 };
 
 // vector-matrix multiply: v.A
-MW.Vector.prototype.timesMatrix = function(A) {
+MW.Vector.prototype.dotMatrix = function(A) {
     MW.util.checkVectorMatrix(this, A);
-    var w = new MW.Vector(A.ncols);
-    for (var i = 0; i < A.ncols; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.length; ++j) {
+    var i, j, tot;
+    var ni = A.ncols;
+    var nj = this.length;
+    var w = new MW.Vector(ni);
+    for (i = 0; i < ni; ++i) {
+        tot = 0.0;
+        for (j = 0; j < nj; ++j) {
             tot += this.array[j] * A.array[j][i];
         }
         w.array[i] = tot;
@@ -845,7 +848,7 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkTimesElementwise = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -903,7 +906,7 @@ MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
     MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkDot = function(w, tag, rebroadcast) {
+MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -925,7 +928,7 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 };
 
 // vector-matrix multiply: v.A
-MW.Vector.prototype.wkTimesMatrix = function(A, tag, rebroadcast) {
+MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
     MW.util.checkVectorMatrix(this, A);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(A.ncols);
@@ -1066,7 +1069,7 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.timesElementwise = function(B) {
+MW.Matrix.prototype.times = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
@@ -1136,7 +1139,7 @@ MW.Matrix.prototype.transposeInPlace = function() {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.timesVector = function(v) {
+MW.Matrix.prototype.dotVector = function(v) {
     MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
     for (var i = 0; i < this.nrows; ++i) {
@@ -1150,7 +1153,7 @@ MW.Matrix.prototype.timesVector = function(v) {
 };
 
 // matrix-matrix multiply: A.B
-MW.Matrix.prototype.timesMatrix = function(B) {
+MW.Matrix.prototype.dotMatrix = function(B) {
     MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
 
@@ -1158,8 +1161,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
     var ni = this.nrows;
     var nj = this.ncols;
     var nk = B.ncols;
-
-    var nj1 = nj - 3;
+    var nj3 = nj - 3;
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
@@ -1168,7 +1170,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
                 ai = this.array[i];
-                for (j = 0; j < nj1; j += 4) {
+                for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
                         + ai[j + 1] * Bk[j + 1]
                         + ai[j + 2] * Bk[j + 2]
@@ -1228,7 +1230,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -1293,7 +1295,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
+MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
     MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -1310,7 +1312,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
 };
 
 // C = A.B
-MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
@@ -1319,8 +1321,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
-
-    var nj1 = nj - 3;
+    var nj3 = nj - 3;
 
     // transposed
     var C = new Array(nk);
@@ -1335,7 +1336,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
                 ai = this.array[i];
-                for (j = 0; j < nj1; j += 4) {
+                for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
                         + ai[j + 1] * Bk[j + 1]
                         + ai[j + 2] * Bk[j + 2]

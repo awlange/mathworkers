@@ -21,32 +21,32 @@
 
   		<h2>Vector tests</h2>
   		<ul>
-  			<li>vectorDot<div id="vectorDot" class="pending">pending</div></li>
+  			<li>vectorDotVector<div id="vectorDotVector" class="pending">pending</div></li>
   			<li>vectorPlus<div id="vectorPlus" class="pending">pending</div></li>
   			<li>vectorMinus<div id="vectorMinus" class="pending">pending</div></li>
-  			<li>vectorTimesElementwise<div id="vectorTimesElementwise" class="pending">pending</div></li>
+  			<li>vectorTimes<div id="vectorTimes" class="pending">pending</div></li>
   			<li>vectorDivide<div id="vectorDivide" class="pending">pending</div></li>
   			<li>vectorScale<div id="vectorScale" class="pending">pending</div></li>
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
   			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
   			<li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
-  			<li>vectorTimesMatrix<div id="vectorTimesMatrix" class="pending">pending</div></li>
+  			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
 
   		<h2>Matrix tests</h2>
   		<ul>
-  			<li>matrixTimesVector<div id="matrixTimesVector" class="pending">pending</div></li>
+  			<li>matrixDotVector<div id="matrixDotVector" class="pending">pending</div></li>
   			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
   			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
   			<li>matrixTimesElementwise<div id="matrixTimesElementwise" class="pending">pending</div></li>
   			<li>matrixDivide<div id="matrixDivide" class="pending">pending</div></li>
   			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
-  			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
-  			<li>matrixTimesMatrix2<div id="matrixTimesMatrix2" class="pending">pending</div></li>
-  			<li>matrixTimesMatrix3<div id="matrixTimesMatrix3" class="pending">pending</div></li>
-  			<li>matrixTimesMatrix4<div id="matrixTimesMatrix4" class="pending">pending</div></li>
-  			<li>matrixTimesMatrix5<div id="matrixTimesMatrix5" class="pending">pending</div></li>
+  			<li>matrixDotMatrix1<div id="matrixDotMatrix1" class="pending">pending</div></li>
+  			<li>matrixDotMatrix2<div id="matrixDotMatrix2" class="pending">pending</div></li>
+  			<li>matrixDotMatrix3<div id="matrixDotMatrix3" class="pending">pending</div></li>
+  			<li>matrixDotMatrix4<div id="matrixDotMatrix4" class="pending">pending</div></li>
+  			<li>matrixDotMatrix5<div id="matrixDotMatrix5" class="pending">pending</div></li>
   		</ul>
 
   		<h2>Rebroadcast tests</h2>
@@ -143,11 +143,11 @@ crd.on("sendMatrixToWorkers", function() {
 	T.equal(mat.toString(), messageList[1]);
 	T.passed();
 
-	crd.trigger("run_vectorDot");
+	crd.trigger("run_vectorDotVector");
 });
 
-crd.on("vectorDot", function() {
-	var T = new UT.Tester("vectorDot");
+crd.on("vectorDotVector", function() {
+	var T = new UT.Tester("vectorDotVector");
 	var recv = crd.getBuffer();
 	T.doubleEqual(20.0, recv);
 	T.passed();
@@ -172,11 +172,11 @@ crd.on("vectorMinus", function() {
 	T.vectorEqual(vec, recv);
 	T.passed();
 
-	crd.trigger("run_vectorTimesElementwise");
+	crd.trigger("run_vectorTimes");
 });
 
-crd.on("vectorTimesElementwise", function() {
-	var T = new UT.Tester("vectorTimesElementwise");
+crd.on("vectorTimes", function() {
+	var T = new UT.Tester("vectorTimes");
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([0.0, 2.0, 6.0, 12.0, 20.0]);
 	T.vectorEqual(vec, recv);
@@ -230,20 +230,20 @@ crd.on("vectorSum", function() {
 	T.doubleEqual(1500.0, recv);
 	T.passed();
 
-	crd.trigger("run_vectorTimesMatrix");
+	crd.trigger("run_vectorDotMatrix");
 });
 
-crd.on("vectorTimesMatrix", function() {
-	var T = new UT.Tester("vectorTimesMatrix");
+crd.on("vectorDotMatrix", function() {
+	var T = new UT.Tester("vectorDotMatrix");
 	var recv = crd.getBuffer();
 	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), recv);
 	T.passed();
 
-	crd.trigger("run_matrixTimesVector");
+	crd.trigger("run_matrixDotVector");
 });
 
-crd.on("matrixTimesVector", function() {
-	var T = new UT.Tester("matrixTimesVector");
+crd.on("matrixDotVector", function() {
+	var T = new UT.Tester("matrixDotVector");
 	var recv = crd.getBuffer();
 	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), recv);
 	T.passed();
@@ -304,47 +304,47 @@ crd.on("matrixApply", function() {
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
 	T.passed();
 
-	crd.trigger("run_matrixTimesMatrix1");
+	crd.trigger("run_matrixDotMatrix1");
 });
 
-crd.on("matrixTimesMatrix1", function() {
-	var T = new UT.Tester("matrixTimesMatrix1");
+crd.on("matrixDotMatrix1", function() {
+	var T = new UT.Tester("matrixDotMatrix1");
 	var AB = crd.getBuffer();
 	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0], [-3.0, -2.0]]), AB);
 	T.passed();
 
-	crd.trigger("run_matrixTimesMatrix2");
+	crd.trigger("run_matrixDotMatrix2");
 });
 
-crd.on("matrixTimesMatrix2", function() {
-    var T = new UT.Tester("matrixTimesMatrix2");
+crd.on("matrixDotMatrix2", function() {
+    var T = new UT.Tester("matrixDotMatrix2");
     var BA = crd.getBuffer();
     T.matrixEqual(Matrix.fromArray([[1.0, 0.0], [-3.0, -4.0]]), BA);
     T.passed();
 
-    crd.trigger("run_matrixTimesMatrix3");
+    crd.trigger("run_matrixDotMatrix3");
 });
 
-crd.on("matrixTimesMatrix3", function() {
-    var T = new UT.Tester("matrixTimesMatrix3");
+crd.on("matrixDotMatrix3", function() {
+    var T = new UT.Tester("matrixDotMatrix3");
     var AC = crd.getBuffer();
     T.matrixEqual(Matrix.fromArray([[1.0, 2.0, 0.0], [2.0, 3.0, -1.0]]), AC);
     T.passed();
 
-    crd.trigger("run_matrixTimesMatrix4");
+    crd.trigger("run_matrixDotMatrix4");
 });
 
-crd.on("matrixTimesMatrix4", function() {
-    var T = new UT.Tester("matrixTimesMatrix4");
+crd.on("matrixDotMatrix4", function() {
+    var T = new UT.Tester("matrixDotMatrix4");
     var CD = crd.getBuffer();
     T.matrixEqual(Matrix.fromArray([[1.0, -1.0], [0.0, -1.0]]), CD);
     T.passed();
 
-    crd.trigger("run_matrixTimesMatrix5");
+    crd.trigger("run_matrixDotMatrix5");
 });
 
-crd.on("matrixTimesMatrix5", function() {
-    var T = new UT.Tester("matrixTimesMatrix5");
+crd.on("matrixDotMatrix5", function() {
+    var T = new UT.Tester("matrixDotMatrix5");
     var DC = crd.getBuffer();
     T.matrixEqual(Matrix.fromArray([[3.0, 1.0, -5.0], [-1.0, -2.0, 0.0], [1.0, 1.0, -1.0]]), DC);
     T.passed();
@@ -415,7 +415,7 @@ crd.on("matrixMatrixPlus1", function() {
     var C = Matrix.fromArray([[30.0, 20.0, 10.0], [60.0, 50.0, 40.0], [90.0, 80.0, 70.0]]);
     var alpha = 0.38;
     var beta = -0.77;
-    var M = A.timesMatrix(B).scale(alpha).plus(C.scale(beta));
+    var M = A.dotMatrix(B).scale(alpha).plus(C.scale(beta));
     var recv = crd.getBuffer();
     T.matrixEqual(M, recv);
     T.passed();
@@ -428,7 +428,7 @@ crd.on("matrixMatrixPlus2", function() {
     var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
     var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
     var alpha = 0.38;
-    var M = A.timesMatrix(B).scale(alpha);
+    var M = A.dotMatrix(B).scale(alpha);
     var recv = crd.getBuffer();
     T.matrixEqual(M, recv);
     T.passed();
@@ -447,7 +447,7 @@ crd.on("matrixVectorPlus1", function() {
     var y = Vector.fromArray([-5.0, -7.0, -9.0]);
     var alpha = 0.45;
     var beta = -10.0;
-    var z = A.timesVector(x).scale(alpha).plus(y.scale(beta));
+    var z = A.dotVector(x).scale(alpha).plus(y.scale(beta));
     var recv = crd.getBuffer();
     T.matrixEqual(z, recv);
     T.passed();
@@ -464,7 +464,7 @@ crd.on("matrixVectorPlus2", function() {
     ]);
     var x = Vector.fromArray([2.0, 4.0, 8.0]);
     var alpha = 0.45;
-    var z = A.timesVector(x).scale(alpha);
+    var z = A.dotVector(x).scale(alpha);
     var recv = crd.getBuffer();
     T.matrixEqual(z, recv);
     T.passed();

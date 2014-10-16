@@ -18,15 +18,15 @@ MW.on("set", function() {
 });
 
 MW.on("run_vectorDot", function() {
-	v.wkDot(w, "vectorDot");
+	v.wkDotVector(w, "vectorDot");
 });
 
 MW.on("run_vectorMatrixProduct", function() {
-	x.wkTimesMatrix(A, "vectorMatrixProduct");
+	x.wkDotMatrix(A, "vectorMatrixProduct");
 });
 
 MW.on("run_matrixMatrixProduct", function() {
-	A.wkTimesMatrix(B, "matrixMatrixProduct");
+	A.wkDotMatrix(B, "matrixMatrixProduct");
 });
 
 MW.on("run_matrixMatrixPlus", function() {

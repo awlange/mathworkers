@@ -90,7 +90,7 @@ run_1.addEventListener('click', function() {
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-        v.dot(w);
+        v.dotVector(w);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_1");
@@ -115,7 +115,7 @@ run_2.addEventListener('click', function() {
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-        v.timesMatrix(A);
+        v.dotMatrix(A);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_2");
@@ -140,7 +140,7 @@ run_3.addEventListener('click', function() {
 	var times = [];
 	for (var r = 0; r < nRuns; ++r) {
 		var start = window.performance.now();
-		A.timesMatrix(B);
+		A.dotMatrix(B);
 		times.push(window.performance.now() - start);
 	}
 	showStats(getStats(times), "stats_3");
