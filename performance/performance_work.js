@@ -7,7 +7,7 @@ var Matrix = MathWorkers.Matrix;
 // Some vectors and matrices to play with
 var v, w, x;
 var A, B;
-var N = 2000;
+var N = 400;
 var M = 1000;
 
 MW.on("set", function() {

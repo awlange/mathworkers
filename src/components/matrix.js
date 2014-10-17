@@ -214,10 +214,10 @@ MW.Matrix.prototype.dotMatrix = function(B) {
     var ni = this.nrows;
     var nj = this.ncols;
     var nk = B.ncols;
-    var nj3 = nj - 3;
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
+        var nj3 = nj - 3;
         for (k = 0; k < nk; ++k) {
             B.copyColumn(k, Bk);
             for (i = 0; i < ni; ++i) {
@@ -242,7 +242,7 @@ MW.Matrix.prototype.dotMatrix = function(B) {
                 tot = 0.0;
                 ai = this.array[i];
                 for (j = 0; j < nj; ++j) {
-                    tot += ai * Bk[j];
+                    tot += ai[j] * Bk[j];
                 }
                 C.array[i][k] = tot;
             }
@@ -374,7 +374,6 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
-    var nj3 = nj - 3;
 
     // transposed
     var C = new Array(nk);
@@ -384,6 +383,7 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
+        var nj3 = nj - 3;
         for (k = 0; k < nk; ++k) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {

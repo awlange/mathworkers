@@ -15,7 +15,7 @@
 		<script>
 			// Globally available variable aliases
 			var MWs = MathWorkers;
-//            MWs.unrollLoops(false);
+//            MWs.unrollLoops(true);
 			var Vector = MWs.Vector;
 			var Matrix = MWs.Matrix;
 
@@ -153,7 +153,7 @@ run_2.addEventListener('click', function() {
 var run_3 = document.getElementById('run_3');
 run_3.addEventListener('click', function() {
 	
-	var n = 800;
+	var n = 400;
 	var A = MathWorkers.Matrix.randomMatrix(n, n);
 	var B = MathWorkers.Matrix.randomMatrix(n, n);
 

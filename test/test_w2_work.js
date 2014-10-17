@@ -5,7 +5,7 @@ var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
 var Batch = MathWorkers.BatchOperation;
 
-var EPSILON = 0.00000001;
+var EPSILON = 10e-12;
 
 var id;
 var nworkers;

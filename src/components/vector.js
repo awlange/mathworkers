@@ -138,12 +138,29 @@ MW.Vector.prototype.dotMatrix = function(A) {
     var ni = A.ncols;
     var nj = this.length;
     var w = new MW.Vector(ni);
-    for (i = 0; i < ni; ++i) {
-        tot = 0.0;
-        for (j = 0; j < nj; ++j) {
-            tot += this.array[j] * A.array[j][i];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj3; j += 4) {
+                tot += this.array[j] * A.array[j][i]
+                    + this.array[j+1] * A.array[j+1][i]
+                    + this.array[j+2] * A.array[j+2][i]
+                    + this.array[j+3] * A.array[j+3][i];
+            }
+            for (; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w.array[i] = tot;
         }
-        w.array[i] = tot;
+    } else {
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w.array[i] = tot;
+        }
     }
     return w;
 };
@@ -259,15 +276,34 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
     MW.util.checkVectorMatrix(this, A);
     MW.util.checkNullOrUndefined(tag);
+    var i, j;
+    var nj = this.length;
     var lb = MW.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.length; ++j) {
-            tot += this.array[j] * A.array[j][i];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj3; j += 4) {
+                tot += this.array[j] * A.array[j][i]
+                    + this.array[j+1] * A.array[j+1][i]
+                    + this.array[j+2] * A.array[j+2][i]
+                    + this.array[j+3] * A.array[j+3][i];
+            }
+            for (; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w[offset++] = tot;
         }
-        w[offset++] = tot;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            var tot = 0.0;
+            for (j = 0; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w[offset++] = tot;
+        }
     }
     MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };

@@ -41,7 +41,7 @@ global.myWorkerId = 0;
 global.logLevel = 1;
 
 // If true, use loop unrolled versions of functions if available. If false, do not.
-global.unrollLoops = true;
+global.unrollLoops = false;  // off by default
 MW.unrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
@@ -75,7 +75,7 @@ MW.util = {};
  */
 MW.util.loadBalance = function(n) {
     var id = global.myWorkerId;
-	var div = Math.floor(n / global.nWorkers);
+	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
 
 	var ifrom;
@@ -92,10 +92,17 @@ MW.util.loadBalance = function(n) {
 };
 
 /**
+ *  True if x is null or undefined
+ */
+MW.util.nullOrUndefined = function(x) {
+    return x === undefined || x === null;
+};
+
+/**
  *  Verify that x is neither null nor undefined.
  */
 MW.util.checkNullOrUndefined = function(x) {
-    if (x === undefined || x === null) {
+    if (MW.util.nullOrUndefined(x)) {
         throw new TypeError("Undefined or null variable.");
     }
 };
@@ -807,14 +814,6 @@ MW.Vector.prototype.dotVector = function(w) {
     return tot;
 };
 
-MW.Vector.prototype.norm = function() {
-    var result = 0.0;
-    for (var i = 0.0; i < this.length; ++i) {
-        result += this.array[i] * this.array[i];
-    }
-    return Math.sqrt(result);
-};
-
 MW.Vector.prototype.sum = function() {
     var result = 0.0;
     for (var i = 0.0; i < this.length; ++i) {
@@ -830,12 +829,29 @@ MW.Vector.prototype.dotMatrix = function(A) {
     var ni = A.ncols;
     var nj = this.length;
     var w = new MW.Vector(ni);
-    for (i = 0; i < ni; ++i) {
-        tot = 0.0;
-        for (j = 0; j < nj; ++j) {
-            tot += this.array[j] * A.array[j][i];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj3; j += 4) {
+                tot += this.array[j] * A.array[j][i]
+                    + this.array[j+1] * A.array[j+1][i]
+                    + this.array[j+2] * A.array[j+2][i]
+                    + this.array[j+3] * A.array[j+3][i];
+            }
+            for (; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w.array[i] = tot;
         }
-        w.array[i] = tot;
+    } else {
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w.array[i] = tot;
+        }
     }
     return w;
 };
@@ -912,16 +928,6 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += this.array[i] * this.array[i];
-    }
-    MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
-};
-
 MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
@@ -961,15 +967,34 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
 MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
     MW.util.checkVectorMatrix(this, A);
     MW.util.checkNullOrUndefined(tag);
+    var i, j;
+    var nj = this.length;
     var lb = MW.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.length; ++j) {
-            tot += this.array[j] * A.array[j][i];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot = 0.0;
+            for (j = 0; j < nj3; j += 4) {
+                tot += this.array[j] * A.array[j][i]
+                    + this.array[j+1] * A.array[j+1][i]
+                    + this.array[j+2] * A.array[j+2][i]
+                    + this.array[j+3] * A.array[j+3][i];
+            }
+            for (; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w[offset++] = tot;
         }
-        w[offset++] = tot;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            var tot = 0.0;
+            for (j = 0; j < nj; ++j) {
+                tot += this.array[j] * A.array[j][i];
+            }
+            w[offset++] = tot;
+        }
     }
     MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1191,10 +1216,10 @@ MW.Matrix.prototype.dotMatrix = function(B) {
     var ni = this.nrows;
     var nj = this.ncols;
     var nk = B.ncols;
-    var nj3 = nj - 3;
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
+        var nj3 = nj - 3;
         for (k = 0; k < nk; ++k) {
             B.copyColumn(k, Bk);
             for (i = 0; i < ni; ++i) {
@@ -1219,7 +1244,7 @@ MW.Matrix.prototype.dotMatrix = function(B) {
                 tot = 0.0;
                 ai = this.array[i];
                 for (j = 0; j < nj; ++j) {
-                    tot += ai * Bk[j];
+                    tot += ai[j] * Bk[j];
                 }
                 C.array[i][k] = tot;
             }
@@ -1351,7 +1376,6 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
-    var nj3 = nj - 3;
 
     // transposed
     var C = new Array(nk);
@@ -1361,6 +1385,7 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
+        var nj3 = nj - 3;
         for (k = 0; k < nk; ++k) {
             B.copyColumn(lb.ifrom + k, Bk);
             for (i = 0; i < ni; ++i) {

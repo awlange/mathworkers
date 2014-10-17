@@ -5,7 +5,7 @@ var UnitTester = (function() {
 
 // Global variables
 var T = {};
-var EPSILON = 0.00000001;  // threshold for testing double precision equalities here
+var EPSILON = 10e-12;  // threshold for testing double precision equalities here
 
 
 T.Tester = function(testName) {
