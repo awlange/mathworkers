@@ -79,11 +79,6 @@ MW.on("run_vectorApply", function() {
 	v.wkApply(Math.sqrt, "vectorApply");
 });
 
-MW.on("run_vectorNorm", function() {
-	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkNorm("vectorNorm");
-});
-
 MW.on("run_vectorSum", function() {
 	var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
 	v.wkSum("vectorSum");

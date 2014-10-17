@@ -18,7 +18,6 @@
   			<li>scale<div id="scale" class="pending">pending</div></li>
   			<li>apply<div id="apply" class="pending">pending</div></li>
 			<li>dotVector<div id="dotVector" class="pending">pending</div></li>
-  			<li>norm<div id="norm" class="pending">pending</div></li>
   			<li>sum<div id="sum" class="pending">pending</div></li>
   			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
@@ -150,15 +149,6 @@ serialTests.push( function() {
 	}
 	var dot = v.dotVector(w);
 	T.doubleEqual(10.0, dot);
-	T.passed();
-});
-
-serialTests.push( function() {
-	var T = new UT.Tester("norm");
-	var v = Vector.fromArray([1.0, 2.0, -3.0]);
-	var norm = v.norm();
-	var expected = Math.sqrt(1.0 + 4.0 + 9.0);
-	T.doubleEqual(expected, norm);
 	T.passed();
 });
 
