@@ -13,14 +13,14 @@
   		<ul>
   			<li>plus<div id="plus" class="pending">pending</div></li>
   			<li>minus<div id="minus" class="pending">pending</div></li>
-  			<li>timesElementwise<div id="timesElementwise" class="pending">pending</div></li>
+  			<li>times<div id="times" class="pending">pending</div></li>
   			<li>divide<div id="divide" class="pending">pending</div></li>
   			<li>scale<div id="scale" class="pending">pending</div></li>
   			<li>apply<div id="apply" class="pending">pending</div></li>
-			<li>dot<div id="dot" class="pending">pending</div></li>
+			<li>dotVector<div id="dotVector" class="pending">pending</div></li>
   			<li>norm<div id="norm" class="pending">pending</div></li>
   			<li>sum<div id="sum" class="pending">pending</div></li>
-  			<li>vectorMatrixMultiply<div id="vectorMatrixMultiply" class="pending">pending</div></li>
+  			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
 
   		<h2>Matrix tests</h2>
@@ -29,18 +29,18 @@
 			<li>matrixIdentity<div id="matrixIdentity" class="pending">pending</div></li>
 			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
 			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
-			<li>matrixTimesElementwise<div id="matrixTimesElementwise" class="pending">pending</div></li>
+			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
 			<li>matrixDivide<div id="matrixDivide" class="pending">pending</div></li>
 			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
 			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
-			<li>matrixVectorMultiply<div id="matrixVectorMultiply" class="pending">pending</div></li>
+			<li>matrixDotVector<div id="matrixDotVector" class="pending">pending</div></li>
 			<li>matrixTransposeSquare<div id="matrixTransposeSquare" class="pending">pending</div></li>
 			<li>matrixTransposeRect<div id="matrixTransposeRect" class="pending">pending</div></li>
-			<li>matrixTimesMatrix1<div id="matrixTimesMatrix1" class="pending">pending</div></li>
-			<li>matrixTimesMatrix2<div id="matrixTimesMatrix2" class="pending">pending</div></li>
-			<li>matrixTimesMatrix3<div id="matrixTimesMatrix3" class="pending">pending</div></li>
-			<li>matrixTimesMatrix4<div id="matrixTimesMatrix4" class="pending">pending</div></li>
-			<li>matrixTimesMatrix5<div id="matrixTimesMatrix5" class="pending">pending</div></li>
+			<li>matrixDotMatrix1<div id="matrixDotMatrix1" class="pending">pending</div></li>
+			<li>matrixDotMatrix2<div id="matrixDotMatrix2" class="pending">pending</div></li>
+			<li>matrixDotMatrix3<div id="matrixDotMatrix3" class="pending">pending</div></li>
+			<li>matrixDotMatrix4<div id="matrixDotMatrix4" class="pending">pending</div></li>
+			<li>matrixDotMatrix5<div id="matrixDotMatrix5" class="pending">pending</div></li>
   		</ul>
 
         <h2>Checker tests</h2>
@@ -103,10 +103,10 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("timesElementwise");
+	var T = new UT.Tester("times");
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var w = Vector.fromArray([4.0, 8.0, -3.0]);
-	var times = v.timesElementwise(w);
+	var times = v.times(w);
 	var expected = Vector.fromArray([4.0, 16.0, -9.0]);
 	T.vectorEqual(expected, times);
 	T.passed();
@@ -141,14 +141,14 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("dot");
+	var T = new UT.Tester("dotVector");
 	var v = new MWs.Vector(3);
 	var w = new MWs.Vector(3);
 	for (var i = 0; i < 3; ++i) {
         v.array[i] = i;
         w.array[i] = i * 2.0;
 	}
-	var dot = v.dot(w);
+	var dot = v.dotVector(w);
 	T.doubleEqual(10.0, dot);
 	T.passed();
 });
@@ -171,10 +171,10 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("vectorMatrixMultiply");
+	var T = new UT.Tester("vectorDotMatrix");
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	var w = v.timesMatrix(A);
+	var w = v.dotMatrix(A);
 	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), w);
 	T.passed();
 });
@@ -215,10 +215,10 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesElementwise");
+	var T = new UT.Tester("matrixTimes");
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	var C = A.timesElementwise(B);
+	var C = A.times(B);
 	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), C);
 	T.passed();
 });
@@ -251,10 +251,10 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixVectorMultiply");
+	var T = new UT.Tester("matrixDotVector");
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	var w = A.timesVector(v);
+	var w = A.dotVector(v);
 	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), w);
 	T.passed();
 });
@@ -284,62 +284,62 @@ serialTests.push( function() {
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesMatrix1");
+	var T = new UT.Tester("matrixDotMatrix1");
 	var A = Matrix.fromArray([[1.0, 2.0], 
 							  [2.0, 3.0]]);
 	var B = Matrix.fromArray([[-3.0, 2.0],
 							  [1.0, -2.0]]);
-	var AB = A.timesMatrix(B);
+	var AB = A.dotMatrix(B);
 	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0],
 									[-3.0, -2.0]]), AB);
 	T.passed();
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesMatrix2");
+	var T = new UT.Tester("matrixDotMatrix2");
 	var A = Matrix.fromArray([[1.0, 2.0], 
 							  [2.0, 3.0]]);
 	var B = Matrix.fromArray([[-3.0, 2.0],
 							  [1.0, -2.0]]);
-	var BA = B.timesMatrix(A);
+	var BA = B.dotMatrix(A);
 	T.matrixEqual(Matrix.fromArray([[1.0, 0.0],
 									[-3.0, -4.0]]), BA);
 	T.passed();
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesMatrix3");
+	var T = new UT.Tester("matrixDotMatrix3");
 	var A = Matrix.fromArray([[1.0, 2.0], 
 							  [2.0, 3.0]]);
 	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
 							  [0.0, 1.0, 1.0]]);
-	var AC = A.timesMatrix(C);
+	var AC = A.dotMatrix(C);
 	T.matrixEqual(Matrix.fromArray([[1.0, 2.0, 0.0],
 									[2.0, 3.0, -1.0]]), AC);
 	T.passed();
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesMatrix4");
+	var T = new UT.Tester("matrixDotMatrix4");
 	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
 							  [0.0, 1.0, 1.0]]);
 	var D = Matrix.fromArray([[3.0, 1.0],
 							  [-1.0, -2.0],
 							  [1.0, 1.0]]);
-	var CD = C.timesMatrix(D);
+	var CD = C.dotMatrix(D);
 	T.matrixEqual(Matrix.fromArray([[1.0, -1.0],
 									[0.0, -1.0]]), CD);
 	T.passed();
 });
 
 serialTests.push( function() {
-	var T = new UT.Tester("matrixTimesMatrix5");
+	var T = new UT.Tester("matrixDotMatrix5");
 	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
 							  [0.0, 1.0, 1.0]]);
 	var D = Matrix.fromArray([[3.0, 1.0],
 							  [-1.0, -2.0],
 							  [1.0, 1.0]]);
-	var DC = D.timesMatrix(C);
+	var DC = D.dotMatrix(C);
 	T.matrixEqual(Matrix.fromArray([[3.0, 1.0, -5.0],
 									[-1.0, -2.0, 0.0],
 									[1.0, 1.0, -1.0]]), DC);

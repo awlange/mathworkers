@@ -122,7 +122,7 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
-MW.Matrix.prototype.timesElementwise = function(B) {
+MW.Matrix.prototype.times = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
     for (var i = 0; i < this.nrows; ++i) {
@@ -192,7 +192,7 @@ MW.Matrix.prototype.transposeInPlace = function() {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.timesVector = function(v) {
+MW.Matrix.prototype.dotVector = function(v) {
     MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
     for (var i = 0; i < this.nrows; ++i) {
@@ -206,7 +206,7 @@ MW.Matrix.prototype.timesVector = function(v) {
 };
 
 // matrix-matrix multiply: A.B
-MW.Matrix.prototype.timesMatrix = function(B) {
+MW.Matrix.prototype.dotMatrix = function(B) {
     MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);
 
@@ -214,8 +214,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
     var ni = this.nrows;
     var nj = this.ncols;
     var nk = B.ncols;
-
-    var nj1 = nj - 3;
+    var nj3 = nj - 3;
 
     var Bk = new Float64Array(nj);
     if (global.unrollLoops) {
@@ -224,7 +223,7 @@ MW.Matrix.prototype.timesMatrix = function(B) {
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
                 ai = this.array[i];
-                for (j = 0; j < nj1; j += 4) {
+                for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
                         + ai[j + 1] * Bk[j + 1]
                         + ai[j + 2] * Bk[j + 2]
@@ -284,7 +283,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimesElementwise = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -349,7 +348,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
+MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
     MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -366,7 +365,7 @@ MW.Matrix.prototype.wkTimesVector = function(v, tag, rebroadcast) {
 };
 
 // C = A.B
-MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
@@ -375,8 +374,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
     var nj = this.ncols;
     var lb = MW.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
-
-    var nj1 = nj - 3;
+    var nj3 = nj - 3;
 
     // transposed
     var C = new Array(nk);
@@ -391,7 +389,7 @@ MW.Matrix.prototype.wkTimesMatrix = function(B, tag, rebroadcast) {
             for (i = 0; i < ni; ++i) {
                 tot = 0.0;
                 ai = this.array[i];
-                for (j = 0; j < nj1; j += 4) {
+                for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
                         + ai[j + 1] * Bk[j + 1]
                         + ai[j + 2] * Bk[j + 2]

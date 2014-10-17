@@ -8,25 +8,26 @@ var Matrix = MathWorkers.Matrix;
 var v, w, x;
 var A, B;
 var N = 800;
+var M = 20000000;
 
 MW.on("set", function() {
-	v = Vector.randomVector(2000);
-	w = Vector.randomVector(2000);
+	v = Vector.randomVector(M);
+	w = Vector.randomVector(M);
 	x = Vector.randomVector(N);
 	A = Matrix.randomMatrix(N, N);
 	B = Matrix.randomMatrix(N, N);
 });
 
 MW.on("run_vectorDot", function() {
-	v.wkDot(w, "vectorDot");
+	v.wkDotVector(w, "vectorDot");
 });
 
 MW.on("run_vectorMatrixProduct", function() {
-	x.wkTimesMatrix(A, "vectorMatrixProduct");
+	x.wkDotMatrix(A, "vectorMatrixProduct");
 });
 
 MW.on("run_matrixMatrixProduct", function() {
-	A.wkTimesMatrix(B, "matrixMatrixProduct");
+	A.wkDotMatrix(B, "matrixMatrixProduct");
 });
 
 MW.on("run_matrixMatrixPlus", function() {
