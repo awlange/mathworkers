@@ -123,14 +123,6 @@ MW.Vector.prototype.dotVector = function(w) {
     return tot;
 };
 
-MW.Vector.prototype.norm = function() {
-    var result = 0.0;
-    for (var i = 0.0; i < this.length; ++i) {
-        result += this.array[i] * this.array[i];
-    }
-    return Math.sqrt(result);
-};
-
 MW.Vector.prototype.sum = function() {
     var result = 0.0;
     for (var i = 0.0; i < this.length; ++i) {
@@ -226,16 +218,6 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
         x[offset++] = fn(this.array[i]);
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
-};
-
-MW.Vector.prototype.wkNorm = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += this.array[i] * this.array[i];
-    }
-    MW.MathWorker.reduceVectorNorm(tot, tag, rebroadcast);
 };
 
 MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
