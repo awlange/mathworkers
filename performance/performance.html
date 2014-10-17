@@ -46,12 +46,20 @@
 					tot += tmp * tmp;
 				}
 				var std = Math.sqrt(tot / arr.length);
+                arr.sort(function(a, b){return a-b});
+                var fourth = (nRuns / 4)|0;
+                var q25 = arr[fourth - 1];
+                var q50 = arr[2*fourth - 1];
+                var q75 = arr[3*fourth - 1];
 				return {
 					nruns: arr.length,
 					mean: mean,
 					std: std,
 					min: amin,
-					max: amax
+					max: amax,
+                    q25: q25,
+                    q50: q50,
+                    q75: q75
 				};
 			}
 
@@ -79,6 +87,18 @@
 				var li_max = document.createElement("li");
 				li_max.appendChild(document.createTextNode("max: " + stats.max.toFixed(2)));
 				elem.appendChild(li_max);
+
+                var li_q25 = document.createElement("li");
+                li_q25.appendChild(document.createTextNode("q25: " + stats.q25.toFixed(2)));
+                elem.appendChild(li_q25);
+
+                var li_q50 = document.createElement("li");
+                li_q50.appendChild(document.createTextNode("q50: " + stats.q50.toFixed(2)));
+                elem.appendChild(li_q50);
+
+                var li_q75 = document.createElement("li");
+                li_q75.appendChild(document.createTextNode("q75: " + stats.q75.toFixed(2)));
+                elem.appendChild(li_q75);
 			}
 		</script>
 

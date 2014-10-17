@@ -8,7 +8,7 @@ var Matrix = MathWorkers.Matrix;
 var v, w, x;
 var A, B;
 var N = 800;
-var M = 20000000;
+var M = 10000000;
 
 MW.on("set", function() {
 	v = Vector.randomVector(M);

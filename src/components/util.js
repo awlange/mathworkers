@@ -12,7 +12,7 @@ MW.util = {};
  */
 MW.util.loadBalance = function(n) {
     var id = global.myWorkerId;
-	var div = Math.floor(n / global.nWorkers);
+	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
 
 	var ifrom;
