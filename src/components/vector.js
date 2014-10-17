@@ -101,9 +101,24 @@ MW.Vector.prototype.apply = function(fn) {
 
 MW.Vector.prototype.dotVector = function(w) {
     MW.util.checkVectors(this, w);
+    var i;
+    var ni = this.length;
     var tot = 0.0;
-    for (var i = 0; i < this.length; ++i) {
-        tot += this.array[i] * w.array[i];
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            tot += this.array[i] * w.array[i]
+                + this.array[i+1] * w.array[i+1]
+                + this.array[i+2] * w.array[i+2]
+                + this.array[i+3] * w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            tot += this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            tot += this.array[i] * w.array[i];
+        }
     }
     return tot;
 };
@@ -227,9 +242,23 @@ MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
+    var i;
     var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += this.array[i] * w.array[i];
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; i += 4) {
+            tot += this.array[i] * w.array[i]
+                + this.array[i+1] * w.array[i+1]
+                + this.array[i+2] * w.array[i+2]
+                + this.array[i+3] * w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            tot += this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot += this.array[i] * w.array[i];
+        }
     }
     MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };

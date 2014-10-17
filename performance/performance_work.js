@@ -8,10 +8,11 @@ var Matrix = MathWorkers.Matrix;
 var v, w, x;
 var A, B;
 var N = 800;
+var M = 20000000;
 
 MW.on("set", function() {
-	v = Vector.randomVector(2000);
-	w = Vector.randomVector(2000);
+	v = Vector.randomVector(M);
+	w = Vector.randomVector(M);
 	x = Vector.randomVector(N);
 	A = Matrix.randomMatrix(N, N);
 	B = Matrix.randomMatrix(N, N);
