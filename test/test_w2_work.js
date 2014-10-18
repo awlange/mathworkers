@@ -5,7 +5,7 @@ var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
 var Batch = MathWorkers.BatchOperation;
 
-var EPSILON = 0.00000001;
+var EPSILON = 10e-12;
 
 var id;
 var nworkers;
@@ -77,11 +77,6 @@ MW.on("run_vectorScale", function() {
 MW.on("run_vectorApply", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
 	v.wkApply(Math.sqrt, "vectorApply");
-});
-
-MW.on("run_vectorNorm", function() {
-	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkNorm("vectorNorm");
 });
 
 MW.on("run_vectorSum", function() {

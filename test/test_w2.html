@@ -28,7 +28,6 @@
   			<li>vectorDivide<div id="vectorDivide" class="pending">pending</div></li>
   			<li>vectorScale<div id="vectorScale" class="pending">pending</div></li>
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
-  			<li>vectorNorm<div id="vectorNorm" class="pending">pending</div></li>
   			<li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
   			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
@@ -73,7 +72,7 @@
  * MathWorker tests
  */
 var MWs = MathWorkers;
-var crd = new MWs.Coordinator(2, "test_w2_work.js", 3);
+var crd = new MWs.Coordinator(2, "test_w2_work.js");
 var UT = UnitTester;
 var Vector = MWs.Vector;
 var Matrix = MWs.Matrix;
@@ -210,15 +209,6 @@ crd.on("vectorApply", function() {
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([Math.sqrt(1.0), Math.sqrt(2.0), Math.sqrt(3.0), Math.sqrt(4.0), Math.sqrt(5.0)]);
 	T.vectorEqual(vec, recv);
-	T.passed();
-
-	crd.trigger("run_vectorNorm");
-});
-
-crd.on("vectorNorm", function() {
-	var T = new UT.Tester("vectorNorm");
-	var recv = crd.getBuffer();
-	T.doubleEqual(Math.sqrt(1.0 + 4.0 + 9.0 + 16.0), recv);
 	T.passed();
 
 	crd.trigger("run_vectorSum");

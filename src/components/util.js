@@ -12,7 +12,7 @@ MW.util = {};
  */
 MW.util.loadBalance = function(n) {
     var id = global.myWorkerId;
-	var div = Math.floor(n / global.nWorkers);
+	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
 
 	var ifrom;
@@ -29,10 +29,17 @@ MW.util.loadBalance = function(n) {
 };
 
 /**
+ *  True if x is null or undefined
+ */
+MW.util.nullOrUndefined = function(x) {
+    return x === undefined || x === null;
+};
+
+/**
  *  Verify that x is neither null nor undefined.
  */
 MW.util.checkNullOrUndefined = function(x) {
-    if (x === undefined || x === null) {
+    if (MW.util.nullOrUndefined(x)) {
         throw new TypeError("Undefined or null variable.");
     }
 };
