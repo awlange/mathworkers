@@ -29,6 +29,14 @@ MW.Vector.prototype.setVector = function(arr) {
     this.length = arr.length;
 };
 
+MW.Vector.zeroes = function(size) {
+    var vec = new Vector(size);
+    for (var i = 0; i < size; ++i) {
+        vec.array[i] = 0.0;
+    }
+    return vec;
+};
+
 MW.Vector.randomVector = function(size) {
     var vec = new Vector(size);
     for (var i = 0; i < size; ++i) {

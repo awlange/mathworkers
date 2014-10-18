@@ -27,7 +27,7 @@ MW.setLogLevel = function(logLevel) {
  * If true, use loop unrolled versions of functions if available. If false, do not.
  * Off by default.
  */
-global.unrollLoops = true;
+global.unrollLoops = false;
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
