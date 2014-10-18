@@ -879,6 +879,13 @@ MW.Vector.prototype.dotMatrix = function(A) {
     return w;
 };
 
+
+// Copyright 2014 Adrian W. Lange
+
+/**
+ * Worker versions of the Vector methods
+ */
+
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
@@ -1020,10 +1027,7 @@ MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
         }
     }
     MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
-};
-
-
-// Copyright 2014 Adrian W. Lange
+};// Copyright 2014 Adrian W. Lange
 
 /**
  *  Matrix class
@@ -1256,9 +1260,9 @@ MW.Matrix.prototype.dotMatrix = function(B) {
                 ai = this.array[i];
                 for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
-                        + ai[j + 1] * Bk[j + 1]
-                        + ai[j + 2] * Bk[j + 2]
-                        + ai[j + 3] * Bk[j + 3];
+                        + ai[j+1] * Bk[j+1]
+                        + ai[j+2] * Bk[j+2]
+                        + ai[j+3] * Bk[j+3];
                 }
                 for (; j < nj; ++j) {
                     tot += ai[j] * Bk[j];
@@ -1281,6 +1285,12 @@ MW.Matrix.prototype.dotMatrix = function(B) {
     }
     return C;
 };
+
+// Copyright 2014 Adrian W. Lange
+
+/**
+ * Worker versions of the Matrix methods
+ */
 
 MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
@@ -1447,10 +1457,7 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
     }
 
     MW.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
-};
-
-
-// Copyright 2014 Adrian W. Lange
+};// Copyright 2014 Adrian W. Lange
 
 /**
  *  Batch-operation methods

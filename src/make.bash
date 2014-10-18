@@ -9,7 +9,9 @@ cat  mathworkers_head.js.txt \
   coordinator.js \
   mathworker.js \
   vector.js \
+  vector_worker.js \
   matrix.js \
+  matrix_worker.js \
   batchoperation.js \
   mathworkers_tail.js.txt > ../mathworkers.js
 rm -f .tmp
