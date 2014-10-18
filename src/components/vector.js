@@ -17,7 +17,7 @@ MW.Vector = function(size) {
 MW.Vector.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var vec = new MW.Vector(arr.length);
-    for (var i = 0; i < arr.length; ++i) {
+    for (var i = 0, ni = arr.length; i < ni; ++i) {
         vec.array[i] = arr[i];
     }
     return vec;
@@ -48,8 +48,23 @@ MW.Vector.prototype.toString = function() {
 MW.Vector.prototype.plus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] + w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] + w.array[i];
+            result.array[i+1] = this.array[i+1] + w.array[i+1];
+            result.array[i+2] = this.array[i+2] + w.array[i+2];
+            result.array[i+3] = this.array[i+3] + w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] + w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] + w.array[i];
+        }
     }
     return result;
 };

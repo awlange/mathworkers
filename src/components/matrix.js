@@ -22,8 +22,11 @@ MW.Matrix = function(nrows, ncols) {
 MW.Matrix.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var mat = new MW.Matrix(arr.length, arr[0].length);
-    for (var i = 0; i < arr.length; ++i) {
-        for (var j = 0; j < arr[i].length; ++j) {
+    var i, j, nj;
+    var ni = arr.length;
+    for (i = 0; i < ni; ++i) {
+        nj = arr[i].length;
+        for (j = 0; j < nj; ++j) {
             mat.array[i][j] = arr[i][j];
         }
     }
@@ -103,8 +106,11 @@ MW.Matrix.prototype.toString = function() {
 MW.Matrix.prototype.plus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
+    var i, j;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    for (i = 0; i < ni; ++i) {
+        for (j = 0; j < nj; ++j) {
             C.array[i][j] = this.array[i][j] + B.array[i][j];
         }
     }

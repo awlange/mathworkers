@@ -37,12 +37,25 @@ global.workerPool = [];
 global.nWorkers = 1;
 global.myWorkerId = 0;
 
-// Log
+/**
+ * Log level
+ * 1 = warnings and errors only
+ * 2 = verbose logging
+ */
 global.logLevel = 1;
+MW.setLogLevel = function(logLevel) {
+    if (!MW.util.nullOrUndefined(logLevel)) {
+        global.logLevel = logLevel;
+    }
+};
 
-// If true, use loop unrolled versions of functions if available. If false, do not.
-global.unrollLoops = false;  // off by default
-MW.unrollLoops = function(unroll) {
+/**
+ * Loop unrolling option
+ * If true, use loop unrolled versions of functions if available. If false, do not.
+ * Off by default.
+ */
+global.unrollLoops = false;
+MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
@@ -251,16 +264,11 @@ function EventEmitter() {
 /**
  *  Coordinator for browser-side interface
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
+MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
 	this.ready = false;
-
-    // Set log level if specified
-    if (logLevel !== undefined && logLevel !== null) {
-        global.logLevel = logLevel;
-    }
 
 	// Create the worker pool, which starts the workers
 	global.createPool(nWorkersInput, workerScriptName);
@@ -708,7 +716,7 @@ MW.Vector = function(size) {
 MW.Vector.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var vec = new MW.Vector(arr.length);
-    for (var i = 0; i < arr.length; ++i) {
+    for (var i = 0, ni = arr.length; i < ni; ++i) {
         vec.array[i] = arr[i];
     }
     return vec;
@@ -739,8 +747,23 @@ MW.Vector.prototype.toString = function() {
 MW.Vector.prototype.plus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] + w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] + w.array[i];
+            result.array[i+1] = this.array[i+1] + w.array[i+1];
+            result.array[i+2] = this.array[i+2] + w.array[i+2];
+            result.array[i+3] = this.array[i+3] + w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] + w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] + w.array[i];
+        }
     }
     return result;
 };
@@ -1024,8 +1047,11 @@ MW.Matrix = function(nrows, ncols) {
 MW.Matrix.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var mat = new MW.Matrix(arr.length, arr[0].length);
-    for (var i = 0; i < arr.length; ++i) {
-        for (var j = 0; j < arr[i].length; ++j) {
+    var i, j, nj;
+    var ni = arr.length;
+    for (i = 0; i < ni; ++i) {
+        nj = arr[i].length;
+        for (j = 0; j < nj; ++j) {
             mat.array[i][j] = arr[i][j];
         }
     }
@@ -1105,8 +1131,11 @@ MW.Matrix.prototype.toString = function() {
 MW.Matrix.prototype.plus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
+    var i, j;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    for (i = 0; i < ni; ++i) {
+        for (j = 0; j < nj; ++j) {
             C.array[i][j] = this.array[i][j] + B.array[i][j];
         }
     }

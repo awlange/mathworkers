@@ -10,12 +10,25 @@ global.workerPool = [];
 global.nWorkers = 1;
 global.myWorkerId = 0;
 
-// Log
+/**
+ * Log level
+ * 1 = warnings and errors only
+ * 2 = verbose logging
+ */
 global.logLevel = 1;
+MW.setLogLevel = function(logLevel) {
+    if (!MW.util.nullOrUndefined(logLevel)) {
+        global.logLevel = logLevel;
+    }
+};
 
-// If true, use loop unrolled versions of functions if available. If false, do not.
-global.unrollLoops = false;  // off by default
-MW.unrollLoops = function(unroll) {
+/**
+ * Loop unrolling option
+ * If true, use loop unrolled versions of functions if available. If false, do not.
+ * Off by default.
+ */
+global.unrollLoops = false;
+MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };

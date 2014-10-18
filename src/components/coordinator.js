@@ -3,16 +3,11 @@
 /**
  *  Coordinator for browser-side interface
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName, logLevel) {
+MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = [];
 	this.ready = false;
-
-    // Set log level if specified
-    if (logLevel !== undefined && logLevel !== null) {
-        global.logLevel = logLevel;
-    }
 
 	// Create the worker pool, which starts the workers
 	global.createPool(nWorkersInput, workerScriptName);
