@@ -155,14 +155,14 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
     self.postMessage(matObject, matBufferList);
 };
 
-MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
-    rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
-};
-
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+};
+
+MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
+    rebroadcast = rebroadcast || false;
+    self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 

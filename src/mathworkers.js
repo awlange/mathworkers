@@ -60,6 +60,9 @@ MW.setUnrollLoops = function(unroll) {
     global.unrollLoops = unroll;
 };
 
+/**
+ * Creates the internal Web Worker pool
+ */
 global.createPool = function(nWorkersInput, workerScriptName) {
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
@@ -346,12 +349,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             case "_gatherMatrixColumns":
                 handleGatherMatrixColumns(data);
                 break;
-  			case "_vectorNorm":
- 				handleVectorNorm(data);
- 				break;
   			case "_vectorSum":
  				handleVectorSum(data);
  				break;
+            case "_vectorProduct":
+                handleVectorProduct(data);
+                break;
  			default:
  				console.error("Invalid Coordinator handle: " + data.handle);
  		}
@@ -366,9 +369,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 
  	// Reduction function variables
  	var nWorkersReported = 0;
- 	var tot = 0.0;
- 	var gatherVector = {};
- 	var gatherMatrix = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -427,8 +427,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			// reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherVector = {};
 		}
 	};
 
@@ -453,8 +451,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			//reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherMatrix = {};
 		}
 	};
 
@@ -485,15 +481,37 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             }
             //reset
             nWorkersReported = 0;
-            tot = 0;
         }
     };
 
-	var handleVectorNorm = function(data) {
-		tot += data.tot;
+    var handleVectorSum = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer += data.tot;
+        }
+        nWorkersReported += 1;
+        if (nWorkersReported == global.nWorkers) {
+            if (data.rebroadcast) {
+                // rebroadcast the result back to the workers
+                that.sendDataToWorkers(objectBuffer, data.tag);
+            } else {
+                // save result to buffer and emit to the browser-side coordinator
+                that.emit(data.tag);
+            }
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
+
+	var handleVectorProduct = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer *= data.tot;
+        }
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
 				that.sendDataToWorkers(objectBuffer, data.tag);
@@ -501,28 +519,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 				// save result to buffer and emit to the browser-side coordinator
 				that.emit(data.tag);
 			}
-
 			// reset for next message
 			nWorkersReported = 0;
-			tot = 0.0;
-		}
-	};
-
-	var handleVectorSum = function(data) {
-		tot += data.tot;
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = tot;
-			if (data.rebroadcast) {
-				// rebroadcast the result back to the workers
-				that.sendDataToWorkers(objectBuffer, data.tag);
-			} else {
-				// save result to buffer and emit to the browser-side coordinator
-				that.emit(data.tag);
-			}
-			// reset for next message
-			nWorkersReported = 0;
-			tot = 0.0;
 		}
 	};
 
@@ -686,14 +684,14 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
     self.postMessage(matObject, matBufferList);
 };
 
-MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
-    rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
-};
-
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+};
+
+MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
+    rebroadcast = rebroadcast || false;
+    self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 
@@ -728,6 +726,14 @@ MW.Vector.prototype.setVector = function(arr) {
     this.length = arr.length;
 };
 
+MW.Vector.zeroes = function(size) {
+    var vec = new Vector(size);
+    for (var i = 0; i < size; ++i) {
+        vec.array[i] = 0.0;
+    }
+    return vec;
+};
+
 MW.Vector.randomVector = function(size) {
     var vec = new Vector(size);
     for (var i = 0; i < size; ++i) {
@@ -742,6 +748,46 @@ MW.Vector.prototype.toString = function() {
         str += this.array[i] + ", ";
     }
     return str + this.array[this.length-1] + "]";
+};
+
+MW.Vector.prototype.sum = function() {
+    var result = 0.0;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result += this.array[i] + this.array[i+1] + this.array[i+2] + this.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result += this.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result += this.array[i];
+        }
+    }
+    return result;
+};
+
+MW.Vector.prototype.product = function() {
+    var result = 1.0;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result *= this.array[i] * this.array[i+1] * this.array[i+2] * this.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result *= this.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result *= this.array[i];
+        }
+    }
+    return result;
 };
 
 MW.Vector.prototype.plus = function(w) {
@@ -771,8 +817,23 @@ MW.Vector.prototype.plus = function(w) {
 MW.Vector.prototype.minus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] - w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] - w.array[i];
+            result.array[i+1] = this.array[i+1] - w.array[i+1];
+            result.array[i+2] = this.array[i+2] - w.array[i+2];
+            result.array[i+3] = this.array[i+3] - w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] - w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] - w.array[i];
+        }
     }
     return result;
 };
@@ -780,8 +841,23 @@ MW.Vector.prototype.minus = function(w) {
 MW.Vector.prototype.times = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] * w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] * w.array[i];
+            result.array[i+1] = this.array[i+1] * w.array[i+1];
+            result.array[i+2] = this.array[i+2] * w.array[i+2];
+            result.array[i+3] = this.array[i+3] * w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] * w.array[i];
+        }
     }
     return result;
 };
@@ -789,8 +865,23 @@ MW.Vector.prototype.times = function(w) {
 MW.Vector.prototype.divide = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] / w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] / w.array[i];
+            result.array[i+1] = this.array[i+1] / w.array[i+1];
+            result.array[i+2] = this.array[i+2] / w.array[i+2];
+            result.array[i+3] = this.array[i+3] / w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] / w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] / w.array[i];
+        }
     }
     return result;
 };
@@ -798,8 +889,23 @@ MW.Vector.prototype.divide = function(w) {
 MW.Vector.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] * alpha;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] * alpha;
+            result.array[i+1] = this.array[i+1] * alpha;
+            result.array[i+2] = this.array[i+2] * alpha;
+            result.array[i+3] = this.array[i+3] * alpha;
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] * alpha;
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] * alpha;
+        }
     }
     return result;
 };
@@ -807,8 +913,23 @@ MW.Vector.prototype.scale = function(alpha) {
 MW.Vector.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = fn(this.array[i]);
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = fn(this.array[i]);
+            result.array[i+1] = fn(this.array[i+1]);
+            result.array[i+2] = fn(this.array[i+2]);
+            result.array[i+3] = fn(this.array[i+3]);
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = fn(this.array[i]);
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = fn(this.array[i]);
+        }
     }
     return result;
 };
@@ -835,14 +956,6 @@ MW.Vector.prototype.dotVector = function(w) {
         }
     }
     return tot;
-};
-
-MW.Vector.prototype.sum = function() {
-    var result = 0.0;
-    for (var i = 0.0; i < this.length; ++i) {
-        result += this.array[i];
-    }
-    return result;
 };
 
 // vector-matrix multiply: v.A
@@ -886,14 +999,71 @@ MW.Vector.prototype.dotMatrix = function(A) {
  * Worker versions of the Vector methods
  */
 
+MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
+    var tot = 0.0;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            tot += this.array[i] + this.array[i+1] + this.array[i+2] + this.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            tot += this.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot += this.array[i];
+        }
+    }
+    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkProduct = function(tag, rebroadcast) {
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
+    var tot = 1.0;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            tot *= this.array[i] * this.array[i+1] * this.array[i+2] * this.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            tot *= this.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot *= this.array[i];
+        }
+    }
+    MW.MathWorker.reduceVectorProduct(tot, tag, rebroadcast);
+};
+
+
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] + w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+            x[offset++] = this.array[i+1] + w.array[i+1];
+            x[offset++] = this.array[i+2] + w.array[i+2];
+            x[offset++] = this.array[i+3] + w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -904,8 +1074,22 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] - w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+            x[offset++] = this.array[i+1] - w.array[i+1];
+            x[offset++] = this.array[i+2] - w.array[i+2];
+            x[offset++] = this.array[i+3] - w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -916,8 +1100,22 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] * w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+            x[offset++] = this.array[i+1] * w.array[i+1];
+            x[offset++] = this.array[i+2] * w.array[i+2];
+            x[offset++] = this.array[i+3] * w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -928,8 +1126,22 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] / w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+            x[offset++] = this.array[i+1] / w.array[i+1];
+            x[offset++] = this.array[i+2] / w.array[i+2];
+            x[offset++] = this.array[i+3] / w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -940,8 +1152,22 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] * alpha;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] * alpha;
+            x[offset++] = this.array[i+1] * alpha;
+            x[offset++] = this.array[i+2] * alpha;
+            x[offset++] = this.array[i+3] * alpha;
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * alpha;
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * alpha;
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -952,8 +1178,22 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = fn(this.array[i]);
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = fn(this.array[i]);
+            x[offset++] = fn(this.array[i+1]);
+            x[offset++] = fn(this.array[i+2]);
+            x[offset++] = fn(this.array[i+3]);
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = fn(this.array[i]);
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = fn(this.array[i]);
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -979,16 +1219,6 @@ MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot += this.array[i] * w.array[i];
         }
-    }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
-};
-
-MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += this.array[i];
     }
     MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
@@ -1135,12 +1365,31 @@ MW.Matrix.prototype.toString = function() {
 MW.Matrix.prototype.plus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    var i, j;
+    var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
-    for (i = 0; i < ni; ++i) {
-        for (j = 0; j < nj; ++j) {
-            C.array[i][j] = this.array[i][j] + B.array[i][j];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] + bi[j];
+                C.array[i][j+1] = ai[j+1] + bi[j+1];
+                C.array[i][j+2] = ai[j+2] + bi[j+2];
+                C.array[i][j+3] = ai[j+3] + bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] + bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] + bi[j];
+            }
         }
     }
     return C;
@@ -1149,9 +1398,31 @@ MW.Matrix.prototype.plus = function(B) {
 MW.Matrix.prototype.minus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] - B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] - bi[j];
+                C.array[i][j+1] = ai[j+1] - bi[j+1];
+                C.array[i][j+2] = ai[j+2] - bi[j+2];
+                C.array[i][j+3] = ai[j+3] - bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] - bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] - bi[j];
+            }
         }
     }
     return C;
@@ -1160,9 +1431,31 @@ MW.Matrix.prototype.minus = function(B) {
 MW.Matrix.prototype.times = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] * B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] * bi[j];
+                C.array[i][j+1] = ai[j+1] * bi[j+1];
+                C.array[i][j+2] = ai[j+2] * bi[j+2];
+                C.array[i][j+3] = ai[j+3] * bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] * bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] * bi[j];
+            }
         }
     }
     return C;
@@ -1171,9 +1464,31 @@ MW.Matrix.prototype.times = function(B) {
 MW.Matrix.prototype.divide = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] / B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] / bi[j];
+                C.array[i][j+1] = ai[j+1] / bi[j+1];
+                C.array[i][j+2] = ai[j+2] / bi[j+2];
+                C.array[i][j+3] = ai[j+3] / bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] / bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] / bi[j];
+            }
         }
     }
     return C;
@@ -1182,9 +1497,29 @@ MW.Matrix.prototype.divide = function(B) {
 MW.Matrix.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] * alpha;
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] * alpha;
+                C.array[i][j+1] = ai[j+1] * alpha;
+                C.array[i][j+2] = ai[j+2] * alpha;
+                C.array[i][j+3] = ai[j+3] * alpha;
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] * alpha;
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] * alpha;
+            }
         }
     }
     return C;
@@ -1193,9 +1528,29 @@ MW.Matrix.prototype.scale = function(alpha) {
 MW.Matrix.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = fn(this.array[i][j]);
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = fn(ai[j]);
+                C.array[i][j+1] = fn(ai[j+1]);
+                C.array[i][j+2] = fn(ai[j+2]);
+                C.array[i][j+3] = fn(ai[j+3]);
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = fn(ai[j]);
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = fn(ai[j]);
+            }
         }
     }
     return C;
@@ -1204,9 +1559,13 @@ MW.Matrix.prototype.apply = function(fn) {
 // Allocate new matrix and return to allow for arbitrary shaped matrices
 MW.Matrix.prototype.transpose = function() {
     var B = new MW.Matrix(this.ncols, this.nrows);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            B.array[j][i] = this.array[i][j];
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    for (i = 0; i < ni; ++i) {
+        ai = this.array[i];
+        for (j = 0; j < nj; ++j) {
+            B.array[j][i] = ai[j];
         }
     }
     return B;
@@ -1215,13 +1574,18 @@ MW.Matrix.prototype.transpose = function() {
 // Only works for square matrices
 MW.Matrix.prototype.transposeInPlace = function() {
     if (this.isSquare()) {
-        for (var i = 0; i < this.nrows; ++i) {
-            for (var j = i + 1; j < this.ncols; ++j) {
+        var i, j;
+        var ni = this.nrows;
+        var nj = this.ncols;
+        for (i = 0; i < ni; ++i) {
+            for (j = i + 1; j < nj; ++j) {
                 var tmp = this.array[i][j];
                 this.array[i][j] = this.array[j][i];
                 this.array[j][i] = tmp;
             }
         }
+    } else {
+        throw new Error("In place transpose only available for square matrices.");
     }
     return this;
 };
@@ -1230,12 +1594,36 @@ MW.Matrix.prototype.transposeInPlace = function() {
 MW.Matrix.prototype.dotVector = function(v) {
     MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
-    for (var i = 0; i < this.nrows; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.ncols; ++j) {
-            tot += this.array[i][j] * v.array[j];
+    var tot;
+    var i, j;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    var ai;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                tot += ai[j] * v.array[j]
+                    + ai[j+1] * v.array[j+1]
+                    + ai[j+2] * v.array[j+2]
+                    + ai[j+3] * v.array[j+3];
+            }
+            for (; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w.array[i] = tot;
         }
-        w.array[i] = tot;
+    } else {
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w.array[i] = tot;
+        }
     }
     return w;
 };
@@ -1298,12 +1686,37 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = this.array[i][j] + B.array[i][j];
+    var i, j, ai, bi, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = ai[j] + bi[j];
+                co[j+1] = ai[j+1] + bi[j+1];
+                co[j+2] = ai[j+2] + bi[j+2];
+                co[j+3] = ai[j+3] + bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                co[j] = ai[j] + bi[j];
+            }
+            ++offset;
         }
-        ++offset;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = ai[j] + bi[j];
+            }
+            ++offset;
+        }
     }
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
@@ -1314,12 +1727,37 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = this.array[i][j] - B.array[i][j];
+    var i, j, ai, bi, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = ai[j] - bi[j];
+                co[j+1] = ai[j+1] - bi[j+1];
+                co[j+2] = ai[j+2] - bi[j+2];
+                co[j+3] = ai[j+3] - bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                co[j] = ai[j] - bi[j];
+            }
+            ++offset;
         }
-        ++offset;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = ai[j] - bi[j];
+            }
+            ++offset;
+        }
     }
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
@@ -1330,12 +1768,37 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = this.array[i][j] * B.array[i][j];
+    var i, j, ai, bi, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = ai[j] * bi[j];
+                co[j+1] = ai[j+1] * bi[j+1];
+                co[j+2] = ai[j+2] * bi[j+2];
+                co[j+3] = ai[j+3] * bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                co[j] = ai[j] * bi[j];
+            }
+            ++offset;
         }
-        ++offset;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = ai[j] * bi[j];
+            }
+            ++offset;
+        }
     }
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
@@ -1346,12 +1809,37 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = this.array[i][j] / B.array[i][j];
+    var i, j, ai, bi, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = ai[j] / bi[j];
+                co[j+1] = ai[j+1] / bi[j+1];
+                co[j+2] = ai[j+2] / bi[j+2];
+                co[j+3] = ai[j+3] / bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                co[j] = ai[j] / bi[j];
+            }
+            ++offset;
         }
-        ++offset;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            bi = B.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = ai[j] / bi[j];
+            }
+            ++offset;
+        }
     }
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
@@ -1372,18 +1860,80 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
+MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
+    MW.util.checkNumber(alpha);
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.nrows);
+    var C = [];
+    var offset = 0;
+    var i, j, ai, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = ai[j] * alpha;
+                co[j+1] = ai[j+1] * alpha;
+                co[j+2] = ai[j+2] * alpha;
+                co[j+3] = ai[j+3] * alpha;
+            }
+            for (; j < nj; ++j) {
+                co[j] = ai[j] * alpha;
+            }
+            ++offset;
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = ai[j] * alpha;
+            }
+            ++offset;
+        }
+    }
+    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+};
+
 MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
     MW.util.checkFunction(fn);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = fn(this.array[i][j]);
+    var i, j, ai, co;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            co = C[offset];
+            for (j = 0; j < nj3; j += 4) {
+                co[j] = fn(ai[j]);
+                co[j+1] = fn(ai[j+1]);
+                co[j+2] = fn(ai[j+2]);
+                co[j+3] = fn(ai[j+3]);
+            }
+            for (; j < nj; ++j) {
+                co[j] = fn(ai[j]);
+            }
+            ++offset;
         }
-        ++offset;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            C.push(new Float64Array(nj));
+            ai = this.array[i];
+            co = C[offset];
+            for (j = 0; j < nj; ++j) {
+                co[j] = fn(ai[j]);
+            }
+            ++offset;
+        }
     }
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
@@ -1394,13 +1944,34 @@ MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
     var w = new Float64Array(lb.ito - lb.ifrom);
+    var i, j, tot, ai;
+    var nj = this.ncols;
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.ncols; ++j) {
-            tot += this.array[i][j] * v.array[j];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            ai = this.array[i];
+            tot = 0.0;
+            for (j = 0; j < nj3; j += 4) {
+                tot += ai[j] * v.array[j]
+                    + ai[j+1] * v.array[j+1]
+                    + ai[j+2] * v.array[j+2]
+                    + ai[j+3] * v.array[j+3];
+            }
+            for (; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w[offset++] = tot;
         }
-        w[offset++] = tot;
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            ai = this.array[i];
+            tot = 0.0;
+            for (j = 0; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w[offset++] = tot;
+        }
     }
     MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1432,9 +2003,9 @@ MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
                 ai = this.array[i];
                 for (j = 0; j < nj3; j += 4) {
                     tot += ai[j] * Bk[j]
-                        + ai[j + 1] * Bk[j + 1]
-                        + ai[j + 2] * Bk[j + 2]
-                        + ai[j + 3] * Bk[j + 3];
+                        + ai[j+1] * Bk[j+1]
+                        + ai[j+2] * Bk[j+2]
+                        + ai[j+3] * Bk[j+3];
                 }
                 for (; j < nj; ++j) {
                     tot += ai[j] * Bk[j];

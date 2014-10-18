@@ -106,12 +106,31 @@ MW.Matrix.prototype.toString = function() {
 MW.Matrix.prototype.plus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    var i, j;
+    var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
-    for (i = 0; i < ni; ++i) {
-        for (j = 0; j < nj; ++j) {
-            C.array[i][j] = this.array[i][j] + B.array[i][j];
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] + bi[j];
+                C.array[i][j+1] = ai[j+1] + bi[j+1];
+                C.array[i][j+2] = ai[j+2] + bi[j+2];
+                C.array[i][j+3] = ai[j+3] + bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] + bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] + bi[j];
+            }
         }
     }
     return C;
@@ -120,9 +139,31 @@ MW.Matrix.prototype.plus = function(B) {
 MW.Matrix.prototype.minus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] - B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] - bi[j];
+                C.array[i][j+1] = ai[j+1] - bi[j+1];
+                C.array[i][j+2] = ai[j+2] - bi[j+2];
+                C.array[i][j+3] = ai[j+3] - bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] - bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] - bi[j];
+            }
         }
     }
     return C;
@@ -131,9 +172,31 @@ MW.Matrix.prototype.minus = function(B) {
 MW.Matrix.prototype.times = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] * B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] * bi[j];
+                C.array[i][j+1] = ai[j+1] * bi[j+1];
+                C.array[i][j+2] = ai[j+2] * bi[j+2];
+                C.array[i][j+3] = ai[j+3] * bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] * bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] * bi[j];
+            }
         }
     }
     return C;
@@ -142,9 +205,31 @@ MW.Matrix.prototype.times = function(B) {
 MW.Matrix.prototype.divide = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] / B.array[i][j];
+    var i, j, ai, bi;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] / bi[j];
+                C.array[i][j+1] = ai[j+1] / bi[j+1];
+                C.array[i][j+2] = ai[j+2] / bi[j+2];
+                C.array[i][j+3] = ai[j+3] / bi[j+3];
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] / bi[j];
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            bi = B.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] / bi[j];
+            }
         }
     }
     return C;
@@ -153,9 +238,29 @@ MW.Matrix.prototype.divide = function(B) {
 MW.Matrix.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = this.array[i][j] * alpha;
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = ai[j] * alpha;
+                C.array[i][j+1] = ai[j+1] * alpha;
+                C.array[i][j+2] = ai[j+2] * alpha;
+                C.array[i][j+3] = ai[j+3] * alpha;
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = ai[j] * alpha;
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = ai[j] * alpha;
+            }
         }
     }
     return C;
@@ -164,9 +269,29 @@ MW.Matrix.prototype.scale = function(alpha) {
 MW.Matrix.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var C = new MW.Matrix(this.nrows, this.ncols);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            C.array[i][j] = fn(this.array[i][j]);
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                C.array[i][j] = fn(ai[j]);
+                C.array[i][j+1] = fn(ai[j+1]);
+                C.array[i][j+2] = fn(ai[j+2]);
+                C.array[i][j+3] = fn(ai[j+3]);
+            }
+            for (; j < nj; ++j) {
+                C.array[i][j] = fn(ai[j]);
+            }
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                C.array[i][j] = fn(ai[j]);
+            }
         }
     }
     return C;
@@ -175,9 +300,13 @@ MW.Matrix.prototype.apply = function(fn) {
 // Allocate new matrix and return to allow for arbitrary shaped matrices
 MW.Matrix.prototype.transpose = function() {
     var B = new MW.Matrix(this.ncols, this.nrows);
-    for (var i = 0; i < this.nrows; ++i) {
-        for (var j = 0; j < this.ncols; ++j) {
-            B.array[j][i] = this.array[i][j];
+    var i, j, ai;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    for (i = 0; i < ni; ++i) {
+        ai = this.array[i];
+        for (j = 0; j < nj; ++j) {
+            B.array[j][i] = ai[j];
         }
     }
     return B;
@@ -186,13 +315,18 @@ MW.Matrix.prototype.transpose = function() {
 // Only works for square matrices
 MW.Matrix.prototype.transposeInPlace = function() {
     if (this.isSquare()) {
-        for (var i = 0; i < this.nrows; ++i) {
-            for (var j = i + 1; j < this.ncols; ++j) {
+        var i, j;
+        var ni = this.nrows;
+        var nj = this.ncols;
+        for (i = 0; i < ni; ++i) {
+            for (j = i + 1; j < nj; ++j) {
                 var tmp = this.array[i][j];
                 this.array[i][j] = this.array[j][i];
                 this.array[j][i] = tmp;
             }
         }
+    } else {
+        throw new Error("In place transpose only available for square matrices.");
     }
     return this;
 };
@@ -201,12 +335,36 @@ MW.Matrix.prototype.transposeInPlace = function() {
 MW.Matrix.prototype.dotVector = function(v) {
     MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
-    for (var i = 0; i < this.nrows; ++i) {
-        var tot = 0.0;
-        for (var j = 0; j < this.ncols; ++j) {
-            tot += this.array[i][j] * v.array[j];
+    var tot;
+    var i, j;
+    var ni = this.nrows;
+    var nj = this.ncols;
+    var ai;
+    if (global.unrollLoops) {
+        var nj3 = nj - 3;
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            ai = this.array[i];
+            for (j = 0; j < nj3; j += 4) {
+                tot += ai[j] * v.array[j]
+                    + ai[j+1] * v.array[j+1]
+                    + ai[j+2] * v.array[j+2]
+                    + ai[j+3] * v.array[j+3];
+            }
+            for (; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w.array[i] = tot;
         }
-        w.array[i] = tot;
+    } else {
+        for (i = 0; i < ni; ++i) {
+            tot = 0.0;
+            ai = this.array[i];
+            for (j = 0; j < nj; ++j) {
+                tot += ai[j] * v.array[j];
+            }
+            w.array[i] = tot;
+        }
     }
     return w;
 };

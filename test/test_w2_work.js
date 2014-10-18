@@ -45,6 +45,16 @@ MW.on("run_vectorDotVector", function() {
 	v.wkDotVector(w, "vectorDotVector");
 });
 
+MW.on("run_vectorSum", function() {
+    var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
+    v.wkSum("vectorSum");
+});
+
+MW.on("run_vectorProduct", function() {
+    var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
+    v.wkProduct("vectorProduct");
+});
+
 MW.on("run_vectorPlus", function() {
 	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
 	var w = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
@@ -77,11 +87,6 @@ MW.on("run_vectorScale", function() {
 MW.on("run_vectorApply", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
 	v.wkApply(Math.sqrt, "vectorApply");
-});
-
-MW.on("run_vectorSum", function() {
-	var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
-	v.wkSum("vectorSum");
 });
 
 MW.on("run_vectorDotMatrix", function() {
