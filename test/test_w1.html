@@ -11,6 +11,8 @@
   		
   		<h2>Vector tests</h2>
   		<ul>
+            <li>sum<div id="sum" class="pending">pending</div></li>
+            <li>product<div id="product" class="pending">pending</div></li>
   			<li>plus<div id="plus" class="pending">pending</div></li>
   			<li>minus<div id="minus" class="pending">pending</div></li>
   			<li>times<div id="times" class="pending">pending</div></li>
@@ -18,7 +20,6 @@
   			<li>scale<div id="scale" class="pending">pending</div></li>
   			<li>apply<div id="apply" class="pending">pending</div></li>
 			<li>dotVector<div id="dotVector" class="pending">pending</div></li>
-  			<li>sum<div id="sum" class="pending">pending</div></li>
   			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
 
@@ -73,6 +74,22 @@ var UT = UnitTester;
 var serialTests = [];
 
 // Vector tests
+serialTests.push( function() {
+    var T = new UT.Tester("sum");
+    var v = Vector.fromArray([1.0, 2.0, -30.0]);
+    var sum = v.sum();
+    T.doubleEqual(-27.0, sum);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("product");
+    var v = Vector.fromArray([1.0, 2.0, -30.0]);
+    var prod = v.product();
+    T.doubleEqual(-60.0, prod);
+    T.passed();
+});
+
 serialTests.push( function() {
 	var T = new UT.Tester("plus");
 	var v = new MWs.Vector(3);
@@ -145,14 +162,6 @@ serialTests.push( function() {
     var w = Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0]);
 	var dot = v.dotVector(w);
 	T.doubleEqual(60.0, dot);
-	T.passed();
-});
-
-serialTests.push( function() {
-	var T = new UT.Tester("sum");
-	var v = Vector.fromArray([1.0, 2.0, -30.0]);
-	var sum = v.sum();
-	T.doubleEqual(-27.0, sum);
 	T.passed();
 });
 

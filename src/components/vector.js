@@ -45,6 +45,46 @@ MW.Vector.prototype.toString = function() {
     return str + this.array[this.length-1] + "]";
 };
 
+MW.Vector.prototype.sum = function() {
+    var result = 0.0;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result += this.array[i] + this.array[i+1] + this.array[i+2] + this.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result += this.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result += this.array[i];
+        }
+    }
+    return result;
+};
+
+MW.Vector.prototype.product = function() {
+    var result = 1.0;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result *= this.array[i] * this.array[i+1] * this.array[i+2] * this.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result *= this.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result *= this.array[i];
+        }
+    }
+    return result;
+};
+
 MW.Vector.prototype.plus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
@@ -72,8 +112,23 @@ MW.Vector.prototype.plus = function(w) {
 MW.Vector.prototype.minus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] - w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] - w.array[i];
+            result.array[i+1] = this.array[i+1] - w.array[i+1];
+            result.array[i+2] = this.array[i+2] - w.array[i+2];
+            result.array[i+3] = this.array[i+3] - w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] - w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] - w.array[i];
+        }
     }
     return result;
 };
@@ -81,8 +136,23 @@ MW.Vector.prototype.minus = function(w) {
 MW.Vector.prototype.times = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] * w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] * w.array[i];
+            result.array[i+1] = this.array[i+1] * w.array[i+1];
+            result.array[i+2] = this.array[i+2] * w.array[i+2];
+            result.array[i+3] = this.array[i+3] * w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] * w.array[i];
+        }
     }
     return result;
 };
@@ -90,8 +160,23 @@ MW.Vector.prototype.times = function(w) {
 MW.Vector.prototype.divide = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] / w.array[i];
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] / w.array[i];
+            result.array[i+1] = this.array[i+1] / w.array[i+1];
+            result.array[i+2] = this.array[i+2] / w.array[i+2];
+            result.array[i+3] = this.array[i+3] / w.array[i+3];
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] / w.array[i];
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] / w.array[i];
+        }
     }
     return result;
 };
@@ -99,8 +184,23 @@ MW.Vector.prototype.divide = function(w) {
 MW.Vector.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = this.array[i] * alpha;
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = this.array[i] * alpha;
+            result.array[i+1] = this.array[i+1] * alpha;
+            result.array[i+2] = this.array[i+2] * alpha;
+            result.array[i+3] = this.array[i+3] * alpha;
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = this.array[i] * alpha;
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = this.array[i] * alpha;
+        }
     }
     return result;
 };
@@ -108,8 +208,23 @@ MW.Vector.prototype.scale = function(alpha) {
 MW.Vector.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var result = new MW.Vector(this.length);
-    for (var i = 0; i < this.length; ++i) {
-        result.array[i] = fn(this.array[i]);
+    var i;
+    var ni = this.length;
+    if (global.unrollLoops) {
+        var ni3 = ni - 3;
+        for (i = 0; i < ni3; i += 4) {
+            result.array[i] = fn(this.array[i]);
+            result.array[i+1] = fn(this.array[i+1]);
+            result.array[i+2] = fn(this.array[i+2]);
+            result.array[i+3] = fn(this.array[i+3]);
+        }
+        for (; i < ni; ++i) {
+            result.array[i] = fn(this.array[i]);
+        }
+    } else {
+        for (i = 0; i < ni; ++i) {
+            result.array[i] = fn(this.array[i]);
+        }
     }
     return result;
 };
@@ -136,14 +251,6 @@ MW.Vector.prototype.dotVector = function(w) {
         }
     }
     return tot;
-};
-
-MW.Vector.prototype.sum = function() {
-    var result = 0.0;
-    for (var i = 0.0; i < this.length; ++i) {
-        result += this.array[i];
-    }
-    return result;
 };
 
 // vector-matrix multiply: v.A
