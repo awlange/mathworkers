@@ -27,12 +27,15 @@ MW.setLogLevel = function(logLevel) {
  * If true, use loop unrolled versions of functions if available. If false, do not.
  * Off by default.
  */
-global.unrollLoops = false;
+global.unrollLoops = true;
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
+/**
+ * Creates the internal Web Worker pool
+ */
 global.createPool = function(nWorkersInput, workerScriptName) {
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);

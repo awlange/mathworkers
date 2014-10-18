@@ -21,14 +21,15 @@
 
   		<h2>Vector tests</h2>
   		<ul>
-  			<li>vectorDotVector<div id="vectorDotVector" class="pending">pending</div></li>
+            <li>vectorDotVector<div id="vectorDotVector" class="pending">pending</div></li>
+            <li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
+            <li>vectorProduct<div id="vectorProduct" class="pending">pending</div></li>
   			<li>vectorPlus<div id="vectorPlus" class="pending">pending</div></li>
   			<li>vectorMinus<div id="vectorMinus" class="pending">pending</div></li>
   			<li>vectorTimes<div id="vectorTimes" class="pending">pending</div></li>
   			<li>vectorDivide<div id="vectorDivide" class="pending">pending</div></li>
   			<li>vectorScale<div id="vectorScale" class="pending">pending</div></li>
   			<li>vectorApply<div id="vectorApply" class="pending">pending</div></li>
-  			<li>vectorSum<div id="vectorSum" class="pending">pending</div></li>
   			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
   		</ul>
 
@@ -151,7 +152,25 @@ crd.on("vectorDotVector", function() {
 	T.doubleEqual(20.0, recv);
 	T.passed();
 
-	crd.trigger("run_vectorPlus");
+	crd.trigger("run_vectorSum");
+});
+
+crd.on("vectorSum", function() {
+    var T = new UT.Tester("vectorSum");
+    var recv = crd.getBuffer();
+    T.doubleEqual(1500.0, recv);
+    T.passed();
+
+    crd.trigger("run_vectorProduct");
+});
+
+crd.on("vectorProduct", function() {
+    var T = new UT.Tester("vectorProduct");
+    var recv = crd.getBuffer();
+    T.doubleEqual(120.0, recv);
+    T.passed();
+
+    crd.trigger("run_vectorPlus");
 });
 
 crd.on("vectorPlus", function() {
@@ -209,15 +228,6 @@ crd.on("vectorApply", function() {
 	var recv = crd.getBuffer();
 	var vec = Vector.fromArray([Math.sqrt(1.0), Math.sqrt(2.0), Math.sqrt(3.0), Math.sqrt(4.0), Math.sqrt(5.0)]);
 	T.vectorEqual(vec, recv);
-	T.passed();
-
-	crd.trigger("run_vectorSum");
-});
-
-crd.on("vectorSum", function() {
-	var T = new UT.Tester("vectorSum");
-	var recv = crd.getBuffer();
-	T.doubleEqual(1500.0, recv);
 	T.passed();
 
 	crd.trigger("run_vectorDotMatrix");

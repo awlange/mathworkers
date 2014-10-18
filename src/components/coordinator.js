@@ -85,12 +85,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             case "_gatherMatrixColumns":
                 handleGatherMatrixColumns(data);
                 break;
-  			case "_vectorNorm":
- 				handleVectorNorm(data);
- 				break;
   			case "_vectorSum":
  				handleVectorSum(data);
  				break;
+            case "_vectorProduct":
+                handleVectorProduct(data);
+                break;
  			default:
  				console.error("Invalid Coordinator handle: " + data.handle);
  		}
@@ -105,9 +105,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 
  	// Reduction function variables
  	var nWorkersReported = 0;
- 	var tot = 0.0;
- 	var gatherVector = {};
- 	var gatherMatrix = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -166,8 +163,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			// reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherVector = {};
 		}
 	};
 
@@ -192,8 +187,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			//reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherMatrix = {};
 		}
 	};
 
@@ -224,15 +217,37 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             }
             //reset
             nWorkersReported = 0;
-            tot = 0;
         }
     };
 
-	var handleVectorNorm = function(data) {
-		tot += data.tot;
+    var handleVectorSum = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer += data.tot;
+        }
+        nWorkersReported += 1;
+        if (nWorkersReported == global.nWorkers) {
+            if (data.rebroadcast) {
+                // rebroadcast the result back to the workers
+                that.sendDataToWorkers(objectBuffer, data.tag);
+            } else {
+                // save result to buffer and emit to the browser-side coordinator
+                that.emit(data.tag);
+            }
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
+
+	var handleVectorProduct = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer *= data.tot;
+        }
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
 				that.sendDataToWorkers(objectBuffer, data.tag);
@@ -240,28 +255,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 				// save result to buffer and emit to the browser-side coordinator
 				that.emit(data.tag);
 			}
-
 			// reset for next message
 			nWorkersReported = 0;
-			tot = 0.0;
-		}
-	};
-
-	var handleVectorSum = function(data) {
-		tot += data.tot;
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = tot;
-			if (data.rebroadcast) {
-				// rebroadcast the result back to the workers
-				that.sendDataToWorkers(objectBuffer, data.tag);
-			} else {
-				// save result to buffer and emit to the browser-side coordinator
-				that.emit(data.tag);
-			}
-			// reset for next message
-			nWorkersReported = 0;
-			tot = 0.0;
 		}
 	};
 

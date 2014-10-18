@@ -54,12 +54,15 @@ MW.setLogLevel = function(logLevel) {
  * If true, use loop unrolled versions of functions if available. If false, do not.
  * Off by default.
  */
-global.unrollLoops = false;
+global.unrollLoops = true;
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
+/**
+ * Creates the internal Web Worker pool
+ */
 global.createPool = function(nWorkersInput, workerScriptName) {
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
@@ -346,12 +349,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             case "_gatherMatrixColumns":
                 handleGatherMatrixColumns(data);
                 break;
-  			case "_vectorNorm":
- 				handleVectorNorm(data);
- 				break;
   			case "_vectorSum":
  				handleVectorSum(data);
  				break;
+            case "_vectorProduct":
+                handleVectorProduct(data);
+                break;
  			default:
  				console.error("Invalid Coordinator handle: " + data.handle);
  		}
@@ -366,9 +369,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 
  	// Reduction function variables
  	var nWorkersReported = 0;
- 	var tot = 0.0;
- 	var gatherVector = {};
- 	var gatherMatrix = {};
 
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
@@ -427,8 +427,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			// reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherVector = {};
 		}
 	};
 
@@ -453,8 +451,6 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 			}
 			//reset
 			nWorkersReported = 0;
-			tot = 0;
-			gatherMatrix = {};
 		}
 	};
 
@@ -485,15 +481,37 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
             }
             //reset
             nWorkersReported = 0;
-            tot = 0;
         }
     };
 
-	var handleVectorNorm = function(data) {
-		tot += data.tot;
+    var handleVectorSum = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer += data.tot;
+        }
+        nWorkersReported += 1;
+        if (nWorkersReported == global.nWorkers) {
+            if (data.rebroadcast) {
+                // rebroadcast the result back to the workers
+                that.sendDataToWorkers(objectBuffer, data.tag);
+            } else {
+                // save result to buffer and emit to the browser-side coordinator
+                that.emit(data.tag);
+            }
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
+
+	var handleVectorProduct = function(data) {
+        if (nWorkersReported == 0) {
+            objectBuffer = data.tot;
+        } else {
+            objectBuffer *= data.tot;
+        }
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = Math.sqrt(tot);
 			if (data.rebroadcast) {
 				// rebroadcast the result back to the workers
 				that.sendDataToWorkers(objectBuffer, data.tag);
@@ -501,28 +519,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 				// save result to buffer and emit to the browser-side coordinator
 				that.emit(data.tag);
 			}
-
 			// reset for next message
 			nWorkersReported = 0;
-			tot = 0.0;
-		}
-	};
-
-	var handleVectorSum = function(data) {
-		tot += data.tot;
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			objectBuffer = tot;
-			if (data.rebroadcast) {
-				// rebroadcast the result back to the workers
-				that.sendDataToWorkers(objectBuffer, data.tag);
-			} else {
-				// save result to buffer and emit to the browser-side coordinator
-				that.emit(data.tag);
-			}
-			// reset for next message
-			nWorkersReported = 0;
-			tot = 0.0;
 		}
 	};
 
@@ -686,14 +684,14 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
     self.postMessage(matObject, matBufferList);
 };
 
-MW.MathWorker.reduceVectorNorm = function(tot, tag, rebroadcast) {
-    rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_vectorNorm", tag: tag, rebroadcast: rebroadcast, tot: tot});
-};
-
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+};
+
+MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
+    rebroadcast = rebroadcast || false;
+    self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 
@@ -993,14 +991,71 @@ MW.Vector.prototype.dotMatrix = function(A) {
  * Worker versions of the Vector methods
  */
 
+MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
+    var tot = 0.0;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            tot += this.array[i] + this.array[i+1] + this.array[i+2] + this.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            tot += this.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot += this.array[i];
+        }
+    }
+    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};
+
+MW.Vector.prototype.wkProduct = function(tag, rebroadcast) {
+    MW.util.checkNullOrUndefined(tag);
+    var lb = MW.util.loadBalance(this.length);
+    var tot = 1.0;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            tot *= this.array[i] * this.array[i+1] * this.array[i+2] * this.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            tot *= this.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot *= this.array[i];
+        }
+    }
+    MW.MathWorker.reduceVectorProduct(tot, tag, rebroadcast);
+};
+
+
 MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] + w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+            x[offset++] = this.array[i+1] + w.array[i+1];
+            x[offset++] = this.array[i+2] + w.array[i+2];
+            x[offset++] = this.array[i+3] + w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] + w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1011,8 +1066,22 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] - w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+            x[offset++] = this.array[i+1] - w.array[i+1];
+            x[offset++] = this.array[i+2] - w.array[i+2];
+            x[offset++] = this.array[i+3] - w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] - w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1023,8 +1092,22 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] * w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+            x[offset++] = this.array[i+1] * w.array[i+1];
+            x[offset++] = this.array[i+2] * w.array[i+2];
+            x[offset++] = this.array[i+3] * w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1035,8 +1118,22 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] / w.array[i];
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+            x[offset++] = this.array[i+1] / w.array[i+1];
+            x[offset++] = this.array[i+2] / w.array[i+2];
+            x[offset++] = this.array[i+3] / w.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] / w.array[i];
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1047,8 +1144,22 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = this.array[i] * alpha;
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = this.array[i] * alpha;
+            x[offset++] = this.array[i+1] * alpha;
+            x[offset++] = this.array[i+2] * alpha;
+            x[offset++] = this.array[i+3] * alpha;
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * alpha;
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = this.array[i] * alpha;
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1059,8 +1170,22 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     var lb = MW.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = fn(this.array[i]);
+    var i;
+    if (global.unrollLoops) {
+        var ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = fn(this.array[i]);
+            x[offset++] = fn(this.array[i+1]);
+            x[offset++] = fn(this.array[i+2]);
+            x[offset++] = fn(this.array[i+3]);
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = fn(this.array[i]);
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = fn(this.array[i]);
+        }
     }
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
@@ -1086,16 +1211,6 @@ MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot += this.array[i] * w.array[i];
         }
-    }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
-};
-
-MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
-    var tot = 0.0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        tot += this.array[i];
     }
     MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
