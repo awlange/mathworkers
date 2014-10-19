@@ -1,4 +1,4 @@
-importScripts("../src/mathworkers.js");
+importScripts("../lib/mathworkers.js");
 
 var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;

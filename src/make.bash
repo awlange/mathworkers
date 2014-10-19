@@ -13,5 +13,6 @@ cat \
   core/matrix.js \
   core/matrix_worker.js \
   core/batchoperation.js \
+  statistics/basic_statistics.js \
   core/mathworkers_tail.js.txt \
   > ../lib/mathworkers.js

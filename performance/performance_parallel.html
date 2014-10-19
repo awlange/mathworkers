@@ -22,7 +22,7 @@
 			// Get the requested number of workers from the URI query and create workers for duration of tests
 			var query = window.location.search || "?w=1";
 			var nWorkers = query.split("?w=")[1];
-			var crd = new MWs.Coordinator(nWorkers, "performance_work.js");
+			var crd = new MWs.Coordinator(nWorkers, "performance_parallel_work.js");
 			document.getElementById("nWorkers").innerHTML = nWorkers;
 			crd.onReady( function() {
 				crd.trigger("set");
@@ -32,74 +32,43 @@
 			// TODO: make this part of the query
 			var nRuns = 20;
 
-			function getStats(arr) {
-				var tot = 0.0;
-				var amax = Math.max.apply(Math, arr);
-				var amin = Math.min.apply(Math, arr);
-				for (var i = 0; i < arr.length; ++i) {
-					tot += arr[i];
-				}
-				var mean = tot / arr.length;
-				tot = 0.0;
-				for (i = 0; i < arr.length; ++i) {
-					var tmp = mean - arr[i];
-					tot += tmp * tmp;
-				}
-				var std = Math.sqrt(tot / arr.length);
-                arr.sort(function(a, b){return a-b});
-                var fourth = (nRuns / 4)|0;
-                var q25 = arr[fourth - 1];
-                var q50 = arr[2*fourth - 1];
-                var q75 = arr[3*fourth - 1];
-				return {
-					nruns: arr.length,
-					mean: mean,
-					std: std,
-					min: amin,
-					max: amax,
-                    q25: q25,
-                    q50: q50,
-                    q75: q75
-				};
-			}
+            function showStats(stats, elementId) {
+                var elem = document.getElementById(elementId);
+                while (elem.hasChildNodes()) {
+                    elem.removeChild(elem.childNodes[0]);
+                }
+                var li_nruns = document.createElement("li");
+                li_nruns.appendChild(document.createTextNode("nruns: " + stats.n));
+                elem.appendChild(li_nruns);
 
-			function showStats(stats, elementId) {
-				var elem = document.getElementById(elementId);
-				while (elem.hasChildNodes()) {
-					elem.removeChild(elem.childNodes[0]);
-				}
-				var li_nruns = document.createElement("li");
-				li_nruns.appendChild(document.createTextNode("nruns: " + stats.nruns));
-				elem.appendChild(li_nruns);
+                var li_mean = document.createElement("li");
+                li_mean.appendChild(document.createTextNode("mean: " + stats.mean.toFixed(2)));
+                elem.appendChild(li_mean);
 
-				var li_mean = document.createElement("li");
-				li_mean.appendChild(document.createTextNode("mean: " + stats.mean.toFixed(2)));
-				elem.appendChild(li_mean);
+                var li_std = document.createElement("li");
+                li_std.appendChild(document.createTextNode("std: " + stats.stddev.toFixed(2)));
+                elem.appendChild(li_std);
 
-				var li_std = document.createElement("li");
-				li_std.appendChild(document.createTextNode("std: " + stats.std.toFixed(2)));
-				elem.appendChild(li_std);
+                var li_min = document.createElement("li");
+                li_min.appendChild(document.createTextNode("min: " + stats.minimum.toFixed(2)));
+                elem.appendChild(li_min);
 
-				var li_min = document.createElement("li");
-				li_min.appendChild(document.createTextNode("min: " + stats.min.toFixed(2)));
-				elem.appendChild(li_min);
-
-				var li_max = document.createElement("li");
-				li_max.appendChild(document.createTextNode("max: " + stats.max.toFixed(2)));
-				elem.appendChild(li_max);
+                var li_max = document.createElement("li");
+                li_max.appendChild(document.createTextNode("max: " + stats.maximum.toFixed(2)));
+                elem.appendChild(li_max);
 
                 var li_q25 = document.createElement("li");
-                li_q25.appendChild(document.createTextNode("q25: " + stats.q25.toFixed(2)));
+                li_q25.appendChild(document.createTextNode("q25: " + stats.quartile25.toFixed(2)));
                 elem.appendChild(li_q25);
 
                 var li_q50 = document.createElement("li");
-                li_q50.appendChild(document.createTextNode("q50: " + stats.q50.toFixed(2)));
+                li_q50.appendChild(document.createTextNode("q50: " + stats.quartile50.toFixed(2)));
                 elem.appendChild(li_q50);
 
                 var li_q75 = document.createElement("li");
-                li_q75.appendChild(document.createTextNode("q75: " + stats.q75.toFixed(2)));
+                li_q75.appendChild(document.createTextNode("q75: " + stats.quartile75.toFixed(2)));
                 elem.appendChild(li_q75);
-			}
+            }
 		</script>
 
 		<!-- Run 1 -->
@@ -121,7 +90,7 @@ run_1.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(getStats(times), "stats_1");
+			showStats(MWs.stats.summary(times), "stats_1");
 		} else {
 			crd.trigger("run_vectorDot");
 			start = window.performance.now();
@@ -150,7 +119,7 @@ run_2.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(getStats(times), "stats_2");
+			showStats(MWs.stats.summary(times), "stats_2");
 		} else {
 			crd.trigger("run_vectorMatrixProduct");
 			start = window.performance.now();
@@ -179,7 +148,7 @@ run_3.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(getStats(times), "stats_3");
+			showStats(MWs.stats.summary(times), "stats_3");
 		} else {
 			crd.trigger("run_matrixMatrixProduct");
 			start = window.performance.now();
@@ -208,7 +177,7 @@ run_3.addEventListener('click', function() {
                 var buffer = crd.getBuffer();
                 times.push(window.performance.now() - start);
                 if (r == nRuns) {
-                    showStats(getStats(times), "stats_4");
+                    showStats(MWs.stats.summary(times), "stats_4");
                 } else {
                     crd.trigger("run_matrixMatrixPlus");
                     start = window.performance.now();
