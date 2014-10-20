@@ -34,14 +34,14 @@ MW.setUnrollLoops = function(unroll) {
 };
 
 /**
- * Creates the internal Web Worker pool
+ * Creates the internal Web Worker pool, if Web Worker supported.
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
-    // TODO: Throw an error or something if the browser (or node.js) does not support Web Workers
+    MW.util.checkWebWorkerSupport();
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
-		worker.postMessage({handle: "_init", id: i,
-			nWorkers: nWorkersInput, logLevel: global.logLevel, unrollLoops: global.unrollLoops});
+		worker.postMessage({handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops});
 		this.workerPool.push(worker);
         this.nWorkers = this.workerPool.length;
 	}
