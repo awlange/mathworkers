@@ -27,6 +27,8 @@
   		<ul>
 			<li>matrixZeroes<div id="matrixZeroes" class="pending">pending</div></li>
 			<li>matrixIdentity<div id="matrixIdentity" class="pending">pending</div></li>
+			<li>matrixCopyRow<div id="matrixCopyRow" class="pending">pending</div></li>
+			<li>matrixCopyColumn<div id="matrixCopyColumn" class="pending">pending</div></li>
 			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
 			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
 			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
@@ -60,7 +62,7 @@
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
-  		<script src="../src/mathworkers.js"></script>
+  		<script src="../lib/mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
  		<script>
 /*
@@ -188,6 +190,28 @@ serialTests.push( function() {
     T.matrixEqual(Matrix.fromArray([[1.0, 0.0, 0.0],
                                     [0.0, 1.0, 0.0],
                                     [0.0, 0.0, 1.0]]), Matrix.identity(3));
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("matrixCopyRow");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var vec = [0.0, 0.0, 0.0];
+    A.copyRow(1, vec);
+    T.doubleEqual(vec[0], 4.0);
+    T.doubleEqual(vec[1], 5.0);
+    T.doubleEqual(vec[2], 6.0);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("matrixCopyColumn");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var vec = [0.0, 0.0, 0.0];
+    A.copyColumn(1, vec);
+    T.doubleEqual(vec[0], 2.0);
+    T.doubleEqual(vec[1], 5.0);
+    T.doubleEqual(vec[2], 8.0);
     T.passed();
 });
 

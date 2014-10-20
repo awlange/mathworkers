@@ -64,7 +64,7 @@ MW.MathWorker = function() {
 				handleBroadcastMatrix(data);
 				break;
  			default:
- 				log.error("Invalid MathWorker handle: " + data.handle);
+ 				console.error("Invalid MathWorker handle: " + data.handle);
  		}
  	};
 

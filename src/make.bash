@@ -1,18 +1,18 @@
 #! /bin/bash
 
 # Concatenates all the JavaScript components into a single file
-cd components
-cat  mathworkers_head.js.txt \
-  global.js \
-  util.js \
-  event_emitter.js \
-  coordinator.js \
-  mathworker.js \
-  vector.js \
-  vector_worker.js \
-  matrix.js \
-  matrix_worker.js \
-  batchoperation.js \
-  mathworkers_tail.js.txt > ../mathworkers.js
-rm -f .tmp
-cd ..
+cat \
+  core/mathworkers_head.js.txt \
+  core/global.js \
+  core/util.js \
+  core/event_emitter.js \
+  core/coordinator.js \
+  core/mathworker.js \
+  core/vector.js \
+  core/vector_worker.js \
+  core/matrix.js \
+  core/matrix_worker.js \
+  core/batchoperation.js \
+  statistics/basic_statistics.js \
+  core/mathworkers_tail.js.txt \
+  > ../lib/mathworkers.js
