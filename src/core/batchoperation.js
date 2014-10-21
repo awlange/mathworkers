@@ -7,6 +7,8 @@
  *  method call, reducing some overhead, especially with regard to communication.
  */
 
+// TODO: Finish unrolling these guys
+
 MW.BatchOperation = {};
 
 MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, tag, rebroadcast) {
@@ -15,24 +17,50 @@ MW.BatchOperation.wkVectorLinearCombination = function(vectors, coefficients, ta
     MW.util.checkNullOrUndefined(tag);
 
     // First combo initializes x
+    var i, a, ni3;
     var offset = 0;
     var vec = vectors[0];
     var coeff = coefficients[0];
     var lb = MW.util.loadBalance(vec.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        x[offset++] = coeff * vec.array[i];
+    if (global.unrollLoops) {
+        ni3 = lb.ito - 3;
+        for (i = lb.ifrom; i < ni3; ++i) {
+            x[offset++] = coeff * vec.array[i];
+            x[offset++] = coeff * vec.array[i+1];
+            x[offset++] = coeff * vec.array[i+2];
+            x[offset++] = coeff * vec.array[i+3];
+        }
+        for (; i < lb.ito; ++i) {
+            x[offset++] = coeff * vec.array[i];
+        }
+    } else {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            x[offset++] = coeff * vec.array[i];
+        }
     }
 
     // Remaining combos
-    for (var a = 1; a < vectors.length; ++a) {
+    for (a = 1; a < vectors.length; ++a) {
         offset = 0;
         vec = vectors[a];
         coeff = coefficients[a];
         MW.util.checkNumber(coeff);
         MW.util.checkVectors(vectors[a-1], vec);
-        for (i = lb.ifrom; i < lb.ito; ++i) {
-            x[offset++] += coeff * vec.array[i];
+        if (global.unrollLoops) {
+            for (i = lb.ifrom; i < ni3; ++i) {
+                x[offset++] += coeff * vec.array[i];
+                x[offset++] += coeff * vec.array[i+1];
+                x[offset++] += coeff * vec.array[i+2];
+                x[offset++] += coeff * vec.array[i+3];
+            }
+            for (; i < lb.ito; ++i) {
+                x[offset++] += coeff * vec.array[i];
+            }
+        } else {
+            for (i = lb.ifrom; i < lb.ito; ++i) {
+                x[offset++] += coeff * vec.array[i];
+            }
         }
     }
 

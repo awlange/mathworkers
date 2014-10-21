@@ -6,6 +6,15 @@
 MW.util = {};
 
 /**
+ * Verify that the environment executing this code has Web Worker support
+ */
+MW.util.checkWebWorkerSupport = function() {
+    if (typeof(Worker) === "undefined") {
+        throw Error("Web Worker support not available for MathWorkers.");
+    }
+};
+
+/**
  * Load balancing function.
  * Divides n up evenly among the number of workers in the pool.
  * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
