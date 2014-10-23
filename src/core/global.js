@@ -16,6 +16,11 @@ global.myWorkerId = 0;
  * 2 = verbose logging
  */
 global.logLevel = 1;
+/**
+ * Sets the log level
+ * @param logLevel
+ * @function
+ */
 MW.setLogLevel = function(logLevel) {
     if (!MW.util.nullOrUndefined(logLevel)) {
         global.logLevel = logLevel;

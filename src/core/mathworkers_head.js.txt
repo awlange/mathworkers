@@ -25,14 +25,14 @@
  */
 
 /**
- * The MathWorkers library object
+ * The MathWorkers library object and namespace
+ * @namespace
  */
 var MathWorkers = (function() {
 "use strict";
 
 /**
  * The global MathWorkers variable
- * @global
  */
 var MW = {};
 
