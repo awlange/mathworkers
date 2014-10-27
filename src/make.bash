@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Concatenates all the JavaScript components into a single file
 cat \
@@ -16,3 +16,8 @@ cat \
   statistics/basic_statistics.js \
   core/mathworkers_tail.js.txt \
   > ../lib/mathworkers.js
+
+# Run JSdoc if available
+if type jsdoc > /dev/null 2>&1; then
+  jsdoc -d ../doc ../lib/mathworkers.js
+fi

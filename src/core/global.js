@@ -1,7 +1,9 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  MathWorkers globally available data
+ *  Data available globally only within the MathWorkers class
+ *  @private
+ *  @memberof MathWorkers
  */
 var global = {};
 
@@ -10,16 +12,16 @@ global.workerPool = [];
 global.nWorkers = 1;
 global.myWorkerId = 0;
 
-/**
- * Log level
- * 1 = warnings and errors only
- * 2 = verbose logging
- */
 global.logLevel = 1;
 /**
- * Sets the log level
- * @param logLevel
- * @function
+ * Sets the MathWorkers log level:
+ * 1 = warnings and errors only
+ * 2 = verbose logging
+ * Default is 1.
+ *
+ * @param {!number} logLevel level to be set
+ * @function setLogLevel
+ * @memberof MathWorkers
  */
 MW.setLogLevel = function(logLevel) {
     if (!MW.util.nullOrUndefined(logLevel)) {
@@ -27,12 +29,17 @@ MW.setLogLevel = function(logLevel) {
     }
 };
 
-/**
- * Loop unrolling option
- * If true, use loop unrolled versions of functions if available. If false, do not.
- * Off by default.
- */
 global.unrollLoops = false;
+/**
+ * Loop unrolling option:
+ * If true, use loop unrolled versions of functions if available.
+ * If false, do not.
+ * Default is false.
+ *
+ * @param {!boolean} unroll option to be set
+ * @function unrollLoops
+ * @memberof MathWorkers
+ */
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
