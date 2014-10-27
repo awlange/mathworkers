@@ -1,12 +1,17 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  General utility functions intended for internal use
+ * General utility functions intended for internal use
+ *
+ * @ignore
  */
 MW.util = {};
 
 /**
  * Verify that the environment executing this code has Web Worker support
+ *
+ * @ignore
+ * @throws {Error}
  */
 MW.util.checkWebWorkerSupport = function() {
     if (typeof(Worker) === "undefined") {
@@ -18,6 +23,9 @@ MW.util.checkWebWorkerSupport = function() {
  * Load balancing function.
  * Divides n up evenly among the number of workers in the pool.
  * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
+ *
+ * @ignore
+ * @returns {object} container for range index from (inclusive) and index to (non-inclusive)
  */
 MW.util.loadBalance = function(n) {
     var id = global.myWorkerId;
@@ -38,14 +46,21 @@ MW.util.loadBalance = function(n) {
 };
 
 /**
- *  True if x is null or undefined
+ * Test if the variable x is null or undefined
+ *
+ * @ignore
+ * @param x variable to be tested
+ * @return {boolean} true if x is null or undefined
  */
 MW.util.nullOrUndefined = function(x) {
     return x === undefined || x === null;
 };
 
 /**
- *  Verify that x is neither null nor undefined.
+ * Verify that x is neither null nor undefined.
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkNullOrUndefined = function(x) {
     if (MW.util.nullOrUndefined(x)) {
@@ -54,7 +69,10 @@ MW.util.checkNullOrUndefined = function(x) {
 };
 
 /**
- *  Verify that x is a Number and not null or undefined
+ * Verify that x is a Number and not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkNumber = function(x) {
     MW.util.checkNullOrUndefined(x);
@@ -64,7 +82,10 @@ MW.util.checkNumber = function(x) {
 };
 
 /**
- *  Verify that x is a Function and not null or undefined
+ * Verify that x is a Function and not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkFunction = function(x) {
     MW.util.checkNullOrUndefined(x);
@@ -74,7 +95,10 @@ MW.util.checkFunction = function(x) {
 };
 
 /**
- *  Verify that x is an Array or Float64Array and not null or undefined
+ * Verify that x is an Array or Float64Array and not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkArray = function(x) {
     MW.util.checkNullOrUndefined(x);
@@ -84,7 +108,10 @@ MW.util.checkArray = function(x) {
 };
 
 /**
- *  Verify that x is a Float64Array and not null or undefined
+ * Verify that x is a Float64Array and not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkFloat64Array = function(x) {
     MW.util.checkNullOrUndefined(x);
@@ -94,7 +121,10 @@ MW.util.checkFloat64Array = function(x) {
 };
 
 /**
- *  Verify that v is a Vector and is not null or undefined
+ * Verify that v is a Vector and is not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkVector = function(v) {
     MW.util.checkNullOrUndefined(v);
@@ -104,7 +134,11 @@ MW.util.checkVector = function(v) {
 };
 
 /**
- *  Verify that Vectors v and w are equal length and not null or undefined
+ * Verify that Vectors v and w are equal length and not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
+ * @throws {Error}
  */
 MW.util.checkVectors = function(v, w) {
     MW.util.checkVector(v);
@@ -115,8 +149,12 @@ MW.util.checkVectors = function(v, w) {
 };
 
 /**
- *  Verify that Vector v and Matrix A are compatible for vector-matrix products
- *  and are both not null or undefined
+ * Verify that Vector v and Matrix A are compatible for vector-matrix products
+ * and are both not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
+ * @throws {Error}
  */
 MW.util.checkVectorMatrix = function(v, A) {
     MW.util.checkVector(v);
@@ -127,7 +165,10 @@ MW.util.checkVectorMatrix = function(v, A) {
 };
 
 /**
- *  Verify that A is a Matrix and is not null or undefined
+ * Verify that A is a Matrix and is not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
  */
 MW.util.checkMatrix = function(A) {
     MW.util.checkNullOrUndefined(A);
@@ -137,7 +178,11 @@ MW.util.checkMatrix = function(A) {
 };
 
 /**
- *  Verify that Matrix A and Matrix B have equal dimensions and are neither null nor undefined
+ * Verify that Matrix A and Matrix B have equal dimensions and are neither null nor undefined
+ *
+ * @ignore
+ * @throws {TypeError}
+ * @throws {Error}
  */
 MW.util.checkMatrices = function(A, B) {
     MW.util.checkMatrix(A);
@@ -148,8 +193,12 @@ MW.util.checkMatrices = function(A, B) {
 };
 
 /**
- *  Verify that Matrix A and Vector v are compatible for matrix-vector products
- *  and are both not null or undefined
+ * Verify that Matrix A and Vector v are compatible for matrix-vector products
+ * and are both not null or undefined
+ *
+ * @ignore
+ * @throws {TypeError}
+ * @throws {Error}
  */
 MW.util.checkMatrixVector = function(A, v) {
     MW.util.checkMatrix(A);
@@ -160,8 +209,12 @@ MW.util.checkMatrixVector = function(A, v) {
 };
 
 /**
- *  Verify that Matrix A and Matrix B have compatible dimensions for matrix-matrix
- *  multiplication and are neither null nor undefined
+ * Verify that Matrix A and Matrix B have compatible dimensions for matrix-matrix
+ * multiplication and are neither null nor undefined
+ *
+ * @ignore
+ * @throws {TypeError}
+ * @throws {Error}
  */
 MW.util.checkMatrixMatrix = function(A, B) {
     MW.util.checkMatrix(A);

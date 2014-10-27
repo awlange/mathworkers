@@ -1,9 +1,10 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Vector class
+ *  Vector class.
+ *  A wrapper around a Float64Array with several vector operations defined.
  *
- *  A wrapper around a Float64Array
+ *  @class
  */
 MW.Vector = function(size) {
     this.array = null;

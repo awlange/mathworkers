@@ -1,25 +1,50 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Coordinator for browser-side interface
- */
+*  Coordinator for browser-side interface.
+*  Coordinates the pool of Workers for computations and message passing.
+*
+*  @param {number} nWorkersInput the number of Workers to spawn in the pool
+*  @param {string} workerScriptName the name of the script that the Workers are to execute
+*  @constructor
+*/
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 	var objectBuffer = {};
-	var messageDataBuffer = [];
+	var messageDataBuffer = {};
 	this.ready = false;
 
 	// Create the worker pool, which starts the workers
 	global.createPool(nWorkersInput, workerScriptName);
 
+    /**
+     * Fetches the object buffer contents.
+     * After a message from one or more workers is received, the object
+     * buffer is usually populated with data.
+     *
+     * @returns {Object}
+     */
 	this.getBuffer = function() {
 		return objectBuffer;
 	};
 
+    /**
+     * Fetches the message data list contents.
+     * After a message from one or more workers is received, the object
+     * buffer is usually populated with data.
+     *
+     * @returns {Object}
+     */
 	this.getMessageDataList = function() {
 		return messageDataBuffer;
 	};
 
+    /**
+     * Trigger an event registered by the MathWorker pool to execute.
+     *
+     * @param {string} tag the unique label for the event being triggered
+     * @param {Array} args a list of arguments to be passed to the callback to be executed
+     */
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
 			global.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
@@ -60,7 +85,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         this.on("_ready", callBack);
     };
 
-	// Route the message appropriately for the Worker
+    /**
+     * Route the message appropriately for the Worker
+     *
+     * @param event
+     * @private
+     */
  	var onmessageHandler = function(event) {
  		var data = event.data;
  		switch (data.handle) {
