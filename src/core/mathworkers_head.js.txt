@@ -24,15 +24,13 @@
  *  @author Adrian W. Lange
  */
 
-/**
- * The MathWorkers library object and namespace
- * @namespace
- */
+
 var MathWorkers = (function() {
 "use strict";
 
 /**
- * The global MathWorkers variable
+ * The MathWorkers module
+ * @exports MW
  */
 var MW = {};
 

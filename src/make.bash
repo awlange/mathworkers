@@ -19,5 +19,5 @@ cat \
 
 # Run JSdoc if available
 if type jsdoc > /dev/null 2>&1; then
-  jsdoc -d ../doc ../lib/mathworkers.js
+  jsdoc -d ../doc ../lib/mathworkers.js ../doc/README_small.md
 fi

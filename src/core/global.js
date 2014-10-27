@@ -2,8 +2,7 @@
 
 /**
  *  Data available globally only within the MathWorkers class
- *  @private
- *  @memberof MathWorkers
+ *  @inner
  */
 var global = {};
 
@@ -21,7 +20,6 @@ global.logLevel = 1;
  *
  * @param {!number} logLevel level to be set
  * @function setLogLevel
- * @memberof MathWorkers
  */
 MW.setLogLevel = function(logLevel) {
     if (!MW.util.nullOrUndefined(logLevel)) {
@@ -38,7 +36,6 @@ global.unrollLoops = false;
  *
  * @param {!boolean} unroll option to be set
  * @function unrollLoops
- * @memberof MathWorkers
  */
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);
@@ -47,6 +44,8 @@ MW.setUnrollLoops = function(unroll) {
 
 /**
  * Creates the internal Web Worker pool, if Web Worker supported.
+ *
+ * @ignore
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
     MW.util.checkWebWorkerSupport();
