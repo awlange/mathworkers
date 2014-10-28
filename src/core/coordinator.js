@@ -12,6 +12,10 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 	var objectBuffer = {};
 	var messageDataBuffer = {};
+	/**
+	 * True when all spawned workers have reported that they are ready. False otherwise.
+	 * @type {boolean}
+	 */
 	this.ready = false;
 
 	// Create the worker pool, which starts the workers
