@@ -1,7 +1,7 @@
 Coordinator code:
 
 ```JavaScript
-var crd = new MathWorkers.Coordinator(2, "work.js");
+var crd = new MathWorkers.Coordinator(4, "work.js");
 crd.onReady(function() {
 	crd.trigger("run");
 });
