@@ -26,7 +26,7 @@ function EventEmitter() {
      * Emits an event and executes the corresponding callback
      *
      * @param {!string} name the event name
-     * @param {?Array} args an array of arguments to be passed to the callback
+     * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
      */
     this.emit = function(name, args) {
         events[name] = events[name] || [];

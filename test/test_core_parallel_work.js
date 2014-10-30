@@ -113,10 +113,10 @@ MW.on("run_matrixMinus", function() {
 	A.wkMinus(B, "matrixMinus");
 });
 
-MW.on("run_matrixTimesElementwise", function() {
+MW.on("run_matrixTimes", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkTimes(B, "matrixTimesElementwise");
+	A.wkTimes(B, "matrixTimes");
 });
 
 MW.on("run_matrixDivide", function() {

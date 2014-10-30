@@ -41,7 +41,7 @@
     
         
 <dt>
-    <h4 class="name" id="Coordinator"><span class="type-signature"></span>new Coordinator<span class="signature">(nWorkersInput, workerScriptName)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Coordinator"><span class="type-signature"></span>new Coordinator<span class="signature">(nWorkersInput<span class="signature-attributes">non-null</span>, workerScriptName<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -197,6 +197,76 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+            
+<dt>
+    <h4 class="name" id="ready"><span class="type-signature"></span>ready<span class="type-signature"> :boolean</span></h4>
+
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        True when all spawned workers have reported that they are ready. False otherwise.
+    </div>
+    
+
+    
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">boolean</span>
+
+
+            </li>
+        </ul>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line385">line 385</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+</dd>
+
+        </dl>
+    
 
     
         <h3 class="subsection-title">Methods</h3>
@@ -247,7 +317,7 @@ buffer is usually populated with data.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line392">line 392</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line406">line 406</a>
     </li></ul></dd>
     
 
@@ -338,7 +408,7 @@ buffer is usually populated with data.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line403">line 403</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line417">line 417</a>
     </li></ul></dd>
     
 
@@ -386,7 +456,7 @@ buffer is usually populated with data.
         
             
 <dt>
-    <h4 class="name" id="trigger"><span class="type-signature"></span>trigger<span class="signature">(tag, args)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="onReady"><span class="type-signature"></span>onReady<span class="signature">(callBack)</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -394,7 +464,7 @@ buffer is usually populated with data.
 
     
     <div class="description">
-        Trigger an event registered by the MathWorker pool to execute.
+        Once all workers in the pool report that they are ready, execute the callback.
     </div>
     
 
@@ -428,13 +498,13 @@ buffer is usually populated with data.
 
         <tr>
             
-                <td class="name"><code>tag</code></td>
+                <td class="name"><code>callBack</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">function</span>
 
 
             
@@ -444,30 +514,7 @@ buffer is usually populated with data.
 
             
 
-            <td class="description last">the unique label for the event being triggered</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>args</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">a list of arguments to be passed to the callback to be executed</td>
+            <td class="description last">callback function to be executed</td>
         </tr>
 
     
@@ -498,7 +545,595 @@ buffer is usually populated with data.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line413">line 413</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line395">line 395</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="sendDataToWorkers"><span class="type-signature"></span>sendDataToWorkers<span class="signature">(data, tag<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Broadcasts data to all workers
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">JSON-serializable data to be sent</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">message tag</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line439">line 439</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="sendMatrixToWorkers"><span class="type-signature"></span>sendMatrixToWorkers<span class="signature">(mat<span class="signature-attributes">non-null</span>, tag<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Broadcast a Matrix to all workers
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>mat</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MathWorkers.Matrix</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Matrix to be sent</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">message tag</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line466">line 466</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="sendVectorToWorkers"><span class="type-signature"></span>sendVectorToWorkers<span class="signature">(vec<span class="signature-attributes">non-null</span>, tag<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Broadcast a Vector to all workers
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>vec</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">MathWorkers.Vector</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Vector to be sent</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">message tag</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line451">line 451</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="trigger"><span class="type-signature"></span>trigger<span class="signature">(tag, args<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Trigger an event registered by the MathWorker pool to execute.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tag</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">the unique label for the event being triggered</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>args</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">an array of arguments to be passed to the callback to be executed</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line427">line 427</a>
     </li></ul></dd>
     
 
@@ -547,7 +1182,7 @@ buffer is usually populated with data.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sun Oct 26 2014 23:51:02 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Oct 29 2014 21:54:59 GMT-0500 (CDT)
 </footer>
 
 <script> prettyPrint(); </script>
