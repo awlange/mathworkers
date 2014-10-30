@@ -28,7 +28,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * @param callBack {function} callback function to be executed
 	 */
 	this.onReady = function(callBack) {
-		this.on("_ready", callBack);
+		that.on("_ready", callBack);
 	};
 
     /**
