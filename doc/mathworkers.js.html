@@ -393,20 +393,36 @@ function EventEmitter() {
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Coordinator for browser-side interface.
- *  Coordinates the pool of Workers for computations and message passing.
+ * Coordinator for browser-side interface.
+ * Coordinates the pool of Workers for computations and message passing.
  *
- *  @param {!number} nWorkersInput the number of Workers to spawn in the pool
- *  @param {!string} workerScriptName the name of the script that the Workers are to execute
- *  @constructor
+ * @param {!number} nWorkersInput the number of Workers to spawn in the pool
+ * @param {!string} workerScriptName the name of the script that the Workers are to execute
+ * @constructor
  */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
+
+	/**
+	 * Buffer for data received from worker pool
+	 *
+	 * @type {Object}
+	 * @private
+	 */
 	var objectBuffer = {};
+
+	/**
+	 * Message buffer for messages received from worker pool. Order of
+	 * messages in array corresponds to the MathWorker id.
+	 *
+	 * @type {Array}
+	 * @private
+	 */
 	var messageDataBuffer = [];
 
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
+	 *
 	 * @type {boolean}
 	 */
 	this.ready = false;
@@ -417,16 +433,16 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Once all workers in the pool report that they are ready, execute the callback.
 	 *
-	 * @param callBack {function} callback function to be executed
+	 * @param {function} callBack callback function to be executed
 	 */
 	this.onReady = function(callBack) {
-		this.on("_ready", callBack);
+		that.on("_ready", callBack);
 	};
 
     /**
      * Fetches the object buffer contents.
      * After a message from one or more workers is received, the object
-     * buffer is usually populated with data.
+     * buffer is typically populated with data.
      *
      * @returns {Object}
      */
@@ -439,16 +455,16 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
      * After a message from one or more workers is received, the object
      * buffer is usually populated with data.
      *
-     * @returns {Object}
+     * @returns {Array}
      */
 	this.getMessageDataList = function() {
 		return messageDataBuffer;
 	};
 
     /**
-     * Trigger an event registered by the MathWorker pool to execute.
+     * Cause an event registered by the MathWorker pool to execute.
      *
-     * @param {string} tag the unique label for the event being triggered
+     * @param {!string} tag the unique label for the event being triggered
      * @param {Array} [args] an array of arguments to be passed to the callback to be executed
      */
 	this.trigger = function(tag, args) {
@@ -460,8 +476,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcasts data to all workers
 	 *
-	 * @param data {Object} JSON-serializable data to be sent
-	 * @param tag {!string} message tag
+	 * @param {Object} data JSON-serializable data to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendDataToWorkers = function(data, tag) {
 		for (var wk = 0; wk &lt; global.nWorkers; ++wk) {
@@ -472,8 +488,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Vector to all workers
 	 *
-	 * @param vec {!MathWorkers.Vector} Vector to be sent
-	 * @param tag {!string} message tag
+	 * @param {!MW.Vector} vec Vector to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferable object message passing
@@ -487,8 +503,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Matrix to all workers
 	 *
-	 * @param mat {!MathWorkers.Matrix} Matrix to be sent
-	 * @param tag {!string} message tag
+	 * @param {!MW.Matrix} mat Matrix to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferable object message passing
@@ -783,28 +799,87 @@ MW.Coordinator.prototype = new EventEmitter();
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  MathWorker for worker-side interface
+ * MathWorker for worker-side interface.
+ * Manages computations and message passing for a web worker in the worker pool.
+ *
+ * @constructor
  */
 MW.MathWorker = function() {
+
+	/**
+	 * Buffer for data received from the coordinator
+	 *
+	 * @type {Object}
+	 * @private
+	 */
  	var objectBuffer = {};
+
+	/**
+	 * An object mapping an event tag key to a registered callback value
+	 *
+	 * @type {Object}
+	 * @private
+	 */
  	var triggers = {};
 
+	/**
+	 * Retrieve the id number of the MathWorker
+	 *
+	 * @returns {number} the id of the MathWorker
+	 */
  	this.getId = function() {
  		return global.myWorkerId;
  	};
 
+	/**
+	 * Retrieve the size (number of workers) in the worker pool
+	 *
+	 * @returns {number} the size of the worker pool
+	 */
  	this.getNumWorkers = function() {
  		return global.nWorkers;
  	};
 
+	/**
+	 * Fetches the object buffer contents.
+	 * After a message from the coordinator is received, the object
+	 * buffer is typically populated with data.
+	 *
+	 * @returns {Object}
+	 */
 	this.getBuffer = function() {
 		return objectBuffer;
 	};
 
+	/**
+	 * Register an event with a callback to be executed when the coordinator triggers the event
+	 *
+	 * @param {!string} tag the unique label for the event being registered
+	 * @param {function} callback the callback function to be registered
+	 */
+	this.on = function(tag, callback) {
+		if (global.logLevel > 2) {
+			console.log("registering trigger: " + tag);
+		}
+		triggers[tag] = [callback];
+	};
+
+	/**
+	 * Send data to the coordinator
+	 *
+	 * @param {Object} data JSON-serializable data to be sent to coordinator
+	 * @param {!string} tag message tag
+	 */
  	this.sendDataToCoordinator = function(data, tag) {
  		self.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
  	};
 
+	/**
+	 * Send a Vector to the coordinator
+	 *
+	 * @param {MW.Vector} vec the Vector to be sent
+	 * @param {!string} tag message tag
+	 */
     this.sendVectorToCoordinator = function(vec, tag) {
         // only id 0 does the sending actually
         if (global.myWorkerId == 0) {
@@ -813,6 +888,12 @@ MW.MathWorker = function() {
         }
     };
 
+	/**
+	 * Send a Matrix to the coordinator
+	 *
+	 * @param {MW.Matrix} mat the Matrix to be sent
+	 * @param {!string} tag message tag
+	 */
     this.sendMatrixToCoordinator = function(mat, tag) {
         // only id 0 does the sending actually
         if (id == 0) {
@@ -826,7 +907,13 @@ MW.MathWorker = function() {
         }
     };
 
- 	// Route the message appropriately for the Worker
+	/**
+	 * onmessage event router.
+	 * Route the event appropriately based on the event data.
+	 *
+	 * @param {Object} event web worker event object
+	 * @private
+	 */
 	self.onmessage = function(event) {
 		var data = event.data;
 		switch (data.handle) {
@@ -850,14 +937,14 @@ MW.MathWorker = function() {
  		}
  	};
 
- 	// registers the callback for a trigger
- 	this.on = function(tag, callback) {
-        if (global.logLevel > 2) {
-            console.log("registering trigger: " + tag);
-        }
-        triggers[tag] = [callback];
-    };
-
+	/**
+	 * MathWorker initialization. This message is received upon the coordinator creating this worker for
+	 * the worker pool in MW.global.createPool().
+	 * Sets various internal variables for this worker, and then sends a ready message to the coordinator.
+	 *
+	 * @param {Object} data message data
+	 * @private
+	 */
  	var handleInit = function(data) {
         global.myWorkerId = data.id;
         global.nWorkers = data.nWorkers;
@@ -869,6 +956,13 @@ MW.MathWorker = function() {
         self.postMessage({handle: "_workerReady"});
  	};
 
+	/**
+	 * When the coordinator issues a trigger message, execute the registered callback corresponding to the message tag.
+	 *
+	 * @param {Object} data message data
+	 * @param {Object} [obj] optional object to pass as an argument to the callback
+	 * @private
+	 */
  	var handleTrigger = function(data, obj) {
 		if (triggers[data.tag]) {
 			triggers[data.tag] = triggers[data.tag] || [];
@@ -881,16 +975,38 @@ MW.MathWorker = function() {
 		}
  	};
 
+	/**
+	 * Place broadcast data from coordinator into the objectBuffer.
+	 * Then, trigger the corresponding event.
+	 *
+	 * @param {Object} data message data
+	 * @private
+	 */
  	var handleBroadcastData = function(data) {
  		objectBuffer = data.data;
  		handleTrigger(data);
  	};
 
+
+	/**
+	 * Place broadcast Vector from coordinator into the objectBuffer.
+	 * Then, trigger the corresponding event.
+	 *
+	 * @param {Object} data message data
+	 * @private
+	 */
  	var handleBroadcastVector = function(data) {
  		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
  		handleTrigger(data, objectBuffer);
  	};
 
+	/**
+	 * Place broadcast Matrix from coordinator into the objectBuffer.
+	 * Then, trigger the corresponding event.
+	 *
+	 * @param {Object} data message data
+	 * @private
+	 */
  	var handleBroadcastMatrix = function(data) {
  		var tmp = [];
 		for (var i = 0; i &lt; data.nrows; ++i) {
@@ -2581,13 +2697,13 @@ return MW;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="module-MW.Coordinator.html">Coordinator</a></li><li><a href="module-MW.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="module-MW.Coordinator.html">Coordinator</a></li><li><a href="module-MW.MathWorker.html">MathWorker</a></li><li><a href="module-MW.Vector.html">Vector</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Oct 29 2014 21:54:59 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Oct 29 2014 23:56:37 GMT-0500 (CDT)
 </footer>
 
 <script> prettyPrint(); </script>

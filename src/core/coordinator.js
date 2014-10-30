@@ -1,20 +1,36 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Coordinator for browser-side interface.
- *  Coordinates the pool of Workers for computations and message passing.
+ * Coordinator for browser-side interface.
+ * Coordinates the pool of Workers for computations and message passing.
  *
- *  @param {!number} nWorkersInput the number of Workers to spawn in the pool
- *  @param {!string} workerScriptName the name of the script that the Workers are to execute
- *  @constructor
+ * @param {!number} nWorkersInput the number of Workers to spawn in the pool
+ * @param {!string} workerScriptName the name of the script that the Workers are to execute
+ * @constructor
  */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
+
+	/**
+	 * Buffer for data received from worker pool
+	 *
+	 * @type {Object}
+	 * @private
+	 */
 	var objectBuffer = {};
+
+	/**
+	 * Message buffer for messages received from worker pool. Order of
+	 * messages in array corresponds to the MathWorker id.
+	 *
+	 * @type {Array}
+	 * @private
+	 */
 	var messageDataBuffer = [];
 
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
+	 *
 	 * @type {boolean}
 	 */
 	this.ready = false;
@@ -25,7 +41,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Once all workers in the pool report that they are ready, execute the callback.
 	 *
-	 * @param callBack {function} callback function to be executed
+	 * @param {function} callBack callback function to be executed
 	 */
 	this.onReady = function(callBack) {
 		that.on("_ready", callBack);
@@ -34,7 +50,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
     /**
      * Fetches the object buffer contents.
      * After a message from one or more workers is received, the object
-     * buffer is usually populated with data.
+     * buffer is typically populated with data.
      *
      * @returns {Object}
      */
@@ -47,16 +63,16 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
      * After a message from one or more workers is received, the object
      * buffer is usually populated with data.
      *
-     * @returns {Object}
+     * @returns {Array}
      */
 	this.getMessageDataList = function() {
 		return messageDataBuffer;
 	};
 
     /**
-     * Trigger an event registered by the MathWorker pool to execute.
+     * Cause an event registered by the MathWorker pool to execute.
      *
-     * @param {string} tag the unique label for the event being triggered
+     * @param {!string} tag the unique label for the event being triggered
      * @param {Array} [args] an array of arguments to be passed to the callback to be executed
      */
 	this.trigger = function(tag, args) {
@@ -68,8 +84,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcasts data to all workers
 	 *
-	 * @param data {Object} JSON-serializable data to be sent
-	 * @param tag {!string} message tag
+	 * @param {Object} data JSON-serializable data to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendDataToWorkers = function(data, tag) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
@@ -80,8 +96,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Vector to all workers
 	 *
-	 * @param vec {!MathWorkers.Vector} Vector to be sent
-	 * @param tag {!string} message tag
+	 * @param {!MW.Vector} vec Vector to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferable object message passing
@@ -95,8 +111,8 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Matrix to all workers
 	 *
-	 * @param mat {!MathWorkers.Matrix} Matrix to be sent
-	 * @param tag {!string} message tag
+	 * @param {!MW.Matrix} mat Matrix to be sent
+	 * @param {!string} tag message tag
 	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferable object message passing
