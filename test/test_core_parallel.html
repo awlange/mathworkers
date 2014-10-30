@@ -2,12 +2,12 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>MathWorkers Multithreaded Unit Tests</title>
+		<title>MathWorkers Multi-threaded Unit Tests</title>
 		<link href="./test.css" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>
   		<!-- Display results of tests -->
-  		<h1>MathWorkers Multithreaded Unit Tests</h1>
+  		<h1>MathWorkers Multi-threaded Unit Tests</h1>
   		
   		<h2>Communication tests</h2>
   		<ul>
@@ -38,7 +38,7 @@
   			<li>matrixDotVector<div id="matrixDotVector" class="pending">pending</div></li>
   			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
   			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
-  			<li>matrixTimesElementwise<div id="matrixTimesElementwise" class="pending">pending</div></li>
+  			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
   			<li>matrixDivide<div id="matrixDivide" class="pending">pending</div></li>
   			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
   			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
@@ -266,11 +266,11 @@ crd.on("matrixMinus", function() {
 	T.matrixEqual(Matrix.fromArray([[-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0]]), recv);
 	T.passed();
 
-	crd.trigger("run_matrixTimesElementwise");
+	crd.trigger("run_matrixTimes");
 });
 
-crd.on("matrixTimesElementwise", function() {
-	var T = new UT.Tester("matrixTimesElementwise");
+crd.on("matrixTimes", function() {
+	var T = new UT.Tester("matrixTimes");
 	var recv = crd.getBuffer();
 	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), recv);
 	T.passed();

@@ -1,17 +1,18 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
-*  Coordinator for browser-side interface.
-*  Coordinates the pool of Workers for computations and message passing.
-*
-*  @param {number} nWorkersInput the number of Workers to spawn in the pool
-*  @param {string} workerScriptName the name of the script that the Workers are to execute
-*  @constructor
-*/
+ *  Coordinator for browser-side interface.
+ *  Coordinates the pool of Workers for computations and message passing.
+ *
+ *  @param {!number} nWorkersInput the number of Workers to spawn in the pool
+ *  @param {!string} workerScriptName the name of the script that the Workers are to execute
+ *  @constructor
+ */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 	var objectBuffer = {};
-	var messageDataBuffer = {};
+	var messageDataBuffer = [];
+
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 * @type {boolean}
@@ -20,6 +21,15 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 
 	// Create the worker pool, which starts the workers
 	global.createPool(nWorkersInput, workerScriptName);
+
+	/**
+	 * Once all workers in the pool report that they are ready, execute the callback.
+	 *
+	 * @param callBack {function} callback function to be executed
+	 */
+	this.onReady = function(callBack) {
+		this.on("_ready", callBack);
+	};
 
     /**
      * Fetches the object buffer contents.
@@ -47,7 +57,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
      * Trigger an event registered by the MathWorker pool to execute.
      *
      * @param {string} tag the unique label for the event being triggered
-     * @param {Array} args a list of arguments to be passed to the callback to be executed
+     * @param {Array} [args] an array of arguments to be passed to the callback to be executed
      */
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
@@ -55,12 +65,24 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
-	this.sendDataToWorkers = function(dat, tag) {
+	/**
+	 * Broadcasts data to all workers
+	 *
+	 * @param data {Object} JSON-serializable data to be sent
+	 * @param tag {!string} message tag
+	 */
+	this.sendDataToWorkers = function(data, tag) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			global.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: dat});
+			global.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: data});
 		}
 	};
 
+	/**
+	 * Broadcast a Vector to all workers
+	 *
+	 * @param vec {!MathWorkers.Vector} Vector to be sent
+	 * @param tag {!string} message tag
+	 */
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferable object message passing
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
@@ -70,6 +92,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
+	/**
+	 * Broadcast a Matrix to all workers
+	 *
+	 * @param mat {!MathWorkers.Matrix} Matrix to be sent
+	 * @param tag {!string} message tag
+	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
 		// Must make a copy of each matrix row for each worker for transferable object message passing
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
@@ -84,15 +112,11 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
-    // Convenience on ready to hide the handle
-    this.onReady = function(callBack) {
-        this.on("_ready", callBack);
-    };
-
     /**
-     * Route the message appropriately for the Worker
+	 * The onmessage router for all workers.
+     * Routes the event appropriately based on the message handle.
      *
-     * @param event
+     * @param event {Object} web worker event from message passing
      * @private
      */
  	var onmessageHandler = function(event) {
@@ -140,6 +164,12 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
  	// Reduction function variables
  	var nWorkersReported = 0;
 
+	/**
+	 * Accumulate the number of reported workers. Once all workers have reported,
+	 * emit the special "_ready" event to cause onReady() to execute.
+	 *
+	 * @private
+	 */
  	var handleWorkerReady = function() {
  		nWorkersReported += 1;
  		if (nWorkersReported == global.nWorkers) {
@@ -150,6 +180,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
  		}
  	};
 
+	/**
+	 * Accumulate messages from workers into the messageDataBuffer array.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
  	var handleSendData = function(data) {
  		messageDataBuffer[data.id] = data.data;
  		nWorkersReported += 1;
@@ -160,12 +197,28 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
  		}
  	};
 
+	/**
+	 * Copies Vector sent from a worker into a Vector stored
+	 * temporarily in the Coordinator objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
 	var handleVectorSendToCoordinator = function(data) {
 		objectBuffer = new MW.Vector();
 		objectBuffer.setVector(new Float64Array(data.vectorBuffer));
 		that.emit(data.tag);
 	};
 
+	/**
+	 * Copies Matrix sent from a worker into a Matrix stored
+	 * temporarily in the Coordinator objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
 	var handleMatrixSendToCoordinator = function(data) {
         var tmp = [];
 		for (var i = 0; i < data.nrows; ++i) {
@@ -176,6 +229,14 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		that.emit(data.tag);
 	};
 
+	/**
+	 * Gather Vector parts from workers into a new Vector stored in the
+	 * Coordinator objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
 	var handleGatherVector = function(data) {
 		// Gather the vector parts from each worker
         if (nWorkersReported == 0) {
@@ -190,7 +251,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(objectBuffer, data.tag);
+				that.sendVectorToWorkers(/** @type {!MathWorkers.Vector}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -200,6 +261,14 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
+	/**
+	 * Gather Matrix rows from workers into a new Matrix stored in the
+	 * Coordinator objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
 	var handleGatherMatrixRows = function(data) {
 		// Gather the matrix rows from each worker
         var offset = data.offset;
@@ -214,7 +283,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(objectBuffer, data.tag);
+				that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -224,6 +293,14 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
+	/**
+	 * Gather Matrix columns from workers into a new Matrix stored in the
+	 * Coordinator objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object} message data
+	 * @private
+	 */
     var handleGatherMatrixColumns = function(data) {
         // Gather the matrix columns from each worker
         var i, k;
@@ -244,7 +321,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(objectBuffer, data.tag);
+                that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);
@@ -254,6 +331,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
+	/**
+	 * Sum reduction for a Vector. Stores the full sum in the objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object}
+	 * @private
+	 */
     var handleVectorSum = function(data) {
         if (nWorkersReported == 0) {
             objectBuffer = data.tot;
@@ -274,6 +358,13 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
+	/**
+	 * Product reduction for a Vector. Stores the full product in the objectBuffer.
+	 * Emits the message tag event.
+	 *
+	 * @param data {!Object}
+	 * @private
+	 */
 	var handleVectorProduct = function(data) {
         if (nWorkersReported == 0) {
             objectBuffer = data.tot;
