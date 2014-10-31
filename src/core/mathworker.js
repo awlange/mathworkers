@@ -229,7 +229,7 @@ MW.MathWorker.prototype = new EventEmitter();
 /**
  * Prepare and send a Vector to the coordinator via message passing
  *
- * @param {!MW.Vector} vec the Vector to be gathered. Each worker is responsible for a different section.
+ * @param {!Float64Array} vec the Vector to be gathered. Each worker is responsible for a different section.
  * @param {!number} totalLength the total length of the gathered Vector
  * @param {!number} offset the offset to use in the gather for this worker's Vector section
  * @param {!string} tag message tag
@@ -247,7 +247,7 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
 /**
  * Prepare and send a Matrix by rows to the coordinator via message passing
  *
- * @param {!MW.Matrix} mat the Matrix to be gathered by rows. Each worker is responsible for different rows.
+ * @param {!Array.<Float64Array>} mat the Matrix to be gathered by rows. Each worker is responsible for different rows.
  * @param {!number} totalRows the total number of rows in the gathered Matrix
  * @param {!number} offset the row offset to use in the gather for this worker's Matrix rows
  * @param {!string} tag message tag
@@ -271,7 +271,7 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
 /**
  * Prepare and send a Matrix by columns to the coordinator via message passing
  *
- * @param {!MW.Matrix} mat the Matrix to be gathered by columns. Each worker is responsible for different columns.
+ * @param {!Array.<Float64Array>} mat the Matrix to be gathered by columns. Each worker is responsible for different columns.
  * @param {!number} totalRows the total number of rows in the gathered Matrix
  * @param {!number} totalCols the total number of columns in the gathered Matrix
  * @param {!number} offset the column offset to use in the gather for this worker's Matrix columns
