@@ -5,11 +5,27 @@
  * A wrapper around a Float64Array with several vector operations defined, including worker
  * parallelized operations.
  *
- * @param {number} size the length of the Vector being constructed
+ * @param {number} [size] the length of the Vector being constructed. If not provided,
+ *                        a Vector object is crated with a null array.
  * @constructor
+ * @memberof MW
  */
 MW.Vector = function(size) {
+
+    /**
+     * The underlying Float64Array for a Vector
+     *
+     * @type {Float64Array}
+     * @public
+     */
     this.array = null;
+
+    /**
+     * The size of the Vector's Float64Array
+     *
+     * @type {number}
+     * @public
+     */
     this.length = size || 0;
     if (size > 0) {
         this.array = new Float64Array(size);
@@ -19,8 +35,9 @@ MW.Vector = function(size) {
 /**
  * Create a new Vector object from a provided array of numbers. Deep copies the array.
  *
- * @param {!Array.<number>} arr the number array to be copied
+ * @param {!Array.<number> | !Float64Array} arr the number array to be copied
  * @returns {MW.Vector} the new Vector object
+ * @memberof MW.Vector
  */
 MW.Vector.fromArray = function(arr) {
     MW.util.checkArray(arr);
@@ -32,9 +49,10 @@ MW.Vector.fromArray = function(arr) {
 };
 
 /**
- * Assign the underlying Float64Array to this Vector
+ * Assign the underlying Float64Array for this Vector
  *
  * @param {!Float64Array} arr the Float64Array to be assigned to this Vector object
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.setVector = function(arr) {
     MW.util.checkFloat64Array(arr);
@@ -47,6 +65,7 @@ MW.Vector.prototype.setVector = function(arr) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MW.Vector} the new zeroed Vector
+ * @memberof MW.Vector
  */
 MW.Vector.zeroes = function(size) {
     var vec = new MW.Vector(size);
@@ -61,6 +80,7 @@ MW.Vector.zeroes = function(size) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MW.Vector} the new random Vector
+ * @memberof MW.Vector
  */
 MW.Vector.randomVector = function(size) {
     var vec = new MW.Vector(size);
@@ -74,6 +94,7 @@ MW.Vector.randomVector = function(size) {
  * Convert the Vector data into a string
  *
  * @returns {string} the string representation of the Vector
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.toString = function() {
     var str = "[";
@@ -87,6 +108,7 @@ MW.Vector.prototype.toString = function() {
  * Compute the sum of all elements in the Vector
  *
  * @returns {number} the sum of all elements
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.sum = function() {
     var result = 0.0;
@@ -112,6 +134,7 @@ MW.Vector.prototype.sum = function() {
  * Compute the product of all elements in the Vector
  *
  * @returns {number} the product of all elements
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.product = function() {
     var result = 1.0;
@@ -138,6 +161,7 @@ MW.Vector.prototype.product = function() {
  *
  * @param {MW.Vector} w the Vector to add with this Vector
  * @returns {MW.Vector} the element-wise sum of this Vector with w
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.plus = function(w) {
     MW.util.checkVectors(this, w);
@@ -168,6 +192,7 @@ MW.Vector.prototype.plus = function(w) {
  *
  * @param {MW.Vector} w the Vector to subtract from this Vector
  * @returns {MW.Vector} the element-wise difference of w from this Vector
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.minus = function(w) {
     MW.util.checkVectors(this, w);
@@ -198,6 +223,7 @@ MW.Vector.prototype.minus = function(w) {
  *
  * @param {MW.Vector} w the Vector to multiply with this Vector
  * @returns {MW.Vector} the element-wise product of this Vector with w
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.times = function(w) {
     MW.util.checkVectors(this, w);
@@ -228,6 +254,7 @@ MW.Vector.prototype.times = function(w) {
  *
  * @param {MW.Vector} w the Vector to divide this Vector by
  * @returns {MW.Vector} the element-wise quotient of this Vector by w
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.divide = function(w) {
     MW.util.checkVectors(this, w);
@@ -258,6 +285,7 @@ MW.Vector.prototype.divide = function(w) {
  *
  * @param {!number} alpha the scalar to multiply by
  * @returns {MW.Vector} the scaled Vector
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
@@ -289,6 +317,7 @@ MW.Vector.prototype.scale = function(alpha) {
  *
  * @param {!function} fn the function to be applied to each element of the Vector
  * @returns {MW.Vector} the mapped Vector
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
@@ -319,6 +348,7 @@ MW.Vector.prototype.apply = function(fn) {
  *
  * @param {!MW.Vector} w the other Vector to be dotted with this Vector
  * @returns {number} the resulting dot product value
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.dotVector = function(w) {
     MW.util.checkVectors(this, w);
@@ -350,6 +380,7 @@ MW.Vector.prototype.dotVector = function(w) {
  *
  * @param {!MW.Matrix} A the matrix to multiply with
  * @returns {MW.Vector} the resulting Vector of the vector-matrix product
+ * @memberof MW.Vector
  */
 MW.Vector.prototype.dotMatrix = function(A) {
     MW.util.checkVectorMatrix(this, A);

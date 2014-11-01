@@ -5,6 +5,7 @@
  * Manages computations and message passing for a web worker in the worker pool.
  *
  * @constructor
+ * @memberof MW
  */
 MW.MathWorker = function() {
 

@@ -7,6 +7,7 @@
  * @param {!number} nWorkersInput the number of Workers to spawn in the pool
  * @param {!string} workerScriptName the name of the script that the Workers are to execute
  * @constructor
+ * @memberof MW
  */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
@@ -32,6 +33,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 *
 	 * @type {boolean}
+	 * @public
 	 */
 	this.ready = false;
 
