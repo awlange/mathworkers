@@ -399,6 +399,7 @@ function EventEmitter() {
  * @param {!number} nWorkersInput the number of Workers to spawn in the pool
  * @param {!string} workerScriptName the name of the script that the Workers are to execute
  * @constructor
+ * @memberof MW
  */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
@@ -424,6 +425,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 *
 	 * @type {boolean}
+	 * @public
 	 */
 	this.ready = false;
 
@@ -803,6 +805,7 @@ MW.Coordinator.prototype = new EventEmitter();
  * Manages computations and message passing for a web worker in the worker pool.
  *
  * @constructor
+ * @memberof MW
  */
 MW.MathWorker = function() {
 
@@ -1020,8 +1023,21 @@ MW.MathWorker = function() {
 MW.MathWorker.prototype = new EventEmitter();
 
 
+/*
+ * MathWorker internal static-like functions
+ */
+
 /**
- * MathWorker static-like functions
+ * Prepare and send a Vector to the coordinator via message passing
+ *
+ * @param {!Float64Array} vec the Vector to be gathered. Each worker is responsible for a different section.
+ * @param {!number} totalLength the total length of the gathered Vector
+ * @param {!number} offset the offset to use in the gather for this worker's Vector section
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, have the coordinator broadcast the gathered Vector back to all workers,
+ *                                stored in their objectBuffers. Otherwise, the gathered Vector remains in the
+ *                                coordinator objectBuffer.
+ * @private
  */
 MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1029,6 +1045,18 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
         len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
 };
 
+/**
+ * Prepare and send a Matrix by rows to the coordinator via message passing
+ *
+ * @param {!Array.&lt;Float64Array>} mat the Matrix to be gathered by rows. Each worker is responsible for different rows.
+ * @param {!number} totalRows the total number of rows in the gathered Matrix
+ * @param {!number} offset the row offset to use in the gather for this worker's Matrix rows
+ * @param {!string} tag message tag
+ * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
+ *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
+ *                              coordinator objectBuffer.
+ * @private
+ */
 MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
@@ -1041,6 +1069,19 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
     self.postMessage(matObject, matBufferList);
 };
 
+/**
+ * Prepare and send a Matrix by columns to the coordinator via message passing
+ *
+ * @param {!Array.&lt;Float64Array>} mat the Matrix to be gathered by columns. Each worker is responsible for different columns.
+ * @param {!number} totalRows the total number of rows in the gathered Matrix
+ * @param {!number} totalCols the total number of columns in the gathered Matrix
+ * @param {!number} offset the column offset to use in the gather for this worker's Matrix columns
+ * @param {!string} tag message tag
+ * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
+ *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
+ *                              coordinator objectBuffer.
+ * @private
+ */
 MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
@@ -1053,11 +1094,30 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
     self.postMessage(matObject, matBufferList);
 };
 
+/**
+ * Prepare and send a number total for a Vector reduction summation
+ *
+ * @param {!number} tot this worker's sum to be reduced
+ * @param {!string} tag message tag
+ * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced sum back to all workers,
+ *                              stored in their objectBuffers. Otherwise, the reduced sum remains in the
+ *                              coordinator objectBuffer.
+ */
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
+
+/**
+ * Prepare and send a number total for a Vector reduction product
+ *
+ * @param {!number} tot this worker's product to be reduced
+ * @param {!string} tag message tag
+ * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced product back to all workers,
+ *                              stored in their objectBuffers. Otherwise, the reduced product remains in the
+ *                              coordinator objectBuffer.
+ */
 MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
@@ -1067,20 +1127,44 @@ MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Vector class.
- *  A wrapper around a Float64Array with several vector operations defined.
+ * Vector class.
+ * A wrapper around a Float64Array with several vector operations defined, including worker
+ * parallelized operations.
  *
- *  @class
+ * @param {number} [size] the length of the Vector being constructed. If not provided,
+ *                        a Vector object is crated with a null array.
+ * @constructor
+ * @memberof MW
  */
 MW.Vector = function(size) {
+
+    /**
+     * The underlying Float64Array for a Vector
+     *
+     * @type {Float64Array}
+     * @public
+     */
     this.array = null;
+
+    /**
+     * The size of the Vector's Float64Array
+     *
+     * @type {number}
+     * @public
+     */
     this.length = size || 0;
     if (size > 0) {
         this.array = new Float64Array(size);
     }
 };
 
-// Deep copy the array
+/**
+ * Create a new Vector object from a provided array of numbers. Deep copies the array.
+ *
+ * @param {!Array.&lt;number> | !Float64Array} arr the number array to be copied
+ * @returns {MW.Vector} the new Vector object
+ * @memberof MW.Vector
+ */
 MW.Vector.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var vec = new MW.Vector(arr.length);
@@ -1090,28 +1174,54 @@ MW.Vector.fromArray = function(arr) {
     return vec;
 };
 
+/**
+ * Assign the underlying Float64Array for this Vector
+ *
+ * @param {!Float64Array} arr the Float64Array to be assigned to this Vector object
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.setVector = function(arr) {
     MW.util.checkFloat64Array(arr);
     this.array = arr;
     this.length = arr.length;
 };
 
+/**
+ * Create a new Vector object populated with all zero values
+ *
+ * @param {!number} size the length of the Vector to be created
+ * @returns {MW.Vector} the new zeroed Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.zeroes = function(size) {
-    var vec = new Vector(size);
+    var vec = new MW.Vector(size);
     for (var i = 0; i &lt; size; ++i) {
         vec.array[i] = 0.0;
     }
     return vec;
 };
 
+/**
+ * Create a new Vector object populated with random values between 0 and 1
+ *
+ * @param {!number} size the length of the Vector to be created
+ * @returns {MW.Vector} the new random Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.randomVector = function(size) {
-    var vec = new Vector(size);
+    var vec = new MW.Vector(size);
     for (var i = 0; i &lt; size; ++i) {
         vec.array[i] = Math.random();
     }
     return vec;
 };
 
+/**
+ * Convert the Vector data into a string
+ *
+ * @returns {string} the string representation of the Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.toString = function() {
     var str = "[";
     for (var i = 0; i &lt; this.length - 1; ++i) {
@@ -1120,6 +1230,12 @@ MW.Vector.prototype.toString = function() {
     return str + this.array[this.length-1] + "]";
 };
 
+/**
+ * Compute the sum of all elements in the Vector
+ *
+ * @returns {number} the sum of all elements
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.sum = function() {
     var result = 0.0;
     var i;
@@ -1140,6 +1256,12 @@ MW.Vector.prototype.sum = function() {
     return result;
 };
 
+/**
+ * Compute the product of all elements in the Vector
+ *
+ * @returns {number} the product of all elements
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.product = function() {
     var result = 1.0;
     var i;
@@ -1160,6 +1282,13 @@ MW.Vector.prototype.product = function() {
     return result;
 };
 
+/**
+ * Add this Vector to another (element-wise).
+ *
+ * @param {MW.Vector} w the Vector to add with this Vector
+ * @returns {MW.Vector} the element-wise sum of this Vector with w
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.plus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
@@ -1184,6 +1313,13 @@ MW.Vector.prototype.plus = function(w) {
     return result;
 };
 
+/**
+ * Subtract another Vector from this Vector (element-wise).
+ *
+ * @param {MW.Vector} w the Vector to subtract from this Vector
+ * @returns {MW.Vector} the element-wise difference of w from this Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.minus = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
@@ -1208,6 +1344,13 @@ MW.Vector.prototype.minus = function(w) {
     return result;
 };
 
+/**
+ * Multiply this Vector with another (element-wise).
+ *
+ * @param {MW.Vector} w the Vector to multiply with this Vector
+ * @returns {MW.Vector} the element-wise product of this Vector with w
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.times = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
@@ -1232,6 +1375,13 @@ MW.Vector.prototype.times = function(w) {
     return result;
 };
 
+/**
+ * Divide this Vector by another (element-wise).
+ *
+ * @param {MW.Vector} w the Vector to divide this Vector by
+ * @returns {MW.Vector} the element-wise quotient of this Vector by w
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.divide = function(w) {
     MW.util.checkVectors(this, w);
     var result = new MW.Vector(this.length);
@@ -1256,6 +1406,13 @@ MW.Vector.prototype.divide = function(w) {
     return result;
 };
 
+/**
+ * Multiply all elements of this Vector by a scalar.
+ *
+ * @param {!number} alpha the scalar to multiply by
+ * @returns {MW.Vector} the scaled Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var result = new MW.Vector(this.length);
@@ -1280,6 +1437,14 @@ MW.Vector.prototype.scale = function(alpha) {
     return result;
 };
 
+/**
+ * Apply (or, map) a function onto each value in this Vector. The function must take a number as its argument and
+ * return a number. That is, the function must map a number to a (likely different) number.
+ *
+ * @param {!function} fn the function to be applied to each element of the Vector
+ * @returns {MW.Vector} the mapped Vector
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var result = new MW.Vector(this.length);
@@ -1304,6 +1469,13 @@ MW.Vector.prototype.apply = function(fn) {
     return result;
 };
 
+/**
+ * Compute the dot product of this Vector with another Vector.
+ *
+ * @param {!MW.Vector} w the other Vector to be dotted with this Vector
+ * @returns {number} the resulting dot product value
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.dotVector = function(w) {
     MW.util.checkVectors(this, w);
     var i;
@@ -1328,7 +1500,14 @@ MW.Vector.prototype.dotVector = function(w) {
     return tot;
 };
 
-// vector-matrix multiply: v.A
+/**
+ * Compute the vector-matrix product of this Vector with a Matrix.
+ * It is assumed that this Vector is transposed such that it is a row vector.
+ *
+ * @param {!MW.Matrix} A the matrix to multiply with
+ * @returns {MW.Vector} the resulting Vector of the vector-matrix product
+ * @memberof MW.Vector
+ */
 MW.Vector.prototype.dotMatrix = function(A) {
     MW.util.checkVectorMatrix(this, A);
     var i, j, tot;
@@ -2697,13 +2876,13 @@ return MW;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="module-MW.Coordinator.html">Coordinator</a></li><li><a href="module-MW.MathWorker.html">MathWorker</a></li><li><a href="module-MW.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Vector.html">Vector</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Oct 29 2014 23:56:37 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Nov 01 2014 14:38:33 GMT-0500 (CDT)
 </footer>
 
 <script> prettyPrint(); </script>
