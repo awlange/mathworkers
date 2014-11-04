@@ -1,9 +1,16 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- *  Matrix class
+ * Matrix class.
+ * A wrapper around an array of Float64Arrays (Array.<Float64Array>) with several matrix operations defined,
+ * including worker parallelized operations.
  *
- *  A wrapper around an array of Float64Array objects
+ * @param {number} [nrows] the number of rows in the matrix. If not provided or less than 1, a Matrix
+ *                         object is still created but with a null array.
+ * @param {number} [ncols] the number of columns in the matrix. If not provided or less than 1, a Matrix
+ *                         object is still created but with a null array.
+ * @constructor
+ * @memberof MW
  */
 MW.Matrix = function(nrows, ncols) {
     this.array = [];
@@ -18,7 +25,13 @@ MW.Matrix = function(nrows, ncols) {
     }
 };
 
-// Deep copy the array
+/**
+ * Create a new Matrix object from a provided 2-dimensional array. Deep copies the array.
+ *
+ * @param {!Array.<Array.<number>> | !Array.<Float64Array>} arr the 2-dimensional array to be copied
+ * @returns {MW.Matrix} the new Matrix object
+ * @memberof MW.Matrix
+ */
 MW.Matrix.fromArray = function(arr) {
     MW.util.checkArray(arr);
     var mat = new MW.Matrix(arr.length, arr[0].length);
@@ -33,6 +46,12 @@ MW.Matrix.fromArray = function(arr) {
     return mat;
 };
 
+/**
+ * Assign the underlying Array.<Float64Array> for this Matrix
+ *
+ * @param {!Array.<Float64Array>} arr the Array.<Float64Array> to be assigned to this Matrix object
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.setMatrix = function(arr) {
     MW.util.checkArray(arr);
     MW.util.checkFloat64Array(arr[0]);
@@ -41,32 +60,69 @@ MW.Matrix.prototype.setMatrix = function(arr) {
     this.ncols = arr[0].length;
 };
 
+/**
+ * Copy a provided array into the j-th column of this Matrix
+ *
+ * @param {!number} j the index of the column to which to copy
+ * @param {!Array.<number> | !Float64Array} vec the vector to be copied
+ * @memberod MW.Matrix
+ * @ignore
+ */
 MW.Matrix.prototype.copyColumn = function(j, vec) {
     for (var i = 0, ni = this.nrows; i < ni; ++i) {
         vec[i] = this.array[i][j];
     }
 };
 
+/**
+ * Copy a provided array into the i-th row of this Matrix
+ *
+ * @param {!number} i the index of the row to which to copy
+ * @param {!Array.<number> | !Float64Array} vec the vector to be copied
+ * @memberof MW.Matrix
+ * @ignore
+ */
 MW.Matrix.prototype.copyRow = function(i, vec) {
     for (var j = 0, nj = this.ncols; j < nj; ++j) {
         vec[j] = this.array[i][j];
     }
 };
 
+/**
+ * Test if this matrix is a square matrix.
+ *
+ * @returns {boolean} true if this matrix has an equal number row and columns. False otherwise.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.isSquare = function() {
-    return this.nrows == this.ncols;
+    return this.nrows === this.ncols;
 };
 
-MW.Matrix.zeroes = function(n, m) {
-    var mat = new MW.Matrix(n, m);
-    for (var i = 0; i < n; ++i) {
-        for (var j = 0; j < m; ++j) {
+/**
+ * Create a new Matrix object populated with all zero values.
+ *
+ * @param {!number} nrows the number of rows for the new Matrix
+ * @param {!number} ncols the number of columns for the new Matrix
+ * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @memberof MW.Matrix
+ */
+MW.Matrix.zeroes = function(nrows, ncols) {
+    var mat = new MW.Matrix(nrows, ncols);
+    for (var i = 0; i < nrows; ++i) {
+        for (var j = 0; j < ncols; ++j) {
             mat.array[i][j] = 0.0;
         }
     }
     return mat;
 };
 
+/**
+ * Create a new Matrix object whose elements are those of an identity matrix.
+ *
+ * @param {!number} n the number of rows and columns for the identity matrix
+ * @returns {MW.Matrix} the new identity Matrix object
+ * @memberof MW.Matrix
+ */
 MW.Matrix.identity = function(n) {
     var mat = new MW.Matrix(n, n);
     for (var i = 0; i < n; ++i) {
@@ -78,8 +134,16 @@ MW.Matrix.identity = function(n) {
     return mat;
 };
 
+/**
+ * Create a new Matrix object populated with random values between 0 and 1.
+ *
+ * @param {!number} nrows the number of rows for the new Matrix
+ * @param {!number} ncols the number of columns for the new Matrix
+ * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @memberof MW.Matrix
+ */
 MW.Matrix.randomMatrix = function(nrows, ncols) {
-    var mat = new Matrix(nrows, ncols);
+    var mat = new MW.Matrix(nrows, ncols);
     for (var i = 0; i < nrows; ++i) {
         for (var j = 0; j < ncols; ++j) {
             mat.array[i][j] = Math.random();
@@ -88,6 +152,12 @@ MW.Matrix.randomMatrix = function(nrows, ncols) {
     return mat;
 };
 
+/**
+ * Convert the Matrix data into a printable string
+ *
+ * @returns {string} the string representation of the Matrix
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.toString = function() {
     var str = "";
     for (var i = 0; i < this.nrows; ++i) {
@@ -103,6 +173,13 @@ MW.Matrix.prototype.toString = function() {
     return str;
 };
 
+/**
+ * Add this Matrix to another (element-wise).
+ *
+ * @param {!MW.Matrix} B the Matrix to add to this Matrix
+ * @returns {MW.Matrix} the element-wise sum of the Matrix and B
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.plus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -136,6 +213,13 @@ MW.Matrix.prototype.plus = function(B) {
     return C;
 };
 
+/**
+ * Subtract another Matrix from this Matrix (element-wise).
+ *
+ * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
+ * @returns {MW.Matrix} the element-wise difference of B from this Matrix
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.minus = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -169,6 +253,13 @@ MW.Matrix.prototype.minus = function(B) {
     return C;
 };
 
+/**
+ * Multiply this Matrix with another (element-wise).
+ *
+ * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MW.Matrix} the element-wise product of this Matrix and B
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.times = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -202,6 +293,13 @@ MW.Matrix.prototype.times = function(B) {
     return C;
 };
 
+/**
+ * Divide this Matrix by another (element-wise).
+ *
+ * @param {!MW.Matrix} B the Matrix to divide this Matrix by
+ * @returns {MW.Matrix} the element-wise quotient of this Matrix by B
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.divide = function(B) {
     MW.util.checkMatrices(this, B);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -235,6 +333,13 @@ MW.Matrix.prototype.divide = function(B) {
     return C;
 };
 
+/**
+ * Multiply all elements of this Matrix by a scalar.
+ *
+ * @param {!number} alpha the scalar to multiply by
+ * @returns {MW.Matrix} the scaled Matrix
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.scale = function(alpha) {
     MW.util.checkNumber(alpha);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -266,6 +371,14 @@ MW.Matrix.prototype.scale = function(alpha) {
     return C;
 };
 
+/**
+ * Apply (or, map) a function onto each value in this Matrix. The function must take a number as its argument and
+ * return a number. That is, the function must map a number to a number.
+ *
+ * @param {!function} fn the function to be applied to each element of the Matrix
+ * @returns {MW.Matrix} the mapped Matrix
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.apply = function(fn) {
     MW.util.checkFunction(fn);
     var C = new MW.Matrix(this.nrows, this.ncols);
@@ -297,7 +410,12 @@ MW.Matrix.prototype.apply = function(fn) {
     return C;
 };
 
-// Allocate new matrix and return to allow for arbitrary shaped matrices
+/**
+ * Transpose this Matrix. Returns a new Matrix to allow for arbitrary shaped matrices.
+ *
+ * @returns {MW.Matrix} a new Matrix that is the transpose of this Matrix
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.transpose = function() {
     var B = new MW.Matrix(this.ncols, this.nrows);
     var i, j, ai;
@@ -312,7 +430,13 @@ MW.Matrix.prototype.transpose = function() {
     return B;
 };
 
-// Only works for square matrices
+/**
+ * Transpose this square matrix in place. Only works for square matrices.
+ *
+ * @returns {MW.Matrix} this Matrix transposed
+ * @throws {Error} thrown if this Matrix is not a square matrix.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.transposeInPlace = function() {
     if (this.isSquare()) {
         var i, j;
@@ -331,7 +455,15 @@ MW.Matrix.prototype.transposeInPlace = function() {
     return this;
 };
 
-// matrix-vector multiply: A.v
+/**
+ * Compute the matrix-vector product of this Matrix with a Vector.
+ * It is assumed that this Vector is transposed such that it is a column vector.
+ * The ordering is such that this Matrix is A and the Vector is v: A.v
+ *
+ * @param {!MW.Vector} v the Vector to be multiplied with
+ * @returns {MW.Vector} the resulting Vector of the Matrix-Vector product
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.dotVector = function(v) {
     MW.util.checkMatrixVector(this, v);
     var w = new MW.Vector(this.nrows);
@@ -369,7 +501,14 @@ MW.Matrix.prototype.dotVector = function(v) {
     return w;
 };
 
-// matrix-matrix multiply: A.B
+/**
+ * Compute the matrix-matrix product of this Matrix with another Matrix. The ordering
+ * is such that this Matrix is A and the other matrix is B: A.B
+ *
+ * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MW.Matrix} the resulting Matrix of the matrix-matrix product
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.dotMatrix = function(B) {
     MW.util.checkMatrixMatrix(this, B);
     var C = new MW.Matrix(this.nrows, B.ncols);

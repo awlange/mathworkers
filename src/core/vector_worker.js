@@ -235,7 +235,7 @@ MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
  * Apply (or, map) a function onto each value in this Vector in parallel. The function must take a number as its
  * argument and return a number. That is, the function must map a number to a number.
  *
- * @param {!function} fn the function to be applied to each element of the Vector
+ * @param {!function} fn the function to be applied to each element of this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -302,6 +302,7 @@ MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
 /**
  * Compute the vector-matrix product of this Vector with a Matrix in parallel.
  * It is assumed that this Vector is transposed such that it is a row vector.
+ * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
  * @param {!MW.Matrix} A the matrix to multiply with
  * @param {!string} tag message tag
