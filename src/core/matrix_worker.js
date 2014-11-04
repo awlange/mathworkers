@@ -4,7 +4,7 @@
  * Worker versions of the Matrix methods
  */
 
-MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -45,7 +45,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -86,7 +86,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -127,7 +127,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -168,7 +168,7 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
+MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -184,7 +184,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
+MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -223,7 +223,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
+MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
     MW.util.checkFunction(fn);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -263,7 +263,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
+MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
     MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -301,7 +301,7 @@ MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
 };
 
 // C = A.B
-MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 

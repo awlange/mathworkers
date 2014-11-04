@@ -224,7 +224,7 @@ MW.MathWorker.prototype = new EventEmitter();
 
 
 /*
- * MathWorker internal static-like functions
+ * MathWorker internal static-like communication functions
  */
 
 /**
@@ -237,7 +237,7 @@ MW.MathWorker.prototype = new EventEmitter();
  * @param {boolean} [rebroadcast] If true, have the coordinator broadcast the gathered Vector back to all workers,
  *                                stored in their objectBuffers. Otherwise, the gathered Vector remains in the
  *                                coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -255,7 +255,7 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
  *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
  *                              coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -280,7 +280,7 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
  *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
  *                              coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -302,6 +302,7 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced sum back to all workers,
  *                              stored in their objectBuffers. Otherwise, the reduced sum remains in the
  *                              coordinator objectBuffer.
+ * @ignore
  */
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -317,6 +318,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced product back to all workers,
  *                              stored in their objectBuffers. Otherwise, the reduced product remains in the
  *                              coordinator objectBuffer.
+ * @ignore
  */
 MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
