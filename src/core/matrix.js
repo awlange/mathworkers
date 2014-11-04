@@ -375,7 +375,7 @@ MW.Matrix.prototype.scale = function(alpha) {
  * Apply (or, map) a function onto each value in this Matrix. The function must take a number as its argument and
  * return a number. That is, the function must map a number to a number.
  *
- * @param {!number} fn the function to be applied to each element of the Matrix
+ * @param {!function} fn the function to be applied to each element of the Matrix
  * @returns {MW.Matrix} the mapped Matrix
  * @memberof MW.Matrix
  */

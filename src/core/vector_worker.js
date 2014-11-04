@@ -235,7 +235,7 @@ MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
  * Apply (or, map) a function onto each value in this Vector in parallel. The function must take a number as its
  * argument and return a number. That is, the function must map a number to a number.
  *
- * @param {!function} fn the function to be applied to each element of the Vector
+ * @param {!function} fn the function to be applied to each element of this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector

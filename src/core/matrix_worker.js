@@ -1,9 +1,17 @@
 // Copyright 2014 Adrian W. Lange
 
-/**
- * Worker versions of the Matrix methods
+/*
+ * Parallel worker versions of the Matrix methods
  */
 
+/**
+ * Add this Matrix to another (element-wise) in parallel.
+ *
+ * @param {!MW.Matrix} B the Matrix to add to this Matrix
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
@@ -45,6 +53,14 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Subtract another Matrix from this Matrix (element-wise) in parallel.
+ *
+ * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
@@ -86,6 +102,14 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Multiply this Matrix with another (element-wise) in parallel.
+ *
+ * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
@@ -127,6 +151,14 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Divide this Matrix by another (element-wise) in parallel.
+ *
+ * @param {!MW.Matrix} B the Matrix to divide this Matrix by
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
@@ -168,22 +200,14 @@ MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
-    var C = [];
-    var offset = 0;
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
-        C.push(new Float64Array(this.ncols));
-        for (var j = 0; j < this.ncols; ++j) {
-            C[offset][j] = alpha * this.array[i][j];
-        }
-        ++offset;
-    }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
-};
-
+/**
+ * Multiply all elements of this Matrix by a scalar in parallel.
+ *
+ * @param {!number} alpha the scalar to multiply by
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
@@ -223,6 +247,15 @@ MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Apply (or, map) a function onto each value in this Matrix in parallel. The function must take a number as its
+ * argument and return a number. That is, the function must map a number to a number.
+ *
+ * @param {!function} fn the function to be applied to each element of this Matrix
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
     MW.util.checkFunction(fn);
     MW.util.checkNullOrUndefined(tag);
@@ -262,7 +295,16 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-// matrix-vector multiply: A.v
+/**
+ * Compute the matrix-vector product of this Matrix with a Vector in parallel.
+ * It is assumed that this Vector is transposed such that it is a column vector.
+ * The ordering is such that this Matrix is A and the Vector is v: A.v
+ *
+ * @param {!MW.Vector} v the Vector to be multiplied with
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
     MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
@@ -300,7 +342,15 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
     MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
 
-// C = A.B
+/**
+ * Compute the matrix-matrix product of this Matrix with another Matrix in parallel. The ordering
+ * is such that this Matrix is A and the other matrix is B: A.B
+ *
+ * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Matrix
+ */
 MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
@@ -353,3 +403,4 @@ MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
 
     MW.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
+
