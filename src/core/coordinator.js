@@ -7,6 +7,7 @@
  * @param {!number} nWorkersInput the number of Workers to spawn in the pool
  * @param {!string} workerScriptName the name of the script that the Workers are to execute
  * @constructor
+ * @mixes EventEmitter
  * @memberof MW
  */
 MW.Coordinator = function(nWorkersInput, workerScriptName) {

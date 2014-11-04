@@ -6,7 +6,7 @@
  *
  * http://otaqui.com/blog/1374/event-emitter-pub-sub-or-deferred-promises-which-should-you-choose/
  *
- * @constructor
+ * @mixin
  */
 function EventEmitter() {
     var events = {};

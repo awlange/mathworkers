@@ -111,7 +111,7 @@ parallelized operations.
 
             
 
-            <td class="description last">the length of the Vector being constructed. If not provided,
+            <td class="description last">the length of the Vector being constructed. If not provided or less than 1,
                        a Vector object is still created but with a null array.</td>
         </tr>
 
@@ -143,7 +143,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1114">line 1114</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1116">line 1116</a>
     </li></ul></dd>
     
 
@@ -237,7 +237,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1122">line 1122</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1124">line 1124</a>
     </li></ul></dd>
     
 
@@ -303,7 +303,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1130">line 1130</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1132">line 1132</a>
     </li></ul></dd>
     
 
@@ -421,7 +421,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1143">line 1143</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1145">line 1145</a>
     </li></ul></dd>
     
 
@@ -562,7 +562,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1186">line 1186</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1188">line 1188</a>
     </li></ul></dd>
     
 
@@ -703,7 +703,7 @@ parallelized operations.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1171">line 1171</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1173">line 1173</a>
     </li></ul></dd>
     
 
@@ -845,7 +845,7 @@ return a number. That is, the function must map a number to a number.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1423">line 1423</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1425">line 1425</a>
     </li></ul></dd>
     
 
@@ -986,7 +986,7 @@ return a number. That is, the function must map a number to a number.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1360">line 1360</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1362">line 1362</a>
     </li></ul></dd>
     
 
@@ -1048,6 +1048,7 @@ return a number. That is, the function must map a number to a number.
     <div class="description">
         Compute the vector-matrix product of this Vector with a Matrix.
 It is assumed that this Vector is transposed such that it is a row vector.
+The ordering is such that this Vector v A and the Matrix is A: v.A
     </div>
     
 
@@ -1087,7 +1088,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
             <td class="type">
             
                 
-<span class="param-type">MW.Matrix</span>
+<span class="param-type"><a href="MW.Matrix.html">MW.Matrix</a></span>
 
 
             
@@ -1128,7 +1129,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1486">line 1486</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1489">line 1489</a>
     </li></ul></dd>
     
 
@@ -1269,7 +1270,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1454">line 1454</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1456">line 1456</a>
     </li></ul></dd>
     
 
@@ -1410,7 +1411,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1298">line 1298</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1300">line 1300</a>
     </li></ul></dd>
     
 
@@ -1551,7 +1552,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1267">line 1267</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1269">line 1269</a>
     </li></ul></dd>
     
 
@@ -1644,7 +1645,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1240">line 1240</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1242">line 1242</a>
     </li></ul></dd>
     
 
@@ -1785,7 +1786,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1391">line 1391</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1393">line 1393</a>
     </li></ul></dd>
     
 
@@ -1926,7 +1927,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1158">line 1158</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1160">line 1160</a>
     </li></ul></dd>
     
 
@@ -1997,7 +1998,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1214">line 1214</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1216">line 1216</a>
     </li></ul></dd>
     
 
@@ -2138,7 +2139,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1329">line 1329</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1331">line 1331</a>
     </li></ul></dd>
     
 
@@ -2231,7 +2232,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1200">line 1200</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1202">line 1202</a>
     </li></ul></dd>
     
 
@@ -2447,7 +2448,7 @@ argument and return a number. That is, the function must map a number to a numbe
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1762">line 1762</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1765">line 1765</a>
     </li></ul></dd>
     
 
@@ -2640,7 +2641,7 @@ argument and return a number. That is, the function must map a number to a numbe
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1693">line 1693</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1696">line 1696</a>
     </li></ul></dd>
     
 
@@ -2680,6 +2681,7 @@ argument and return a number. That is, the function must map a number to a numbe
     <div class="description">
         Compute the vector-matrix product of this Vector with a Matrix in parallel.
 It is assumed that this Vector is transposed such that it is a row vector.
+The ordering is such that this Vector v A and the Matrix is A: v.A
     </div>
     
 
@@ -2721,7 +2723,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
             <td class="type">
             
                 
-<span class="param-type">MW.Matrix</span>
+<span class="param-type"><a href="MW.Matrix.html">MW.Matrix</a></span>
 
 
             
@@ -2834,7 +2836,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1830">line 1830</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1834">line 1834</a>
     </li></ul></dd>
     
 
@@ -3027,7 +3029,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1796">line 1796</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1799">line 1799</a>
     </li></ul></dd>
     
 
@@ -3220,7 +3222,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1625">line 1625</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1628">line 1628</a>
     </li></ul></dd>
     
 
@@ -3413,7 +3415,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1591">line 1591</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1594">line 1594</a>
     </li></ul></dd>
     
 
@@ -3575,7 +3577,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1561">line 1561</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1564">line 1564</a>
     </li></ul></dd>
     
 
@@ -3768,7 +3770,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1727">line 1727</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1730">line 1730</a>
     </li></ul></dd>
     
 
@@ -3930,7 +3932,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1533">line 1533</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1536">line 1536</a>
     </li></ul></dd>
     
 
@@ -4123,7 +4125,7 @@ It is assumed that this Vector is transposed such that it is a row vector.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1659">line 1659</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1662">line 1662</a>
     </li></ul></dd>
     
 
@@ -4166,13 +4168,13 @@ It is assumed that this Vector is transposed such that it is a row vector.
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 21:53:53 GMT-0600 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 23:08:55 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -302,6 +302,7 @@ MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
 /**
  * Compute the vector-matrix product of this Vector with a Matrix in parallel.
  * It is assumed that this Vector is transposed such that it is a row vector.
+ * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
  * @param {!MW.Matrix} A the matrix to multiply with
  * @param {!string} tag message tag

@@ -5,7 +5,7 @@
  * A wrapper around a Float64Array with several vector operations defined, including worker
  * parallelized operations.
  *
- * @param {number} [size] the length of the Vector being constructed. If not provided,
+ * @param {number} [size] the length of the Vector being constructed. If not provided or less than 1,
  *                        a Vector object is still created but with a null array.
  * @constructor
  * @memberof MW
@@ -377,6 +377,7 @@ MW.Vector.prototype.dotVector = function(w) {
 /**
  * Compute the vector-matrix product of this Vector with a Matrix.
  * It is assumed that this Vector is transposed such that it is a row vector.
+ * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
  * @param {!MW.Matrix} A the matrix to multiply with
  * @returns {MW.Vector} the resulting Vector of the vector-matrix product
