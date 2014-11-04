@@ -1024,7 +1024,7 @@ MW.MathWorker.prototype = new EventEmitter();
 
 
 /*
- * MathWorker internal static-like functions
+ * MathWorker internal static-like communication functions
  */
 
 /**
@@ -1037,7 +1037,7 @@ MW.MathWorker.prototype = new EventEmitter();
  * @param {boolean} [rebroadcast] If true, have the coordinator broadcast the gathered Vector back to all workers,
  *                                stored in their objectBuffers. Otherwise, the gathered Vector remains in the
  *                                coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1055,7 +1055,7 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
  *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
  *                              coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1080,7 +1080,7 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the gathered Matrix back to all workers,
  *                              stored in their objectBuffers. Otherwise, the gathered Matrix remains in the
  *                              coordinator objectBuffer.
- * @private
+ * @ignore
  */
 MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1102,6 +1102,7 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced sum back to all workers,
  *                              stored in their objectBuffers. Otherwise, the reduced sum remains in the
  *                              coordinator objectBuffer.
+ * @ignore
  */
 MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1117,6 +1118,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  * @param {boolean} rebroadcast If true, have the coordinator broadcast the reduced product back to all workers,
  *                              stored in their objectBuffers. Otherwise, the reduced product remains in the
  *                              coordinator objectBuffer.
+ * @ignore
  */
 MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
@@ -1132,7 +1134,7 @@ MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
  * parallelized operations.
  *
  * @param {number} [size] the length of the Vector being constructed. If not provided,
- *                        a Vector object is crated with a null array.
+ *                        a Vector object is still created but with a null array.
  * @constructor
  * @memberof MW
  */
@@ -1217,7 +1219,7 @@ MW.Vector.randomVector = function(size) {
 };
 
 /**
- * Convert the Vector data into a string
+ * Convert the Vector data into a printable string
  *
  * @returns {string} the string representation of the Vector
  * @memberof MW.Vector
@@ -1439,7 +1441,7 @@ MW.Vector.prototype.scale = function(alpha) {
 
 /**
  * Apply (or, map) a function onto each value in this Vector. The function must take a number as its argument and
- * return a number. That is, the function must map a number to a (likely different) number.
+ * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Vector
  * @returns {MW.Vector} the mapped Vector
@@ -1544,11 +1546,18 @@ MW.Vector.prototype.dotMatrix = function(A) {
 
 // Copyright 2014 Adrian W. Lange
 
-/**
- * Worker versions of the Vector methods
+/*
+ * Parallel worker versions of the Vector methods
  */
 
-MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
+/**
+ * Compute the sum of all elements in the Vector in parallel
+ *
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerSum = function(tag, rebroadcast) {
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var tot = 0.0;
@@ -1569,7 +1578,14 @@ MW.Vector.prototype.wkSum = function(tag, rebroadcast) {
     MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkProduct = function(tag, rebroadcast) {
+/**
+ * Compute the product of all elements in the Vector in parallel
+ *
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerProduct = function(tag, rebroadcast) {
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
     var tot = 1.0;
@@ -1591,7 +1607,15 @@ MW.Vector.prototype.wkProduct = function(tag, rebroadcast) {
 };
 
 
-MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
+/**
+ * Add this Vector to another (element-wise) in parallel.
+ *
+ * @param {!MW.Vector} w the Vector to add with this Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1617,7 +1641,15 @@ MW.Vector.prototype.wkPlus = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
+/**
+ * Subtract another Vector from this Vector (element-wise) in parallel.
+ *
+ * @param {!MW.Vector} w the Vector to subtract from this Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1643,7 +1675,15 @@ MW.Vector.prototype.wkMinus = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
+/**
+ * Multiply this Vector with another (element-wise) in parallel.
+ *
+ * @param {!MW.Vector} w the Vector to multiply with this Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1669,7 +1709,15 @@ MW.Vector.prototype.wkTimes = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
+/**
+ * Divide this Vector to another (element-wise) in parallel.
+ *
+ * @param {!MW.Vector} w the Vector to divide this Vector by
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerDivide = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1695,7 +1743,15 @@ MW.Vector.prototype.wkDivide = function(w, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
+/**
+ * Multiply all elements of this Vector by a scalar in parallel.
+ *
+ * @param {!number} alpha the scalar to multiply by
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1721,7 +1777,16 @@ MW.Vector.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
+/**
+ * Apply (or, map) a function onto each value in this Vector in parallel. The function must take a number as its
+ * argument and return a number. That is, the function must map a number to a number.
+ *
+ * @param {!function} fn the function to be applied to each element of the Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerApply = function(fn, tag, rebroadcast) {
     MW.util.checkFunction(fn);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1747,7 +1812,15 @@ MW.Vector.prototype.wkApply = function(fn, tag, rebroadcast) {
     MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
+/**
+ * Compute the dot product of this Vector with another Vector in parallel.
+ *
+ * @param {!MW.Vector} w the other Vector to be dotted with this Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
     MW.util.checkVectors(this, w);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.length);
@@ -1772,8 +1845,16 @@ MW.Vector.prototype.wkDotVector = function(w, tag, rebroadcast) {
     MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
 
-// vector-matrix multiply: v.A
-MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
+/**
+ * Compute the vector-matrix product of this Vector with a Matrix in parallel.
+ * It is assumed that this Vector is transposed such that it is a row vector.
+ *
+ * @param {!MW.Matrix} A the matrix to multiply with
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MW.Vector
+ */
+MW.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     MW.util.checkVectorMatrix(this, A);
     MW.util.checkNullOrUndefined(tag);
     var i, j;
@@ -1806,7 +1887,9 @@ MW.Vector.prototype.wkDotMatrix = function(A, tag, rebroadcast) {
         }
     }
     MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
-};// Copyright 2014 Adrian W. Lange
+};
+
+// Copyright 2014 Adrian W. Lange
 
 /**
  *  Matrix class
@@ -2229,7 +2312,7 @@ MW.Matrix.prototype.dotMatrix = function(B) {
  * Worker versions of the Matrix methods
  */
 
-MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2270,7 +2353,7 @@ MW.Matrix.prototype.wkPlus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2311,7 +2394,7 @@ MW.Matrix.prototype.wkMinus = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2352,7 +2435,7 @@ MW.Matrix.prototype.wkTimes = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
     MW.util.checkMatrices(this, B);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2393,7 +2476,7 @@ MW.Matrix.prototype.wkDivide = function(B, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
+MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2409,7 +2492,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
+MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
     MW.util.checkNumber(alpha);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2448,7 +2531,7 @@ MW.Matrix.prototype.wkScale = function(alpha, tag, rebroadcast) {
     MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
-MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
+MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
     MW.util.checkFunction(fn);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2488,7 +2571,7 @@ MW.Matrix.prototype.wkApply = function(fn, tag, rebroadcast) {
 };
 
 // matrix-vector multiply: A.v
-MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
+MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
     MW.util.checkMatrixVector(this, v);
     MW.util.checkNullOrUndefined(tag);
     var lb = MW.util.loadBalance(this.nrows);
@@ -2526,7 +2609,7 @@ MW.Matrix.prototype.wkDotVector = function(v, tag, rebroadcast) {
 };
 
 // C = A.B
-MW.Matrix.prototype.wkDotMatrix = function(B, tag, rebroadcast) {
+MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MW.util.checkMatrixMatrix(this, B);
     MW.util.checkNullOrUndefined(tag);
 
@@ -2882,7 +2965,7 @@ return MW;
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Nov 01 2014 14:38:33 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 21:53:53 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

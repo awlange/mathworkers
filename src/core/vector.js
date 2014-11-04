@@ -6,7 +6,7 @@
  * parallelized operations.
  *
  * @param {number} [size] the length of the Vector being constructed. If not provided,
- *                        a Vector object is crated with a null array.
+ *                        a Vector object is still created but with a null array.
  * @constructor
  * @memberof MW
  */
@@ -91,7 +91,7 @@ MW.Vector.randomVector = function(size) {
 };
 
 /**
- * Convert the Vector data into a string
+ * Convert the Vector data into a printable string
  *
  * @returns {string} the string representation of the Vector
  * @memberof MW.Vector
@@ -313,7 +313,7 @@ MW.Vector.prototype.scale = function(alpha) {
 
 /**
  * Apply (or, map) a function onto each value in this Vector. The function must take a number as its argument and
- * return a number. That is, the function must map a number to a (likely different) number.
+ * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Vector
  * @returns {MW.Vector} the mapped Vector

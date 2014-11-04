@@ -42,97 +42,97 @@ MW.on("run_sendMatrixToWorkers", function() {
 MW.on("run_vectorDotVector", function() {
 	var v = Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0]);
 	var w = Vector.fromArray([1.0, 1.0, 1.0, 1.0, 1.0]);
-	v.wkDotVector(w, "vectorDotVector");
+	v.workerDotVector(w, "vectorDotVector");
 });
 
 MW.on("run_vectorSum", function() {
     var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
-    v.wkSum("vectorSum");
+    v.workerSum("vectorSum");
 });
 
 MW.on("run_vectorProduct", function() {
     var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
-    v.wkProduct("vectorProduct");
+    v.workerProduct("vectorProduct");
 });
 
 MW.on("run_vectorPlus", function() {
 	var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
 	var w = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkPlus(w, "vectorPlus");
+	v.workerPlus(w, "vectorPlus");
 });
 
 MW.on("run_vectorMinus", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
 	var w = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkMinus(w, "vectorMinus");
+	v.workerMinus(w, "vectorMinus");
 });
 
 MW.on("run_vectorTimes", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
 	var w = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
-	v.wkTimes(w, "vectorTimes");
+	v.workerTimes(w, "vectorTimes");
 });
 
 MW.on("run_vectorDivide", function() {
 	var v = Vector.fromArray([0.0, 4.0, -8.0, 1.0, 5.0]);
 	var w = Vector.fromArray([1.0, 2.0, 4.0, 4.0, 5.0]);
-	v.wkDivide(w, "vectorDivide");
+	v.workerDivide(w, "vectorDivide");
 });
 
 MW.on("run_vectorScale", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
-	v.wkScale(2.0, "vectorScale");
+	v.workerScale(2.0, "vectorScale");
 });
 
 MW.on("run_vectorApply", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0, 4.0, 5.0]);
-	v.wkApply(Math.sqrt, "vectorApply");
+	v.workerApply(Math.sqrt, "vectorApply");
 });
 
 MW.on("run_vectorDotMatrix", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	v.wkDotMatrix(A, "vectorDotMatrix");
+	v.workerDotMatrix(A, "vectorDotMatrix");
 });
 
 MW.on("run_matrixDotVector", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	A.wkDotVector(v, "matrixDotVector");
+	A.workerDotVector(v, "matrixDotVector");
 });
 
 MW.on("run_matrixPlus", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkPlus(B, "matrixPlus");
+	A.workerPlus(B, "matrixPlus");
 });
 
 MW.on("run_matrixMinus", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkMinus(B, "matrixMinus");
+	A.workerMinus(B, "matrixMinus");
 });
 
 MW.on("run_matrixTimes", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkTimes(B, "matrixTimes");
+	A.workerTimes(B, "matrixTimes");
 });
 
 MW.on("run_matrixDivide", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
-	A.wkDivide(B, "matrixDivide");
+	A.workerDivide(B, "matrixDivide");
 });
 
 MW.on("run_matrixScale", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	A.wkScale(3.0, "matrixScale");
+	A.workerScale(3.0, "matrixScale");
 });
 
 MW.on("run_matrixApply", function() {
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	A.wkApply(Math.sqrt, "matrixApply");
+	A.workerApply(Math.sqrt, "matrixApply");
 });
 
 MW.on("run_matrixDotMatrix1", function() {
@@ -140,13 +140,13 @@ MW.on("run_matrixDotMatrix1", function() {
 							  [2.0, 3.0]]);
 	var B = Matrix.fromArray([[-3.0, 2.0],
 							  [1.0, -2.0]]);
-	A.wkDotMatrix(B, "matrixDotMatrix1");
+	A.workerDotMatrix(B, "matrixDotMatrix1");
 });
 
 MW.on("run_matrixDotMatrix2", function() {
     var A = Matrix.fromArray([[1.0, 2.0], [2.0, 3.0]]);
     var B = Matrix.fromArray([[-3.0, 2.0], [1.0, -2.0]]);
-    B.wkDotMatrix(A, "matrixDotMatrix2");
+    B.workerDotMatrix(A, "matrixDotMatrix2");
 });
 
 MW.on("run_matrixDotMatrix3", function() {
@@ -154,7 +154,7 @@ MW.on("run_matrixDotMatrix3", function() {
         [2.0, 3.0]]);
     var C = Matrix.fromArray([[1.0, 0.0, -2.0],
         [0.0, 1.0, 1.0]]);
-    A.wkDotMatrix(C, "matrixDotMatrix3");
+    A.workerDotMatrix(C, "matrixDotMatrix3");
 });
 
 MW.on("run_matrixDotMatrix4", function() {
@@ -163,7 +163,7 @@ MW.on("run_matrixDotMatrix4", function() {
     var D = Matrix.fromArray([[3.0, 1.0],
                                    [-1.0, -2.0],
                                    [1.0, 1.0]]);
-    C.wkDotMatrix(D, "matrixDotMatrix4");
+    C.workerDotMatrix(D, "matrixDotMatrix4");
 });
 
 MW.on("run_matrixDotMatrix5", function() {
@@ -172,13 +172,13 @@ MW.on("run_matrixDotMatrix5", function() {
     var D = Matrix.fromArray([[3.0, 1.0],
         [-1.0, -2.0],
         [1.0, 1.0]]);
-    D.wkDotMatrix(C, "matrixDotMatrix5");
+    D.workerDotMatrix(C, "matrixDotMatrix5");
 });
 
 MW.on("run_vectorDotRebroadcast", function() {
 	var v = Vector.fromArray([100.0, 200.0, 300.0, 400.0, 500.0]);
 	var w = Vector.fromArray([10.0, 10.0, 10.0, 10.0, 10.0]);
-	v.wkDotVector(w, "vdotre", true);
+	v.workerDotVector(w, "vdotre", true);
 });
 MW.on("vdotre", function(dot) {
 	MW.sendDataToCoordinator(dot, "vectorDotRebroadcast");
@@ -187,7 +187,7 @@ MW.on("vdotre", function(dot) {
 MW.on("run_vectorTimesMatrixRebroadcast", function() {
 	var v = Vector.fromArray([1.0, 2.0, 3.0]);
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
-	v.wkDotMatrix(A, "vtmre", true);
+	v.workerDotMatrix(A, "vtmre", true);
 });
 MW.on("vtmre", function(vec) {
 	var expected = [30.0, 36.0, 42.0];

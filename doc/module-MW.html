@@ -137,7 +137,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2564">line 2564</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2647">line 2647</a>
     </li></ul></dd>
     
 
@@ -193,7 +193,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2749">line 2749</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2832">line 2832</a>
     </li></ul></dd>
     
 
@@ -217,340 +217,6 @@
         <h3 class="subsection-title">Methods</h3>
 
         <dl>
-            
-<dt>
-    <h4 class="name" id="MathWorker.reduceVectorProduct"><span class="type-signature">(static) </span>MathWorker.reduceVectorProduct<span class="signature">(tot<span class="signature-attributes">non-null</span>, tag<span class="signature-attributes">non-null</span>, rebroadcast)</span><span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Prepare and send a number total for a Vector reduction product
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>tot</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">this worker's product to be reduced</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>tag</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">message tag</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rebroadcast</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">If true, have the coordinator broadcast the reduced product back to all workers,
-                             stored in their objectBuffers. Otherwise, the reduced product remains in the
-                             coordinator objectBuffer.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1094">line 1094</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="MathWorker.reduceVectorSum"><span class="type-signature">(static) </span>MathWorker.reduceVectorSum<span class="signature">(tot<span class="signature-attributes">non-null</span>, tag<span class="signature-attributes">non-null</span>, rebroadcast)</span><span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Prepare and send a number total for a Vector reduction summation
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>tot</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">this worker's sum to be reduced</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>tag</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">message tag</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>rebroadcast</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">If true, have the coordinator broadcast the reduced sum back to all workers,
-                             stored in their objectBuffers. Otherwise, the reduced sum remains in the
-                             coordinator objectBuffer.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1079">line 1079</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
             
 <dt>
     <h4 class="name" id="Matrix"><span class="type-signature">(static) </span>Matrix<span class="signature">()</span><span class="type-signature"></span></h4>
@@ -596,7 +262,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1789">line 1789</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1872">line 1872</a>
     </li></ul></dd>
     
 
@@ -626,7 +292,7 @@
         
             
 <dt>
-    <h4 class="name" id="wkPlus"><span class="type-signature">(static) </span>Matrix#wkPlus<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="workerPlus"><span class="type-signature">(static) </span>Matrix#workerPlus<span class="signature">()</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -667,7 +333,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2205">line 2205</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2288">line 2288</a>
     </li></ul></dd>
     
 
@@ -744,78 +410,7 @@ Quartiles are not reported if the data passed in contains less than 3 elements
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2760">line 2760</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="wkSum"><span class="type-signature">(static) </span>Vector#wkSum<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Worker versions of the Vector methods
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line1524">line 1524</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2843">line 2843</a>
     </li></ul></dd>
     
 
@@ -1108,7 +703,7 @@ Default is false.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Sat Nov 01 2014 14:38:33 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 21:53:53 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>
