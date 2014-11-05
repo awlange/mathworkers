@@ -99,7 +99,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Vector to all workers
 	 *
-	 * @param {!MW.Vector} vec Vector to be sent
+	 * @param {!MathWorkers.Vector} vec Vector to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendVectorToWorkers = function(vec, tag) {
@@ -114,7 +114,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Matrix to all workers
 	 *
-	 * @param {!MW.Matrix} mat Matrix to be sent
+	 * @param {!MathWorkers.Matrix} mat Matrix to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
@@ -270,7 +270,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(/** @type {!MW.Vector}*/ objectBuffer, data.tag);
+				that.sendVectorToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -302,7 +302,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -340,7 +340,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+                that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);

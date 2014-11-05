@@ -81,7 +81,7 @@ MW.MathWorker = function() {
 	/**
 	 * Send a Vector to the coordinator
 	 *
-	 * @param {MW.Vector} vec the Vector to be sent
+	 * @param {MathWorkers.Vector} vec the Vector to be sent
 	 * @param {!string} tag message tag
 	 */
     this.sendVectorToCoordinator = function(vec, tag) {
@@ -95,7 +95,7 @@ MW.MathWorker = function() {
 	/**
 	 * Send a Matrix to the coordinator
 	 *
-	 * @param {MW.Matrix} mat the Matrix to be sent
+	 * @param {MathWorkers.Matrix} mat the Matrix to be sent
 	 * @param {!string} tag message tag
 	 */
     this.sendMatrixToCoordinator = function(mat, tag) {
