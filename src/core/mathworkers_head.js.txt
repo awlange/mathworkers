@@ -24,13 +24,12 @@
  *  @author Adrian W. Lange
  */
 
-
 var MathWorkers = (function() {
 "use strict";
 
 /**
  * The MathWorkers module
- * @exports MW
+ * @exports MathWorkers
  */
 var MW = {};
 

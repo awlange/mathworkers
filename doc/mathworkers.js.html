@@ -51,13 +51,12 @@
  *  @author Adrian W. Lange
  */
 
-
 var MathWorkers = (function() {
 "use strict";
 
 /**
  * The MathWorkers module
- * @exports MW
+ * @exports MathWorkers
  */
 var MW = {};
 
@@ -662,7 +661,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(/** @type {!MathWorkers.Vector}*/ objectBuffer, data.tag);
+				that.sendVectorToWorkers(/** @type {!MW.Vector}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -694,7 +693,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
+				that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -732,7 +731,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
+                that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);
@@ -1166,7 +1165,7 @@ MW.Vector = function(size) {
  * Create a new Vector object from a provided array of numbers. Deep copies the array.
  *
  * @param {!Array.&lt;number> | !Float64Array} arr the number array to be copied
- * @returns {MW.Vector} the new Vector object
+ * @returns {MathWorkers.Vector} the new Vector object
  * @memberof MW.Vector
  */
 MW.Vector.fromArray = function(arr) {
@@ -1194,7 +1193,7 @@ MW.Vector.prototype.setVector = function(arr) {
  * Create a new Vector object populated with all zero values
  *
  * @param {!number} size the length of the Vector to be created
- * @returns {MW.Vector} the new zeroed Vector
+ * @returns {MathWorkers.Vector} the new zeroed Vector
  * @memberof MW.Vector
  */
 MW.Vector.zeroes = function(size) {
@@ -1209,7 +1208,7 @@ MW.Vector.zeroes = function(size) {
  * Create a new Vector object populated with random values between 0 and 1
  *
  * @param {!number} size the length of the Vector to be created
- * @returns {MW.Vector} the new random Vector
+ * @returns {MathWorkers.Vector} the new random Vector
  * @memberof MW.Vector
  */
 MW.Vector.randomVector = function(size) {
@@ -1289,8 +1288,8 @@ MW.Vector.prototype.product = function() {
 /**
  * Add this Vector to another (element-wise).
  *
- * @param {MW.Vector} w the Vector to add with this Vector
- * @returns {MW.Vector} the element-wise sum of this Vector with w
+ * @param {MathWorkers.Vector} w the Vector to add with this Vector
+ * @returns {MathWorkers.Vector} the element-wise sum of this Vector with w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.plus = function(w) {
@@ -1320,8 +1319,8 @@ MW.Vector.prototype.plus = function(w) {
 /**
  * Subtract another Vector from this Vector (element-wise).
  *
- * @param {MW.Vector} w the Vector to subtract from this Vector
- * @returns {MW.Vector} the element-wise difference of w from this Vector
+ * @param {MathWorkers.Vector} w the Vector to subtract from this Vector
+ * @returns {MathWorkers.Vector} the element-wise difference of w from this Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.minus = function(w) {
@@ -1351,8 +1350,8 @@ MW.Vector.prototype.minus = function(w) {
 /**
  * Multiply this Vector with another (element-wise).
  *
- * @param {MW.Vector} w the Vector to multiply with this Vector
- * @returns {MW.Vector} the element-wise product of this Vector with w
+ * @param {MathWorkers.Vector} w the Vector to multiply with this Vector
+ * @returns {MathWorkers.Vector} the element-wise product of this Vector with w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.times = function(w) {
@@ -1382,8 +1381,8 @@ MW.Vector.prototype.times = function(w) {
 /**
  * Divide this Vector by another (element-wise).
  *
- * @param {MW.Vector} w the Vector to divide this Vector by
- * @returns {MW.Vector} the element-wise quotient of this Vector by w
+ * @param {MathWorkers.Vector} w the Vector to divide this Vector by
+ * @returns {MathWorkers.Vector} the element-wise quotient of this Vector by w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.divide = function(w) {
@@ -1414,7 +1413,7 @@ MW.Vector.prototype.divide = function(w) {
  * Multiply all elements of this Vector by a scalar.
  *
  * @param {!number} alpha the scalar to multiply by
- * @returns {MW.Vector} the scaled Vector
+ * @returns {MathWorkers.Vector} the scaled Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.scale = function(alpha) {
@@ -1446,7 +1445,7 @@ MW.Vector.prototype.scale = function(alpha) {
  * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Vector
- * @returns {MW.Vector} the mapped Vector
+ * @returns {MathWorkers.Vector} the mapped Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.apply = function(fn) {
@@ -1476,7 +1475,7 @@ MW.Vector.prototype.apply = function(fn) {
 /**
  * Compute the dot product of this Vector with another Vector.
  *
- * @param {!MW.Vector} w the other Vector to be dotted with this Vector
+ * @param {!MathWorkers.Vector} w the other Vector to be dotted with this Vector
  * @returns {number} the resulting dot product value
  * @memberof MW.Vector
  */
@@ -1509,8 +1508,8 @@ MW.Vector.prototype.dotVector = function(w) {
  * It is assumed that this Vector is transposed such that it is a row vector.
  * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
- * @param {!MW.Matrix} A the matrix to multiply with
- * @returns {MW.Vector} the resulting Vector of the vector-matrix product
+ * @param {!MathWorkers.Matrix} A the matrix to multiply with
+ * @returns {MathWorkers.Vector} the resulting Vector of the vector-matrix product
  * @memberof MW.Vector
  */
 MW.Vector.prototype.dotMatrix = function(A) {
@@ -1613,7 +1612,7 @@ MW.Vector.prototype.workerProduct = function(tag, rebroadcast) {
 /**
  * Add this Vector to another (element-wise) in parallel.
  *
- * @param {!MW.Vector} w the Vector to add with this Vector
+ * @param {!MathWorkers.Vector} w the Vector to add with this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -1647,7 +1646,7 @@ MW.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
 /**
  * Subtract another Vector from this Vector (element-wise) in parallel.
  *
- * @param {!MW.Vector} w the Vector to subtract from this Vector
+ * @param {!MathWorkers.Vector} w the Vector to subtract from this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -1681,7 +1680,7 @@ MW.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
 /**
  * Multiply this Vector with another (element-wise) in parallel.
  *
- * @param {!MW.Vector} w the Vector to multiply with this Vector
+ * @param {!MathWorkers.Vector} w the Vector to multiply with this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -1715,7 +1714,7 @@ MW.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
 /**
  * Divide this Vector to another (element-wise) in parallel.
  *
- * @param {!MW.Vector} w the Vector to divide this Vector by
+ * @param {!MathWorkers.Vector} w the Vector to divide this Vector by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -1853,7 +1852,7 @@ MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
  * It is assumed that this Vector is transposed such that it is a row vector.
  * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
- * @param {!MW.Matrix} A the matrix to multiply with
+ * @param {!MathWorkers.Matrix} A the matrix to multiply with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Vector
@@ -1924,7 +1923,7 @@ MW.Matrix = function(nrows, ncols) {
  * Create a new Matrix object from a provided 2-dimensional array. Deep copies the array.
  *
  * @param {!Array.&lt;Array.&lt;number>> | !Array.&lt;Float64Array>} arr the 2-dimensional array to be copied
- * @returns {MW.Matrix} the new Matrix object
+ * @returns {MathWorkers.Matrix} the new Matrix object
  * @memberof MW.Matrix
  */
 MW.Matrix.fromArray = function(arr) {
@@ -1998,7 +1997,7 @@ MW.Matrix.prototype.isSquare = function() {
  *
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
- * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
  * @memberof MW.Matrix
  */
 MW.Matrix.zeroes = function(nrows, ncols) {
@@ -2015,7 +2014,7 @@ MW.Matrix.zeroes = function(nrows, ncols) {
  * Create a new Matrix object whose elements are those of an identity matrix.
  *
  * @param {!number} n the number of rows and columns for the identity matrix
- * @returns {MW.Matrix} the new identity Matrix object
+ * @returns {MathWorkers.Matrix} the new identity Matrix object
  * @memberof MW.Matrix
  */
 MW.Matrix.identity = function(n) {
@@ -2034,7 +2033,7 @@ MW.Matrix.identity = function(n) {
  *
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
- * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
  * @memberof MW.Matrix
  */
 MW.Matrix.randomMatrix = function(nrows, ncols) {
@@ -2071,8 +2070,8 @@ MW.Matrix.prototype.toString = function() {
 /**
  * Add this Matrix to another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to add to this Matrix
- * @returns {MW.Matrix} the element-wise sum of the Matrix and B
+ * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise sum of the Matrix and B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.plus = function(B) {
@@ -2111,8 +2110,8 @@ MW.Matrix.prototype.plus = function(B) {
 /**
  * Subtract another Matrix from this Matrix (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
- * @returns {MW.Matrix} the element-wise difference of B from this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise difference of B from this Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.minus = function(B) {
@@ -2151,8 +2150,8 @@ MW.Matrix.prototype.minus = function(B) {
 /**
  * Multiply this Matrix with another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
- * @returns {MW.Matrix} the element-wise product of this Matrix and B
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise product of this Matrix and B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.times = function(B) {
@@ -2191,8 +2190,8 @@ MW.Matrix.prototype.times = function(B) {
 /**
  * Divide this Matrix by another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to divide this Matrix by
- * @returns {MW.Matrix} the element-wise quotient of this Matrix by B
+ * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
+ * @returns {MathWorkers.Matrix} the element-wise quotient of this Matrix by B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.divide = function(B) {
@@ -2232,7 +2231,7 @@ MW.Matrix.prototype.divide = function(B) {
  * Multiply all elements of this Matrix by a scalar.
  *
  * @param {!number} alpha the scalar to multiply by
- * @returns {MW.Matrix} the scaled Matrix
+ * @returns {MathWorkers.Matrix} the scaled Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.scale = function(alpha) {
@@ -2271,7 +2270,7 @@ MW.Matrix.prototype.scale = function(alpha) {
  * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Matrix
- * @returns {MW.Matrix} the mapped Matrix
+ * @returns {MathWorkers.Matrix} the mapped Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.apply = function(fn) {
@@ -2308,7 +2307,7 @@ MW.Matrix.prototype.apply = function(fn) {
 /**
  * Transpose this Matrix. Returns a new Matrix to allow for arbitrary shaped matrices.
  *
- * @returns {MW.Matrix} a new Matrix that is the transpose of this Matrix
+ * @returns {MathWorkers.Matrix} a new Matrix that is the transpose of this Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.transpose = function() {
@@ -2328,7 +2327,7 @@ MW.Matrix.prototype.transpose = function() {
 /**
  * Transpose this square matrix in place. Only works for square matrices.
  *
- * @returns {MW.Matrix} this Matrix transposed
+ * @returns {MathWorkers.Matrix} this Matrix transposed
  * @throws {Error} thrown if this Matrix is not a square matrix.
  * @memberof MW.Matrix
  */
@@ -2355,8 +2354,8 @@ MW.Matrix.prototype.transposeInPlace = function() {
  * It is assumed that this Vector is transposed such that it is a column vector.
  * The ordering is such that this Matrix is A and the Vector is v: A.v
  *
- * @param {!MW.Vector} v the Vector to be multiplied with
- * @returns {MW.Vector} the resulting Vector of the Matrix-Vector product
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
+ * @returns {MathWorkers.Vector} the resulting Vector of the Matrix-Vector product
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.dotVector = function(v) {
@@ -2400,8 +2399,8 @@ MW.Matrix.prototype.dotVector = function(v) {
  * Compute the matrix-matrix product of this Matrix with another Matrix. The ordering
  * is such that this Matrix is A and the other matrix is B: A.B
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
- * @returns {MW.Matrix} the resulting Matrix of the matrix-matrix product
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MathWorkers.Matrix} the resulting Matrix of the matrix-matrix product
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.dotMatrix = function(B) {
@@ -2458,7 +2457,7 @@ MW.Matrix.prototype.dotMatrix = function(B) {
 /**
  * Add this Matrix to another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to add to this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -2507,7 +2506,7 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
 /**
  * Subtract another Matrix from this Matrix (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -2556,7 +2555,7 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
 /**
  * Multiply this Matrix with another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -2605,7 +2604,7 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
 /**
  * Divide this Matrix by another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to divide this Matrix by
+ * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -2751,7 +2750,7 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
  * It is assumed that this Vector is transposed such that it is a column vector.
  * The ordering is such that this Matrix is A and the Vector is v: A.v
  *
- * @param {!MW.Vector} v the Vector to be multiplied with
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -2797,7 +2796,7 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
  * Compute the matrix-matrix product of this Matrix with another Matrix in parallel. The ordering
  * is such that this Matrix is A and the other matrix is B: A.B
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -3091,98 +3090,107 @@ MW.batch = {
 // Copyright 2014 Adrian W. Lange
 
 /**
- * A few simple statistics functions
+ * Statistics functions
+ * @namespace stats
  */
 MW.stats = {};
+(function(stats) {
 
-/**
- * Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
- *
- * Returns an object containing number of elements, mean, standard deviation,
- * minimum, maximum, and quartiles. The quartiles computed here are the so-called
- * "Tukey's Hinges".
- *
- * Quartiles are not reported if the data passed in contains less than 3 elements
- */
-MW.stats.summary = function(data) {
-    MW.util.checkNullOrUndefined(data);
-    // Copy the data to a local array so that we can sort without affecting data
-    var i;
-    var arr = [];
-    if (data instanceof MW.Vector) {
-        for (i = 0; i &lt; data.array.length; ++i) {
-            arr.push(data.array[i]);
+    /**
+     * Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
+     *
+     * Returns an object containing number of elements, mean, standard deviation,
+     * minimum, maximum, and quartiles. The quartiles computed here are the so-called
+     * "Tukey's Hinges".
+     *
+     * Quartiles are not reported if the data passed in contains less than 3 elements
+     * @function summary
+     * @memberof stats
+     * @static
+     */
+    stats.summary = function (data) {
+        MW.util.checkNullOrUndefined(data);
+        // Copy the data to a local array so that we can sort without affecting data
+        var i;
+        var arr = [];
+        if (data instanceof MW.Vector) {
+            for (i = 0; i &lt; data.array.length; ++i) {
+                arr.push(data.array[i]);
+            }
+        } else if (data instanceof MW.Matrix) {
+            for (i = 0; i &lt; data.nrows; ++i) {
+                for (var j = 0; j &lt; data.ncols; ++j) {
+                    arr.push(data.array[i][j]);
+                }
+            }
+        } else if (data instanceof Array || data instanceof Float64Array) {
+            for (i = 0; i &lt; data.length; ++i) {
+                arr.push(data[i]);
+            }
+        } else {
+            throw new TypeError("Invalid data type for summary(). Must be Array, Float64Array, or Vector.");
         }
-    } else if (data instanceof MW.Matrix) {
-        for (i = 0; i &lt; data.nrows; ++i) {
-            for (var j = 0; j &lt; data.ncols; ++j) {
-                arr.push(data.array[i][j]);
+
+        var tmp;
+        var n = arr.length;
+        var tot = 0.0;
+        var amax = Math.max.apply(Math, arr);
+        var amin = Math.min.apply(Math, arr);
+        for (i = 0; i &lt; n; ++i) {
+            tot += arr[i];
+        }
+        var mean = tot / n;
+        var variance = 0.0;
+        for (i = 0; i &lt; n; ++i) {
+            tmp = mean - arr[i];
+            variance += tmp * tmp;
+        }
+        variance /= n;
+        var stddev = Math.sqrt(variance);
+
+        var q25, q50, q75;
+        if (n >= 3) {
+            // Sort for quartiles
+            arr.sort(function (a, b) {
+                return a - b
+            });
+
+            var x, y;
+            x = getMedian(0, n - 1);
+            q50 = x.median;
+            y = getMedian(x.half, n - 1);
+            q75 = y.median;
+            if (x.odd) {
+                y = getMedian(0, x.half);
+                q25 = y.median;
+            } else {
+                y = getMedian(0, x.half - 1);
+                q25 = y.median;
             }
         }
-    } else if (data instanceof Array || data instanceof Float64Array) {
-        for (i = 0; i &lt; data.length; ++i) {
-            arr.push(data[i]);
+
+        function getMedian(nfrom, nto) {
+            var m = nto - nfrom + 1;
+            var half = (m / 2) | 0;
+            var odd = (m % 2);
+            var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half - 1] + arr[nfrom + half]);
+            return {median: median, half: half, odd: odd};
         }
-    } else {
-        throw new TypeError("Invalid data type for summary(). Must be Array, Float64Array, or Vector.");
-    }
 
-    var tmp;
-    var n = arr.length;
-    var tot = 0.0;
-    var amax = Math.max.apply(Math, arr);
-    var amin = Math.min.apply(Math, arr);
-    for (i = 0; i &lt; n; ++i) {
-        tot += arr[i];
-    }
-    var mean = tot / n;
-    var variance = 0.0;
-    for (i = 0; i &lt; n; ++i) {
-        tmp = mean - arr[i];
-        variance += tmp * tmp;
-    }
-    variance /= n;
-    var stddev = Math.sqrt(variance);
-
-    var q25, q50, q75;
-    if (n >= 3) {
-        // Sort for quartiles
-        arr.sort(function(a, b){return a-b});
-
-        var x, y;
-        x = getMedian(0, n-1);
-        q50 = x.median;
-        y = getMedian(x.half, n-1);
-        q75 = y.median;
-        if (x.odd) {
-            y = getMedian(0, x.half);
-            q25 = y.median;
-        } else {
-            y = getMedian(0, x.half-1);
-            q25 = y.median;
-        }
-    }
-
-    function getMedian(nfrom, nto) {
-        var m = nto - nfrom + 1;
-        var half = (m/2)|0;
-        var odd = (m % 2);
-        var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half-1] + arr[nfrom + half]);
-        return {median: median, half: half, odd: odd};
-    }
-
-    return {
-        n: arr.length,
-        mean: mean,
-        variance: variance,
-        stddev: stddev,
-        minimum: amin,
-        maximum: amax,
-        quartile25: q25,
-        quartile50: q50,
-        quartile75: q75
+        return {
+            n: arr.length,
+            mean: mean,
+            variance: variance,
+            stddev: stddev,
+            minimum: amin,
+            maximum: amax,
+            quartile25: q25,
+            quartile50: q50,
+            quartile75: q75
+        };
     };
-};
+
+}(MW.stats));
 
 
 return MW;
@@ -3196,13 +3204,13 @@ return MW;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-MW.batch.html">batch</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MathWorkers.html">MathWorkers</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-MathWorkers.batch.html">batch</a></li><li><a href="module-MathWorkers-stats.html">stats</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Tue Nov 04 2014 22:18:03 GMT-0600 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Tue Nov 04 2014 23:12:00 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

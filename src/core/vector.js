@@ -36,7 +36,7 @@ MW.Vector = function(size) {
  * Create a new Vector object from a provided array of numbers. Deep copies the array.
  *
  * @param {!Array.<number> | !Float64Array} arr the number array to be copied
- * @returns {MW.Vector} the new Vector object
+ * @returns {MathWorkers.Vector} the new Vector object
  * @memberof MW.Vector
  */
 MW.Vector.fromArray = function(arr) {
@@ -64,7 +64,7 @@ MW.Vector.prototype.setVector = function(arr) {
  * Create a new Vector object populated with all zero values
  *
  * @param {!number} size the length of the Vector to be created
- * @returns {MW.Vector} the new zeroed Vector
+ * @returns {MathWorkers.Vector} the new zeroed Vector
  * @memberof MW.Vector
  */
 MW.Vector.zeroes = function(size) {
@@ -79,7 +79,7 @@ MW.Vector.zeroes = function(size) {
  * Create a new Vector object populated with random values between 0 and 1
  *
  * @param {!number} size the length of the Vector to be created
- * @returns {MW.Vector} the new random Vector
+ * @returns {MathWorkers.Vector} the new random Vector
  * @memberof MW.Vector
  */
 MW.Vector.randomVector = function(size) {
@@ -159,8 +159,8 @@ MW.Vector.prototype.product = function() {
 /**
  * Add this Vector to another (element-wise).
  *
- * @param {MW.Vector} w the Vector to add with this Vector
- * @returns {MW.Vector} the element-wise sum of this Vector with w
+ * @param {MathWorkers.Vector} w the Vector to add with this Vector
+ * @returns {MathWorkers.Vector} the element-wise sum of this Vector with w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.plus = function(w) {
@@ -190,8 +190,8 @@ MW.Vector.prototype.plus = function(w) {
 /**
  * Subtract another Vector from this Vector (element-wise).
  *
- * @param {MW.Vector} w the Vector to subtract from this Vector
- * @returns {MW.Vector} the element-wise difference of w from this Vector
+ * @param {MathWorkers.Vector} w the Vector to subtract from this Vector
+ * @returns {MathWorkers.Vector} the element-wise difference of w from this Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.minus = function(w) {
@@ -221,8 +221,8 @@ MW.Vector.prototype.minus = function(w) {
 /**
  * Multiply this Vector with another (element-wise).
  *
- * @param {MW.Vector} w the Vector to multiply with this Vector
- * @returns {MW.Vector} the element-wise product of this Vector with w
+ * @param {MathWorkers.Vector} w the Vector to multiply with this Vector
+ * @returns {MathWorkers.Vector} the element-wise product of this Vector with w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.times = function(w) {
@@ -252,8 +252,8 @@ MW.Vector.prototype.times = function(w) {
 /**
  * Divide this Vector by another (element-wise).
  *
- * @param {MW.Vector} w the Vector to divide this Vector by
- * @returns {MW.Vector} the element-wise quotient of this Vector by w
+ * @param {MathWorkers.Vector} w the Vector to divide this Vector by
+ * @returns {MathWorkers.Vector} the element-wise quotient of this Vector by w
  * @memberof MW.Vector
  */
 MW.Vector.prototype.divide = function(w) {
@@ -284,7 +284,7 @@ MW.Vector.prototype.divide = function(w) {
  * Multiply all elements of this Vector by a scalar.
  *
  * @param {!number} alpha the scalar to multiply by
- * @returns {MW.Vector} the scaled Vector
+ * @returns {MathWorkers.Vector} the scaled Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.scale = function(alpha) {
@@ -316,7 +316,7 @@ MW.Vector.prototype.scale = function(alpha) {
  * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Vector
- * @returns {MW.Vector} the mapped Vector
+ * @returns {MathWorkers.Vector} the mapped Vector
  * @memberof MW.Vector
  */
 MW.Vector.prototype.apply = function(fn) {
@@ -346,7 +346,7 @@ MW.Vector.prototype.apply = function(fn) {
 /**
  * Compute the dot product of this Vector with another Vector.
  *
- * @param {!MW.Vector} w the other Vector to be dotted with this Vector
+ * @param {!MathWorkers.Vector} w the other Vector to be dotted with this Vector
  * @returns {number} the resulting dot product value
  * @memberof MW.Vector
  */
@@ -379,8 +379,8 @@ MW.Vector.prototype.dotVector = function(w) {
  * It is assumed that this Vector is transposed such that it is a row vector.
  * The ordering is such that this Vector v A and the Matrix is A: v.A
  *
- * @param {!MW.Matrix} A the matrix to multiply with
- * @returns {MW.Vector} the resulting Vector of the vector-matrix product
+ * @param {!MathWorkers.Matrix} A the matrix to multiply with
+ * @returns {MathWorkers.Vector} the resulting Vector of the vector-matrix product
  * @memberof MW.Vector
  */
 MW.Vector.prototype.dotMatrix = function(A) {

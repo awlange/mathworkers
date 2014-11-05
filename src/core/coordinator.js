@@ -270,7 +270,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(/** @type {!MathWorkers.Vector}*/ objectBuffer, data.tag);
+				that.sendVectorToWorkers(/** @type {!MW.Vector}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -302,7 +302,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
+				that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -340,7 +340,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(/** @type {!MathWorkers.Matrix}*/ objectBuffer, data.tag);
+                that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);
