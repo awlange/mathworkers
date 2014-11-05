@@ -29,7 +29,7 @@ MW.Matrix = function(nrows, ncols) {
  * Create a new Matrix object from a provided 2-dimensional array. Deep copies the array.
  *
  * @param {!Array.<Array.<number>> | !Array.<Float64Array>} arr the 2-dimensional array to be copied
- * @returns {MW.Matrix} the new Matrix object
+ * @returns {MathWorkers.Matrix} the new Matrix object
  * @memberof MW.Matrix
  */
 MW.Matrix.fromArray = function(arr) {
@@ -103,7 +103,7 @@ MW.Matrix.prototype.isSquare = function() {
  *
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
- * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
  * @memberof MW.Matrix
  */
 MW.Matrix.zeroes = function(nrows, ncols) {
@@ -120,7 +120,7 @@ MW.Matrix.zeroes = function(nrows, ncols) {
  * Create a new Matrix object whose elements are those of an identity matrix.
  *
  * @param {!number} n the number of rows and columns for the identity matrix
- * @returns {MW.Matrix} the new identity Matrix object
+ * @returns {MathWorkers.Matrix} the new identity Matrix object
  * @memberof MW.Matrix
  */
 MW.Matrix.identity = function(n) {
@@ -139,7 +139,7 @@ MW.Matrix.identity = function(n) {
  *
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
- * @returns {MW.Matrix} an nrows by ncols Matrix populated with zeroes
+ * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
  * @memberof MW.Matrix
  */
 MW.Matrix.randomMatrix = function(nrows, ncols) {
@@ -176,8 +176,8 @@ MW.Matrix.prototype.toString = function() {
 /**
  * Add this Matrix to another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to add to this Matrix
- * @returns {MW.Matrix} the element-wise sum of the Matrix and B
+ * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise sum of the Matrix and B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.plus = function(B) {
@@ -216,8 +216,8 @@ MW.Matrix.prototype.plus = function(B) {
 /**
  * Subtract another Matrix from this Matrix (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
- * @returns {MW.Matrix} the element-wise difference of B from this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise difference of B from this Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.minus = function(B) {
@@ -256,8 +256,8 @@ MW.Matrix.prototype.minus = function(B) {
 /**
  * Multiply this Matrix with another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
- * @returns {MW.Matrix} the element-wise product of this Matrix and B
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MathWorkers.Matrix} the element-wise product of this Matrix and B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.times = function(B) {
@@ -296,8 +296,8 @@ MW.Matrix.prototype.times = function(B) {
 /**
  * Divide this Matrix by another (element-wise).
  *
- * @param {!MW.Matrix} B the Matrix to divide this Matrix by
- * @returns {MW.Matrix} the element-wise quotient of this Matrix by B
+ * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
+ * @returns {MathWorkers.Matrix} the element-wise quotient of this Matrix by B
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.divide = function(B) {
@@ -337,7 +337,7 @@ MW.Matrix.prototype.divide = function(B) {
  * Multiply all elements of this Matrix by a scalar.
  *
  * @param {!number} alpha the scalar to multiply by
- * @returns {MW.Matrix} the scaled Matrix
+ * @returns {MathWorkers.Matrix} the scaled Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.scale = function(alpha) {
@@ -376,7 +376,7 @@ MW.Matrix.prototype.scale = function(alpha) {
  * return a number. That is, the function must map a number to a number.
  *
  * @param {!function} fn the function to be applied to each element of the Matrix
- * @returns {MW.Matrix} the mapped Matrix
+ * @returns {MathWorkers.Matrix} the mapped Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.apply = function(fn) {
@@ -413,7 +413,7 @@ MW.Matrix.prototype.apply = function(fn) {
 /**
  * Transpose this Matrix. Returns a new Matrix to allow for arbitrary shaped matrices.
  *
- * @returns {MW.Matrix} a new Matrix that is the transpose of this Matrix
+ * @returns {MathWorkers.Matrix} a new Matrix that is the transpose of this Matrix
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.transpose = function() {
@@ -433,7 +433,7 @@ MW.Matrix.prototype.transpose = function() {
 /**
  * Transpose this square matrix in place. Only works for square matrices.
  *
- * @returns {MW.Matrix} this Matrix transposed
+ * @returns {MathWorkers.Matrix} this Matrix transposed
  * @throws {Error} thrown if this Matrix is not a square matrix.
  * @memberof MW.Matrix
  */
@@ -460,8 +460,8 @@ MW.Matrix.prototype.transposeInPlace = function() {
  * It is assumed that this Vector is transposed such that it is a column vector.
  * The ordering is such that this Matrix is A and the Vector is v: A.v
  *
- * @param {!MW.Vector} v the Vector to be multiplied with
- * @returns {MW.Vector} the resulting Vector of the Matrix-Vector product
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
+ * @returns {MathWorkers.Vector} the resulting Vector of the Matrix-Vector product
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.dotVector = function(v) {
@@ -505,8 +505,8 @@ MW.Matrix.prototype.dotVector = function(v) {
  * Compute the matrix-matrix product of this Matrix with another Matrix. The ordering
  * is such that this Matrix is A and the other matrix is B: A.B
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
- * @returns {MW.Matrix} the resulting Matrix of the matrix-matrix product
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
+ * @returns {MathWorkers.Matrix} the resulting Matrix of the matrix-matrix product
  * @memberof MW.Matrix
  */
 MW.Matrix.prototype.dotMatrix = function(B) {

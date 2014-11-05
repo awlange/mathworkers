@@ -7,7 +7,7 @@
 /**
  * Add this Matrix to another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to add to this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -56,7 +56,7 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
 /**
  * Subtract another Matrix from this Matrix (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to subtract from this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -105,7 +105,7 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
 /**
  * Multiply this Matrix with another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -154,7 +154,7 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
 /**
  * Divide this Matrix by another (element-wise) in parallel.
  *
- * @param {!MW.Matrix} B the Matrix to divide this Matrix by
+ * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -300,7 +300,7 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
  * It is assumed that this Vector is transposed such that it is a column vector.
  * The ordering is such that this Matrix is A and the Vector is v: A.v
  *
- * @param {!MW.Vector} v the Vector to be multiplied with
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix
@@ -346,7 +346,7 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
  * Compute the matrix-matrix product of this Matrix with another Matrix in parallel. The ordering
  * is such that this Matrix is A and the other matrix is B: A.B
  *
- * @param {!MW.Matrix} B the Matrix to multiply with this Matrix
+ * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @memberof MW.Matrix

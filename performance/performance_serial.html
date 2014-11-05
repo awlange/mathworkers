@@ -82,7 +82,7 @@ run_1.addEventListener('click', function() {
         v.dotVector(w);
 		times.push(window.performance.now() - start);
 	}
-	showStats(MWs.stats.summary(times), "stats_1");
+	showStats(MWs.Stats.summary(times), "stats_1");
 	
 });
 		</script>
@@ -107,7 +107,7 @@ run_2.addEventListener('click', function() {
         v.dotMatrix(A);
 		times.push(window.performance.now() - start);
 	}
-	showStats(MWs.stats.summary(times), "stats_2");
+	showStats(MWs.Stats.summary(times), "stats_2");
 	
 });
 		</script>
@@ -132,7 +132,7 @@ run_3.addEventListener('click', function() {
 		A.dotMatrix(B);
 		times.push(window.performance.now() - start);
 	}
-	showStats(MWs.stats.summary(times), "stats_3");
+	showStats(MWs.Stats.summary(times), "stats_3");
 	
 });
 		</script>

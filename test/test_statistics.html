@@ -35,7 +35,7 @@ serialTests.push( function() {
     var T = new UT.Tester("summaryOdd");
     // Numbers from: http://en.wikipedia.org/wiki/Quartile
     var v = [7, 36, 15, 39, 49, 40, 41, 42, 43, 6, 47];
-    var summary = MWs.stats.summary(v);
+    var summary = MWs.Stats.summary(v);
     T.isTrue(summary.n === 11);
     T.doubleEqual(33.18181818181818, summary.mean);
     T.doubleEqual(229.05785123966942, summary.variance);
@@ -52,7 +52,7 @@ serialTests.push( function() {
     var T = new UT.Tester("summaryEven");
     // Numbers from: http://en.wikipedia.org/wiki/Quartile
     var v = Vector.fromArray([41, 7, 39, 36, 40, 15]);
-    var summary = MWs.stats.summary(v);
+    var summary = MWs.Stats.summary(v);
     T.isTrue(summary.n === 6);
     T.doubleEqual(29.666666666666668, summary.mean);
     T.doubleEqual(181.88888888888889, summary.variance);
@@ -69,7 +69,7 @@ serialTests.push( function() {
     var T = new UT.Tester("summaryEvenMatrix");
     // Numbers from: http://en.wikipedia.org/wiki/Quartile
     var v = Matrix.fromArray([[41, 7, 39], [36, 40, 15]]);
-    var summary = MWs.stats.summary(v);
+    var summary = MWs.Stats.summary(v);
     T.isTrue(summary.n === 6);
     T.doubleEqual(29.666666666666668, summary.mean);
     T.doubleEqual(181.88888888888889, summary.variance);
@@ -85,7 +85,7 @@ serialTests.push( function() {
 serialTests.push( function() {
     var T = new UT.Tester("summaryOnly2");
     var v = Vector.fromArray([41, 7]);
-    var summary = MWs.stats.summary(v);
+    var summary = MWs.Stats.summary(v);
     T.isTrue(summary.n === 2);
     T.doubleEqual(24.0, summary.mean);
     T.doubleEqual(289.0, summary.variance);

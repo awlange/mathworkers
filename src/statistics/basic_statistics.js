@@ -1,9 +1,11 @@
 // Copyright 2014 Adrian W. Lange
 
 /**
- * A few simple statistics functions
+ * Statistics methods namespace.
+ *
+ * @namespace MathWorkers.Stats
  */
-MW.stats = {};
+MW.Stats = {};
 
 /**
  * Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
@@ -13,8 +15,11 @@ MW.stats = {};
  * "Tukey's Hinges".
  *
  * Quartiles are not reported if the data passed in contains less than 3 elements
+ *
+ * @function summary
+ * @memberof MathWorkers.Stats
  */
-MW.stats.summary = function(data) {
+MW.Stats.summary = function (data) {
     MW.util.checkNullOrUndefined(data);
     // Copy the data to a local array so that we can sort without affecting data
     var i;
@@ -57,27 +62,29 @@ MW.stats.summary = function(data) {
     var q25, q50, q75;
     if (n >= 3) {
         // Sort for quartiles
-        arr.sort(function(a, b){return a-b});
+        arr.sort(function (a, b) {
+            return a - b
+        });
 
         var x, y;
-        x = getMedian(0, n-1);
+        x = getMedian(0, n - 1);
         q50 = x.median;
-        y = getMedian(x.half, n-1);
+        y = getMedian(x.half, n - 1);
         q75 = y.median;
         if (x.odd) {
             y = getMedian(0, x.half);
             q25 = y.median;
         } else {
-            y = getMedian(0, x.half-1);
+            y = getMedian(0, x.half - 1);
             q25 = y.median;
         }
     }
 
     function getMedian(nfrom, nto) {
         var m = nto - nfrom + 1;
-        var half = (m/2)|0;
+        var half = (m / 2) | 0;
         var odd = (m % 2);
-        var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half-1] + arr[nfrom + half]);
+        var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half - 1] + arr[nfrom + half]);
         return {median: median, half: half, odd: odd};
     }
 
