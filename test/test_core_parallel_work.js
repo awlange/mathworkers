@@ -3,7 +3,7 @@ importScripts("../lib/mathworkers.js");
 var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
-var Batch = MathWorkers.batch;
+var Batch = MathWorkers.Batch;
 
 var EPSILON = 10e-12;
 

@@ -90,7 +90,7 @@ run_1.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(MWs.stats.summary(times), "stats_1");
+			showStats(MWs.Stats.summary(times), "stats_1");
 		} else {
 			crd.trigger("run_vectorDot");
 			start = window.performance.now();
@@ -119,7 +119,7 @@ run_2.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(MWs.stats.summary(times), "stats_2");
+			showStats(MWs.Stats.summary(times), "stats_2");
 		} else {
 			crd.trigger("run_vectorMatrixProduct");
 			start = window.performance.now();
@@ -148,7 +148,7 @@ run_3.addEventListener('click', function() {
 		var buffer = crd.getBuffer();
 		times.push(window.performance.now() - start);
 		if (r == nRuns) {
-			showStats(MWs.stats.summary(times), "stats_3");
+			showStats(MWs.Stats.summary(times), "stats_3");
 		} else {
 			crd.trigger("run_matrixMatrixProduct");
 			start = window.performance.now();
@@ -177,7 +177,7 @@ run_3.addEventListener('click', function() {
                 var buffer = crd.getBuffer();
                 times.push(window.performance.now() - start);
                 if (r == nRuns) {
-                    showStats(MWs.stats.summary(times), "stats_4");
+                    showStats(MWs.Stats.summary(times), "stats_4");
                 } else {
                     crd.trigger("run_matrixMatrixPlus");
                     start = window.performance.now();
