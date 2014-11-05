@@ -2,7 +2,7 @@
 
 /**
  *  Data available globally only within the MathWorkers class
- *  @inner
+ *  @ignore
  */
 var global = {};
 
@@ -19,7 +19,7 @@ global.logLevel = 1;
  * Default is 1.
  *
  * @param {!number} logLevel level to be set
- * @function setLogLevel
+ * @public
  */
 MW.setLogLevel = function(logLevel) {
     if (!MW.util.nullOrUndefined(logLevel)) {
@@ -35,7 +35,7 @@ global.unrollLoops = false;
  * Default is false.
  *
  * @param {!boolean} unroll option to be set
- * @function unrollLoops
+ * @public
  */
 MW.setUnrollLoops = function(unroll) {
     MW.util.checkNullOrUndefined(unroll);

@@ -34,5 +34,5 @@ MW.on("run_matrixMatrixPlus", function() {
     var C = Matrix.randomMatrix(N, N);
     var alpha = 0.5;
     var beta = 0.96;
-    MathWorkers.BatchOperation.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus", false, beta, C);
+    MathWorkers.batch.workerMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus", false, beta, C);
 });

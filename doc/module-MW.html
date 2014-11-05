@@ -91,70 +91,18 @@
      
 
     
+        <h3 class="subsection-title">Namespaces</h3>
+
+        <dl>
+            <dt><a href="namespaces.html#module:MW.batch"><a href="module-MW.batch.html">batch</a></a></dt>
+            <dd></dd>
+        </dl>
+    
 
     
         <h3 class="subsection-title">Members</h3>
 
         <dl>
-            
-<dt>
-    <h4 class="name" id="BatchOperation"><span class="type-signature">(static) </span>BatchOperation<span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-    
-    <div class="description">
-        Batch-operation methods
-
- Combine multiple primitive Vector and/or Matrix operations into a single
- method call, reducing some overhead, especially with regard to communication.
-    </div>
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line2842">line 2842</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-</dd>
-
-        
             
 <dt>
     <h4 class="name" id="stats"><span class="type-signature">(static) </span>stats<span class="type-signature"></span></h4>
@@ -193,7 +141,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3027">line 3027</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3069">line 3069</a>
     </li></ul></dd>
     
 
@@ -219,84 +167,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="stats.summary"><span class="type-signature">(static) </span>stats.summary<span class="signature">()</span><span class="type-signature"></span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
-
-Returns an object containing number of elements, mean, standard deviation,
-minimum, maximum, and quartiles. The quartiles computed here are the so-called
-"Tukey's Hinges".
-
-Quartiles are not reported if the data passed in contains less than 3 elements
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3038">line 3038</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="setLogLevel"><span class="type-signature">(inner) </span>setLogLevel<span class="signature">(logLevel<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setLogLevel"><span class="type-signature">(static) </span>setLogLevel<span class="signature">(logLevel<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -388,7 +259,7 @@ Default is 1.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line51">line 51</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line60">line 60</a>
     </li></ul></dd>
     
 
@@ -418,7 +289,7 @@ Default is 1.
         
             
 <dt>
-    <h4 class="name" id="unrollLoops"><span class="type-signature">(inner) </span>unrollLoops<span class="signature">(unroll<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="setUnrollLoops"><span class="type-signature">(static) </span>setUnrollLoops<span class="signature">(unroll<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -510,7 +381,84 @@ Default is false.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line67">line 67</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line76">line 76</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="stats.summary"><span class="type-signature">(static) </span>stats.summary<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
+
+Returns an object containing number of elements, mean, standard deviation,
+minimum, maximum, and quartiles. The quartiles computed here are the so-called
+"Tukey's Hinges".
+
+Quartiles are not reported if the data passed in contains less than 3 elements
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3080">line 3080</a>
     </li></ul></dd>
     
 
@@ -553,13 +501,13 @@ Default is false.
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MW.html">MW</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="module-MW.batch.html">batch</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Mon Nov 03 2014 23:22:37 GMT-0600 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Tue Nov 04 2014 22:18:03 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>

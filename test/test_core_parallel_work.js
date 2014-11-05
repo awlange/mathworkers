@@ -3,7 +3,7 @@ importScripts("../lib/mathworkers.js");
 var MW = new MathWorkers.MathWorker();
 var Vector = MathWorkers.Vector;
 var Matrix = MathWorkers.Matrix;
-var Batch = MathWorkers.BatchOperation;
+var Batch = MathWorkers.batch;
 
 var EPSILON = 10e-12;
 
@@ -205,7 +205,7 @@ MW.on("run_vectorLinearCombination", function() {
         Vector.fromArray([-1.0, 200.0, -30.0])
     ];
     var coefficients = [0.5, 20.0, -7.7];
-    Batch.wkVectorLinearCombination(vectors, coefficients, "vectorLinearCombination");
+    Batch.workerVectorLinearCombination(vectors, coefficients, "vectorLinearCombination");
 });
 
 MW.on("run_matrixLinearCombination", function() {
@@ -214,7 +214,7 @@ MW.on("run_matrixLinearCombination", function() {
         Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]),
         Matrix.fromArray([[30.0, 20.0, 10.0], [60.0, 50.0, 40.0], [90.0, 80.0, 70.0]])];
     var coefficients = [0.5, 20.0, -1.0];
-    Batch.wkMatrixLinearCombination(matrices, coefficients, "matrixLinearCombination");
+    Batch.workerMatrixLinearCombination(matrices, coefficients, "matrixLinearCombination");
 });
 
 MW.on("run_matrixMatrixPlus1", function() {
@@ -235,7 +235,7 @@ MW.on("run_matrixMatrixPlus1", function() {
     ]);
     var alpha = 0.38;
     var beta = -0.77;
-    Batch.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus1", false, beta, C);
+    Batch.workerMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus1", false, beta, C);
 });
 
 MW.on("run_matrixMatrixPlus2", function() {
@@ -250,7 +250,7 @@ MW.on("run_matrixMatrixPlus2", function() {
         [9.0, 8.0, 7.0]
     ]);
     var alpha = 0.38;
-    Batch.wkMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus2");
+    Batch.workerMatrixMatrixPlus(alpha, A, B, "matrixMatrixPlus2");
 });
 
 MW.on("run_matrixVectorPlus1", function() {
@@ -263,7 +263,7 @@ MW.on("run_matrixVectorPlus1", function() {
     var y = Vector.fromArray([-5.0, -7.0, -9.0]);
     var alpha = 0.45;
     var beta = -10.0;
-    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus1", false, beta, y);
+    Batch.workerMatrixVectorPlus(alpha, A, x, "matrixVectorPlus1", false, beta, y);
 });
 
 MW.on("run_matrixVectorPlus2", function() {
@@ -274,5 +274,5 @@ MW.on("run_matrixVectorPlus2", function() {
     ]);
     var x = Vector.fromArray([2.0, 4.0, 8.0]);
     var alpha = 0.45;
-    Batch.wkMatrixVectorPlus(alpha, A, x, "matrixVectorPlus2");
+    Batch.workerMatrixVectorPlus(alpha, A, x, "matrixVectorPlus2");
 });
