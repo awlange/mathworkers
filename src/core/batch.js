@@ -13,7 +13,8 @@
 MathWorkers.Batch = {};
 
 /**
- * Compute (in parallel) a linear combination of Vectors, each with a coefficient in a corresponding array.
+ * <p>Compute (in parallel) a linear combination of Vectors, each with a coefficient in a corresponding array:</p>
+ * <p>w = c<sub>0</sub> * v<sub>0</sub> + c<sub>1</sub> * v<sub>1</sub> + ...</p>
  *
  * @param {!Array.<MathWorkers.Vector>} vectors the array of Vectors
  * @param {!Array.<number>} coefficients the array of coefficients
@@ -79,7 +80,8 @@ MathWorkers.Batch.workerVectorLinearCombination = function (vectors, coefficient
 };
 
 /**
- * Compute (in parallel) a linear combination of matrices, each with a coefficient in a corresponding array.
+ * <p>Compute (in parallel) a linear combination of matrices, each with a coefficient in a corresponding array:</p>
+ * <p>B = c<sub>0</sub> * A<sub>0</sub> + c<sub>1</sub> * A<sub>1</sub> + ...</p>
  *
  * @param {!Array.<MathWorkers.Matrix>} matrices the array of Matrix objects
  * @param {!Array.<number>} coefficients the array of coefficients
@@ -126,9 +128,10 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
 };
 
 /**
- * Compute (in parallel) a matrix-vector product in combination with adding another vector to its result and also
- * multiplying by scalars. Operation is of the form: z = alpha * A.x + beta * y. The parameters beta and y are
- * optional, but both must be provided for them to be included.
+ * <p>Compute (in parallel) a matrix-vector product in combination with adding another vector to its result and also
+ * multiplying by scalars. Operation is of the form:</p>
+ * <p> z = alpha * A.x + beta * y</p>
+ * <p>The parameters beta and y are optional, but both must be provided for them to be included.</p>
  *
  * @param {!number} alpha scalar to multiply the matrix-vector product by
  * @param {!MathWorkers.Matrix} A the Matrix in the matrix-vector product
@@ -172,9 +175,10 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
 
 
 /**
- * Compute (in parallel) a matrix-matrix product in combination with adding another matrix to its result and also
- * multiplying by scalars. Operation is of the form: D = alpha * A.B + beta * C. The parameters beta and C are
- * optional, but both must be provided for them to be included.
+ * <p>Compute (in parallel) a matrix-matrix product in combination with adding another matrix to its result and also
+ * multiplying by scalars. Operation is of the form:</p>
+ * <p>D = alpha * A.B + beta * C</p>
+ * <p>The parameters beta and C are optional, but both must be provided for them to be included.</p>
  *
  * @param {!number} alpha the scalar to multiply the matrix-matrix product by
  * @param {!MathWorkers.Matrix} A the left-side Matrix in the matrix-matrix product

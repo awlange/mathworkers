@@ -21,15 +21,17 @@ global.myWorkerId = 0;
 
 global.logLevel = 1;
 /**
-* Sets the MathWorkers log level:
-* 1 = warnings and errors only
-* 2 = verbose logging
-* Default is 1.
-*
-* @param {!number} logLevel level to be set
-* @memberof MathWorkers.Global
-* @function setLogLevel
-*/
+ * <p>Sets the MathWorkers log level:</p>
+ * <ul>
+ *   <li> 1 = warnings and errors only </li>
+ *   <li> 2 = verbose logging </li>
+ * </ul>
+ * <p>Default is 1.</p>
+ *
+ * @param {!number} logLevel level to be set
+ * @memberof MathWorkers.Global
+ * @function setLogLevel
+ */
 MathWorkers.Global.setLogLevel = function(logLevel) {
     if (!MathWorkers.util.nullOrUndefined(logLevel)) {
         global.logLevel = logLevel;
@@ -38,10 +40,12 @@ MathWorkers.Global.setLogLevel = function(logLevel) {
 
 global.unrollLoops = false;
 /**
- * Loop unrolling option:
- * If true, use loop unrolled versions of functions if available.
- * If false, do not.
- * Default is false.
+ * <p>Loop unrolling option:</p>
+ * <ul>
+ *   <li>If true, use loop unrolled versions of functions if available.</li>
+ *   <li>If false, do not use loop unrolling.</li>
+ * </ul>
+ * <p>Default is false.</p>
  *
  * @param {!boolean} unroll option to be set
  * @memberof MathWorkers.Global

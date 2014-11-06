@@ -15,7 +15,7 @@
 MathWorkers.Matrix = function(nrows, ncols) {
 
     /**
-     * The underlying Array.<Float64Array> for a Matrix
+     * <p>The underlying Array.&lt;Float64Array&gt; for a Matrix</p>
      *
      * @member {Array.<Float64Array>}
      */
