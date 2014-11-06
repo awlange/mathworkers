@@ -15,16 +15,14 @@ MW.Vector = function(size) {
     /**
      * The underlying Float64Array for a Vector
      *
-     * @type {Float64Array}
-     * @public
+     * @member {Float64Array}
      */
     this.array = null;
 
     /**
      * The size of the Vector's Float64Array
      *
-     * @type {number}
-     * @public
+     * @member {number}
      */
     this.length = size || 0;
     if (size > 0) {

@@ -13,8 +13,26 @@
  * @memberof MW
  */
 MW.Matrix = function(nrows, ncols) {
+
+    /**
+     * The underlying Array.<Float64Array> for a Matrix
+     *
+     * @member {Array.<Float64Array>}
+     */
     this.array = [];
+
+    /**
+     * The number of rows in this Matrix
+     *
+     * @member {number}
+     */
     this.nrows = nrows || 0;
+
+    /**
+     * The number of columns in this Matrix
+     *
+     * @member {number}
+     */
     this.ncols = ncols || 0;
 
     if (nrows > 0 && ncols > 0) {

@@ -13,7 +13,7 @@ MW.MathWorker = function() {
 	/**
 	 * Buffer for data received from the coordinator
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
  	var objectBuffer = {};
@@ -21,7 +21,7 @@ MW.MathWorker = function() {
 	/**
 	 * An object mapping an event tag key to a registered callback value
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
  	var triggers = {};

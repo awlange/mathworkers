@@ -16,7 +16,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Buffer for data received from worker pool
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
 	var objectBuffer = {};
@@ -25,7 +25,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * Message buffer for messages received from worker pool. Order of
 	 * messages in array corresponds to the MathWorker id.
 	 *
-	 * @type {Array}
+	 * @member {Array}
 	 * @private
 	 */
 	var messageDataBuffer = [];
@@ -33,8 +33,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 *
-	 * @type {boolean}
-	 * @public
+	 * @member {boolean}
 	 */
 	this.ready = false;
 
