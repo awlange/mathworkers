@@ -1,5 +1,13 @@
 // Copyright 2014 Adrian W. Lange
 
+// TODO: This can probably be combined with the var global
+/**
+ * Methods that affect global behavior of MathWorkers.
+ *
+ * @namespace MathWorkers.Global
+ */
+MathWorkers.Global = {};
+
 /**
  *  Data available globally only within the MathWorkers class
  *  @ignore
@@ -13,16 +21,17 @@ global.myWorkerId = 0;
 
 global.logLevel = 1;
 /**
- * Sets the MathWorkers log level:
- * 1 = warnings and errors only
- * 2 = verbose logging
- * Default is 1.
- *
- * @param {!number} logLevel level to be set
- * @public
- */
-MW.setLogLevel = function(logLevel) {
-    if (!MW.util.nullOrUndefined(logLevel)) {
+* Sets the MathWorkers log level:
+* 1 = warnings and errors only
+* 2 = verbose logging
+* Default is 1.
+*
+* @param {!number} logLevel level to be set
+* @memberof MathWorkers.Global
+* @function setLogLevel
+*/
+MathWorkers.Global.setLogLevel = function(logLevel) {
+    if (!MathWorkers.util.nullOrUndefined(logLevel)) {
         global.logLevel = logLevel;
     }
 };
@@ -35,10 +44,11 @@ global.unrollLoops = false;
  * Default is false.
  *
  * @param {!boolean} unroll option to be set
- * @public
+ * @memberof MathWorkers.Global
+ * @function setUnrollLoops
  */
-MW.setUnrollLoops = function(unroll) {
-    MW.util.checkNullOrUndefined(unroll);
+MathWorkers.setUnrollLoops = function(unroll) {
+    MathWorkers.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
@@ -48,7 +58,7 @@ MW.setUnrollLoops = function(unroll) {
  * @ignore
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
-    MW.util.checkWebWorkerSupport();
+    MathWorkers.util.checkWebWorkerSupport();
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i, nWorkers: nWorkersInput,

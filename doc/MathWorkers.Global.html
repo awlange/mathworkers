@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Namespace: Stats</title>
+    <title>JSDoc: Namespace: Global</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Namespace: Stats</h1>
+    <h1 class="page-title">Namespace: Global</h1>
 
     
 
@@ -27,7 +27,7 @@
 
 <header>
     <h2>
-    Stats
+    Global
     </h2>
     
 </header>
@@ -38,7 +38,7 @@
 
     
         
-            <div class="description">Statistics methods namespace.</div>
+            <div class="description">Methods that affect global behavior of MathWorkers.</div>
         
 
         
@@ -64,7 +64,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3098">line 3098</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line39">line 39</a>
     </li></ul></dd>
     
 
@@ -100,7 +100,7 @@
         <dl>
             
 <dt>
-    <h4 class="name" id="summary"><span class="type-signature">(static) </span>summary<span class="signature">(data)</span><span class="type-signature"> &rarr; {<a href="global.html#StatisticsSummary">StatisticsSummary</a>}</span></h4>
+    <h4 class="name" id="setLogLevel"><span class="type-signature">(static) </span>setLogLevel<span class="signature">(logLevel<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
 
     
 </dt>
@@ -108,13 +108,10 @@
 
     
     <div class="description">
-        Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
-
-Returns an object containing number of elements, mean, standard deviation,
-minimum, maximum, and quartiles. The quartiles computed here are the so-called
-"Tukey's Hinges".
-
-Quartiles are not reported if the data passed in contains less than 3 elements
+        Sets the MathWorkers log level:
+1 = warnings and errors only
+2 = verbose logging
+Default is 1.
     </div>
     
 
@@ -148,22 +145,13 @@ Quartiles are not reported if the data passed in contains less than 3 elements
 
         <tr>
             
-                <td class="name"><code>data</code></td>
+                <td class="name"><code>logLevel</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;number></span>
-|
-
-<span class="param-type">Float64Array</span>
-|
-
-<span class="param-type"><a href="MathWorkers.Vector.html">MathWorkers.Vector</a></span>
-|
-
-<span class="param-type"><a href="MathWorkers.Matrix.html">MathWorkers.Matrix</a></span>
+<span class="param-type">number</span>
 
 
             
@@ -173,7 +161,7 @@ Quartiles are not reported if the data passed in contains less than 3 elements
 
             
 
-            <td class="description last">sample of numbers to be summarized</td>
+            <td class="description last">level to be set</td>
         </tr>
 
     
@@ -204,7 +192,7 @@ Quartiles are not reported if the data passed in contains less than 3 elements
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line3120">line 3120</a>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line58">line 58</a>
     </li></ul></dd>
     
 
@@ -227,24 +215,128 @@ Quartiles are not reported if the data passed in contains less than 3 elements
     
 
     
-    <h5>Returns:</h5>
+
     
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="setUnrollLoops"><span class="type-signature">(static) </span>setUnrollLoops<span class="signature">(unroll<span class="signature-attributes">non-null</span>)</span><span class="type-signature"></span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Loop unrolling option:
+If true, use loop unrolled versions of functions if available.
+If false, do not.
+Default is false.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>unroll</code></td>
             
 
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="global.html#StatisticsSummary">StatisticsSummary</a></span>
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
 
 
-    </dd>
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">option to be set</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mathworkers.js.html">mathworkers.js</a>, <a href="mathworkers.js.html#line75">line 75</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
 </dl>
 
-        
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
 
     
 </dd>

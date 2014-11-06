@@ -6,9 +6,9 @@
  *
  * @constructor
  * @mixes EventEmitter
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.MathWorker = function() {
+MathWorkers.MathWorker = function() {
 
 	/**
 	 * Buffer for data received from the coordinator
@@ -143,7 +143,7 @@ MW.MathWorker = function() {
 
 	/**
 	 * MathWorker initialization. This message is received upon the coordinator creating this worker for
-	 * the worker pool in MW.global.createPool().
+	 * the worker pool in MathWorkers.global.createPool().
 	 * Sets various internal variables for this worker, and then sends a ready message to the coordinator.
 	 *
 	 * @param {Object} data message data
@@ -200,7 +200,7 @@ MW.MathWorker = function() {
 	 * @private
 	 */
  	var handleBroadcastVector = function(data) {
- 		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
+ 		objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(data.vec));
  		handleTrigger(data, objectBuffer);
  	};
 
@@ -216,12 +216,12 @@ MW.MathWorker = function() {
 		for (var i = 0; i < data.nrows; ++i) {
 			tmp.push(new Float64Array(data[i]));
 		}
-		objectBuffer = new MW.Matrix();
+		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
  		handleTrigger(data, objectBuffer);
  	};
 };
-MW.MathWorker.prototype = new EventEmitter();
+MathWorkers.MathWorker.prototype = new EventEmitter();
 
 
 /*
@@ -240,7 +240,7 @@ MW.MathWorker.prototype = new EventEmitter();
  *                                coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
@@ -258,7 +258,7 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
@@ -283,7 +283,7 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
@@ -305,7 +305,7 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
+MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
@@ -321,7 +321,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
+MathWorkers.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
