@@ -8,15 +8,15 @@
  * @param {!string} workerScriptName the name of the script that the Workers are to execute
  * @constructor
  * @mixes EventEmitter
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName) {
+MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 
 	/**
 	 * Buffer for data received from worker pool
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
 	var objectBuffer = {};
@@ -25,7 +25,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * Message buffer for messages received from worker pool. Order of
 	 * messages in array corresponds to the MathWorker id.
 	 *
-	 * @type {Array}
+	 * @member {Array}
 	 * @private
 	 */
 	var messageDataBuffer = [];
@@ -33,8 +33,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 *
-	 * @type {boolean}
-	 * @public
+	 * @member {boolean}
 	 */
 	this.ready = false;
 
@@ -99,7 +98,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Vector to all workers
 	 *
-	 * @param {!MW.Vector} vec Vector to be sent
+	 * @param {!MathWorkers.Vector} vec Vector to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendVectorToWorkers = function(vec, tag) {
@@ -114,7 +113,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Matrix to all workers
 	 *
-	 * @param {!MW.Matrix} mat Matrix to be sent
+	 * @param {!MathWorkers.Matrix} mat Matrix to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
@@ -225,7 +224,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * @private
 	 */
 	var handleVectorSendToCoordinator = function(data) {
-		objectBuffer = new MW.Vector();
+		objectBuffer = new MathWorkers.Vector();
 		objectBuffer.setVector(new Float64Array(data.vectorBuffer));
 		that.emit(data.tag);
 	};
@@ -243,7 +242,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		for (var i = 0; i < data.nrows; ++i) {
 			tmp.push(new Float64Array(data[i]));
 		}
-		objectBuffer = new MW.Matrix();
+		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
 		that.emit(data.tag);
 	};
@@ -259,7 +258,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var handleGatherVector = function(data) {
 		// Gather the vector parts from each worker
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Vector(data.len);
+            objectBuffer = new MathWorkers.Vector(data.len);
         }
         var tmpArray = new Float64Array(data.vectorPart);
         var offset = data.offset;
@@ -270,7 +269,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(/** @type {!MW.Vector}*/ objectBuffer, data.tag);
+				that.sendVectorToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -292,7 +291,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		// Gather the matrix rows from each worker
         var offset = data.offset;
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
+            objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
         for (var i = 0; i < data.nrowsPart; ++i) {
 			objectBuffer.array[offset + i] = new Float64Array(data[i]);
@@ -302,7 +301,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -324,7 +323,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         // Gather the matrix columns from each worker
         var i, k;
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
+            objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
 
         // array in data is transposed
@@ -340,7 +339,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+                that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);
@@ -405,5 +404,5 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	};
 
 };
-MW.Coordinator.prototype = new EventEmitter();
+MathWorkers.Coordinator.prototype = new EventEmitter();
 

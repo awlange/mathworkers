@@ -5,7 +5,22 @@
  *
  * @namespace MathWorkers.Stats
  */
-MW.Stats = {};
+MathWorkers.Stats = {};
+
+/**
+ * A statistical summary of a sample of numbers
+ *
+ * @typedef {Object} StatisticsSummary
+ * @property {number} n number of elements sampled in this summary
+ * @property {number} mean mean of the sample
+ * @property {number} variance variance of the sample
+ * @property {number} stddev standard deviation of the sample
+ * @property {number} minimum minimum value in the sample
+ * @property {number} maximum maximum value in the sample
+ * @property {?number} quartile25 25th percentile value
+ * @property {?number} quartile50 50th percentile value (or, the median)
+ * @property {?number} quartile75 75th percentile value
+ */
 
 /**
  * Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
@@ -16,19 +31,21 @@ MW.Stats = {};
  *
  * Quartiles are not reported if the data passed in contains less than 3 elements
  *
+ * @param data {Array.<number>|Float64Array|MathWorkers.Vector|MathWorkers.Matrix} sample of numbers to be summarized
+ * @returns {StatisticsSummary}
  * @function summary
  * @memberof MathWorkers.Stats
  */
-MW.Stats.summary = function (data) {
-    MW.util.checkNullOrUndefined(data);
+MathWorkers.Stats.summary = function (data) {
+    MathWorkers.util.checkNullOrUndefined(data);
     // Copy the data to a local array so that we can sort without affecting data
     var i;
     var arr = [];
-    if (data instanceof MW.Vector) {
+    if (data instanceof MathWorkers.Vector) {
         for (i = 0; i < data.array.length; ++i) {
             arr.push(data.array[i]);
         }
-    } else if (data instanceof MW.Matrix) {
+    } else if (data instanceof MathWorkers.Matrix) {
         for (i = 0; i < data.nrows; ++i) {
             for (var j = 0; j < data.ncols; ++j) {
                 arr.push(data.array[i][j]);

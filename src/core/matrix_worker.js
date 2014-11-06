@@ -10,12 +10,12 @@
  * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -50,7 +50,7 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -59,12 +59,12 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -99,7 +99,7 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -108,12 +108,12 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -148,7 +148,7 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -157,12 +157,12 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -197,7 +197,7 @@ MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -206,12 +206,12 @@ MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
  * @param {!number} alpha the scalar to multiply by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
+    MathWorkers.util.checkNumber(alpha);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, co;
@@ -244,7 +244,7 @@ MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -254,12 +254,12 @@ MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
  * @param {!function} fn the function to be applied to each element of this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
-    MW.util.checkFunction(fn);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
+    MathWorkers.util.checkFunction(fn);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, co;
@@ -292,7 +292,7 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -303,12 +303,12 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
  * @param {!MathWorkers.Vector} v the Vector to be multiplied with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
-    MW.util.checkMatrixVector(this, v);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
+    MathWorkers.util.checkMatrixVector(this, v);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var i, j, tot, ai;
     var nj = this.ncols;
@@ -339,7 +339,7 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
             w[offset++] = tot;
         }
     }
-    MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -349,16 +349,16 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
-    MW.util.checkMatrixMatrix(this, B);
-    MW.util.checkNullOrUndefined(tag);
+MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrixMatrix(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
     var i, j, k, tot, ai;
     var ni = this.nrows;
     var nj = this.ncols;
-    var lb = MW.util.loadBalance(B.ncols);
+    var lb = MathWorkers.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
 
     // transposed
@@ -401,6 +401,6 @@ MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
         }
     }
 
-    MW.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 

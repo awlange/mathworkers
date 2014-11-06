@@ -8,23 +8,21 @@
  * @param {number} [size] the length of the Vector being constructed. If not provided or less than 1,
  *                        a Vector object is still created but with a null array.
  * @constructor
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.Vector = function(size) {
+MathWorkers.Vector = function(size) {
 
     /**
      * The underlying Float64Array for a Vector
      *
-     * @type {Float64Array}
-     * @public
+     * @member {Float64Array}
      */
     this.array = null;
 
     /**
      * The size of the Vector's Float64Array
      *
-     * @type {number}
-     * @public
+     * @member {number}
      */
     this.length = size || 0;
     if (size > 0) {
@@ -37,11 +35,11 @@ MW.Vector = function(size) {
  *
  * @param {!Array.<number> | !Float64Array} arr the number array to be copied
  * @returns {MathWorkers.Vector} the new Vector object
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.fromArray = function(arr) {
-    MW.util.checkArray(arr);
-    var vec = new MW.Vector(arr.length);
+MathWorkers.Vector.fromArray = function(arr) {
+    MathWorkers.util.checkArray(arr);
+    var vec = new MathWorkers.Vector(arr.length);
     for (var i = 0, ni = arr.length; i < ni; ++i) {
         vec.array[i] = arr[i];
     }
@@ -52,10 +50,10 @@ MW.Vector.fromArray = function(arr) {
  * Assign the underlying Float64Array for this Vector
  *
  * @param {!Float64Array} arr the Float64Array to be assigned to this Vector object
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.setVector = function(arr) {
-    MW.util.checkFloat64Array(arr);
+MathWorkers.Vector.prototype.setVector = function(arr) {
+    MathWorkers.util.checkFloat64Array(arr);
     this.array = arr;
     this.length = arr.length;
 };
@@ -65,10 +63,10 @@ MW.Vector.prototype.setVector = function(arr) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MathWorkers.Vector} the new zeroed Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.zeroes = function(size) {
-    var vec = new MW.Vector(size);
+MathWorkers.Vector.zeroes = function(size) {
+    var vec = new MathWorkers.Vector(size);
     for (var i = 0; i < size; ++i) {
         vec.array[i] = 0.0;
     }
@@ -80,10 +78,10 @@ MW.Vector.zeroes = function(size) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MathWorkers.Vector} the new random Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.randomVector = function(size) {
-    var vec = new MW.Vector(size);
+MathWorkers.Vector.randomVector = function(size) {
+    var vec = new MathWorkers.Vector(size);
     for (var i = 0; i < size; ++i) {
         vec.array[i] = Math.random();
     }
@@ -94,9 +92,9 @@ MW.Vector.randomVector = function(size) {
  * Convert the Vector data into a printable string
  *
  * @returns {string} the string representation of the Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.toString = function() {
+MathWorkers.Vector.prototype.toString = function() {
     var str = "[";
     for (var i = 0; i < this.length - 1; ++i) {
         str += this.array[i] + ", ";
@@ -108,9 +106,9 @@ MW.Vector.prototype.toString = function() {
  * Compute the sum of all elements in the Vector
  *
  * @returns {number} the sum of all elements
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.sum = function() {
+MathWorkers.Vector.prototype.sum = function() {
     var result = 0.0;
     var i;
     var ni = this.length;
@@ -134,9 +132,9 @@ MW.Vector.prototype.sum = function() {
  * Compute the product of all elements in the Vector
  *
  * @returns {number} the product of all elements
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.product = function() {
+MathWorkers.Vector.prototype.product = function() {
     var result = 1.0;
     var i;
     var ni = this.length;
@@ -161,11 +159,11 @@ MW.Vector.prototype.product = function() {
  *
  * @param {MathWorkers.Vector} w the Vector to add with this Vector
  * @returns {MathWorkers.Vector} the element-wise sum of this Vector with w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.plus = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.plus = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -192,11 +190,11 @@ MW.Vector.prototype.plus = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to subtract from this Vector
  * @returns {MathWorkers.Vector} the element-wise difference of w from this Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.minus = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.minus = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -223,11 +221,11 @@ MW.Vector.prototype.minus = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to multiply with this Vector
  * @returns {MathWorkers.Vector} the element-wise product of this Vector with w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.times = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.times = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -254,11 +252,11 @@ MW.Vector.prototype.times = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to divide this Vector by
  * @returns {MathWorkers.Vector} the element-wise quotient of this Vector by w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.divide = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.divide = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -285,11 +283,11 @@ MW.Vector.prototype.divide = function(w) {
  *
  * @param {!number} alpha the scalar to multiply by
  * @returns {MathWorkers.Vector} the scaled Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.scale = function(alpha) {
-    MW.util.checkNumber(alpha);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.scale = function(alpha) {
+    MathWorkers.util.checkNumber(alpha);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -317,11 +315,11 @@ MW.Vector.prototype.scale = function(alpha) {
  *
  * @param {!function} fn the function to be applied to each element of the Vector
  * @returns {MathWorkers.Vector} the mapped Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.apply = function(fn) {
-    MW.util.checkFunction(fn);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.apply = function(fn) {
+    MathWorkers.util.checkFunction(fn);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -348,10 +346,10 @@ MW.Vector.prototype.apply = function(fn) {
  *
  * @param {!MathWorkers.Vector} w the other Vector to be dotted with this Vector
  * @returns {number} the resulting dot product value
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.dotVector = function(w) {
-    MW.util.checkVectors(this, w);
+MathWorkers.Vector.prototype.dotVector = function(w) {
+    MathWorkers.util.checkVectors(this, w);
     var i;
     var ni = this.length;
     var tot = 0.0;
@@ -381,14 +379,14 @@ MW.Vector.prototype.dotVector = function(w) {
  *
  * @param {!MathWorkers.Matrix} A the matrix to multiply with
  * @returns {MathWorkers.Vector} the resulting Vector of the vector-matrix product
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.dotMatrix = function(A) {
-    MW.util.checkVectorMatrix(this, A);
+MathWorkers.Vector.prototype.dotMatrix = function(A) {
+    MathWorkers.util.checkVectorMatrix(this, A);
     var i, j, tot;
     var ni = A.ncols;
     var nj = this.length;
-    var w = new MW.Vector(ni);
+    var w = new MathWorkers.Vector(ni);
     if (global.unrollLoops) {
         var nj3 = nj - 3;
         for (i = 0; i < ni; ++i) {

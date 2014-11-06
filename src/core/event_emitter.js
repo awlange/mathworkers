@@ -18,7 +18,7 @@ function EventEmitter() {
      * @param {function} callback the callback to be executed when the event is emitted
      */
     this.on = function(name, callback) {
-        MW.util.checkFunction(callback);
+        MathWorkers.util.checkFunction(callback);
         events[name] = [callback];
     };
 

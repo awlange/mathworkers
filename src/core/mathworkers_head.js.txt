@@ -31,5 +31,5 @@ var MathWorkers = (function() {
  * The MathWorkers module
  * @exports MathWorkers
  */
-var MW = {};
+var MathWorkers = {};
 

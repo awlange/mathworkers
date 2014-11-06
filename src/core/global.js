@@ -1,5 +1,13 @@
 // Copyright 2014 Adrian W. Lange
 
+// TODO: This can probably be combined with the var global
+/**
+ * Methods that affect global behavior of MathWorkers.
+ *
+ * @namespace MathWorkers.Global
+ */
+MathWorkers.Global = {};
+
 /**
  *  Data available globally only within the MathWorkers class
  *  @ignore
@@ -13,32 +21,38 @@ global.myWorkerId = 0;
 
 global.logLevel = 1;
 /**
- * Sets the MathWorkers log level:
- * 1 = warnings and errors only
- * 2 = verbose logging
- * Default is 1.
+ * <p>Sets the MathWorkers log level:</p>
+ * <ul>
+ *   <li> 1 = warnings and errors only </li>
+ *   <li> 2 = verbose logging </li>
+ * </ul>
+ * <p>Default is 1.</p>
  *
  * @param {!number} logLevel level to be set
- * @public
+ * @memberof MathWorkers.Global
+ * @function setLogLevel
  */
-MW.setLogLevel = function(logLevel) {
-    if (!MW.util.nullOrUndefined(logLevel)) {
+MathWorkers.Global.setLogLevel = function(logLevel) {
+    if (!MathWorkers.util.nullOrUndefined(logLevel)) {
         global.logLevel = logLevel;
     }
 };
 
 global.unrollLoops = false;
 /**
- * Loop unrolling option:
- * If true, use loop unrolled versions of functions if available.
- * If false, do not.
- * Default is false.
+ * <p>Loop unrolling option:</p>
+ * <ul>
+ *   <li>If true, use loop unrolled versions of functions if available.</li>
+ *   <li>If false, do not use loop unrolling.</li>
+ * </ul>
+ * <p>Default is false.</p>
  *
  * @param {!boolean} unroll option to be set
- * @public
+ * @memberof MathWorkers.Global
+ * @function setUnrollLoops
  */
-MW.setUnrollLoops = function(unroll) {
-    MW.util.checkNullOrUndefined(unroll);
+MathWorkers.setUnrollLoops = function(unroll) {
+    MathWorkers.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
@@ -48,7 +62,7 @@ MW.setUnrollLoops = function(unroll) {
  * @ignore
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
-    MW.util.checkWebWorkerSupport();
+    MathWorkers.util.checkWebWorkerSupport();
 	for (var i = 0; i < nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i, nWorkers: nWorkersInput,

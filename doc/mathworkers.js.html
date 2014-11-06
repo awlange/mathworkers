@@ -58,9 +58,17 @@ var MathWorkers = (function() {
  * The MathWorkers module
  * @exports MathWorkers
  */
-var MW = {};
+var MathWorkers = {};
 
 // Copyright 2014 Adrian W. Lange
+
+// TODO: This can probably be combined with the var global
+/**
+ * Methods that affect global behavior of MathWorkers.
+ *
+ * @namespace MathWorkers.Global
+ */
+MathWorkers.Global = {};
 
 /**
  *  Data available globally only within the MathWorkers class
@@ -75,32 +83,38 @@ global.myWorkerId = 0;
 
 global.logLevel = 1;
 /**
- * Sets the MathWorkers log level:
- * 1 = warnings and errors only
- * 2 = verbose logging
- * Default is 1.
+ * &lt;p>Sets the MathWorkers log level:&lt;/p>
+ * &lt;ul>
+ *   &lt;li> 1 = warnings and errors only &lt;/li>
+ *   &lt;li> 2 = verbose logging &lt;/li>
+ * &lt;/ul>
+ * &lt;p>Default is 1.&lt;/p>
  *
  * @param {!number} logLevel level to be set
- * @public
+ * @memberof MathWorkers.Global
+ * @function setLogLevel
  */
-MW.setLogLevel = function(logLevel) {
-    if (!MW.util.nullOrUndefined(logLevel)) {
+MathWorkers.Global.setLogLevel = function(logLevel) {
+    if (!MathWorkers.util.nullOrUndefined(logLevel)) {
         global.logLevel = logLevel;
     }
 };
 
 global.unrollLoops = false;
 /**
- * Loop unrolling option:
- * If true, use loop unrolled versions of functions if available.
- * If false, do not.
- * Default is false.
+ * &lt;p>Loop unrolling option:&lt;/p>
+ * &lt;ul>
+ *   &lt;li>If true, use loop unrolled versions of functions if available.&lt;/li>
+ *   &lt;li>If false, do not use loop unrolling.&lt;/li>
+ * &lt;/ul>
+ * &lt;p>Default is false.&lt;/p>
  *
  * @param {!boolean} unroll option to be set
- * @public
+ * @memberof MathWorkers.Global
+ * @function setUnrollLoops
  */
-MW.setUnrollLoops = function(unroll) {
-    MW.util.checkNullOrUndefined(unroll);
+MathWorkers.setUnrollLoops = function(unroll) {
+    MathWorkers.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
@@ -110,7 +124,7 @@ MW.setUnrollLoops = function(unroll) {
  * @ignore
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
-    MW.util.checkWebWorkerSupport();
+    MathWorkers.util.checkWebWorkerSupport();
 	for (var i = 0; i &lt; nWorkersInput; ++i) {
 		var worker = new Worker(workerScriptName);
 		worker.postMessage({handle: "_init", id: i, nWorkers: nWorkersInput,
@@ -131,7 +145,7 @@ global.createPool = function(nWorkersInput, workerScriptName) {
  *
  * @ignore
  */
-MW.util = {};
+MathWorkers.util = {};
 
 /**
  * Verify that the environment executing this code has Web Worker support
@@ -139,7 +153,7 @@ MW.util = {};
  * @ignore
  * @throws {Error}
  */
-MW.util.checkWebWorkerSupport = function() {
+MathWorkers.util.checkWebWorkerSupport = function() {
     if (typeof(Worker) === "undefined") {
         throw Error("Web Worker support not available for MathWorkers.");
     }
@@ -153,7 +167,7 @@ MW.util.checkWebWorkerSupport = function() {
  * @ignore
  * @returns {object} container for range index from (inclusive) and index to (non-inclusive)
  */
-MW.util.loadBalance = function(n) {
+MathWorkers.util.loadBalance = function(n) {
     var id = global.myWorkerId;
 	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
@@ -178,7 +192,7 @@ MW.util.loadBalance = function(n) {
  * @param x variable to be tested
  * @return {boolean} true if x is null or undefined
  */
-MW.util.nullOrUndefined = function(x) {
+MathWorkers.util.nullOrUndefined = function(x) {
     return x === undefined || x === null;
 };
 
@@ -188,8 +202,8 @@ MW.util.nullOrUndefined = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkNullOrUndefined = function(x) {
-    if (MW.util.nullOrUndefined(x)) {
+MathWorkers.util.checkNullOrUndefined = function(x) {
+    if (MathWorkers.util.nullOrUndefined(x)) {
         throw new TypeError("Undefined or null variable.");
     }
 };
@@ -200,8 +214,8 @@ MW.util.checkNullOrUndefined = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkNumber = function(x) {
-    MW.util.checkNullOrUndefined(x);
+MathWorkers.util.checkNumber = function(x) {
+    MathWorkers.util.checkNullOrUndefined(x);
     if (typeof x != 'number') {
         throw new TypeError("Expected type Number but is type " + typeof x);
     }
@@ -213,8 +227,8 @@ MW.util.checkNumber = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkFunction = function(x) {
-    MW.util.checkNullOrUndefined(x);
+MathWorkers.util.checkFunction = function(x) {
+    MathWorkers.util.checkNullOrUndefined(x);
     if (typeof x != 'function') {
         throw new TypeError("Expected type Function but is type " + typeof x);
     }
@@ -226,8 +240,8 @@ MW.util.checkFunction = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkArray = function(x) {
-    MW.util.checkNullOrUndefined(x);
+MathWorkers.util.checkArray = function(x) {
+    MathWorkers.util.checkNullOrUndefined(x);
     if (!(x instanceof Array || x instanceof Float64Array)) {
         throw new TypeError("Expected type Array but is type " + typeof x);
     }
@@ -239,8 +253,8 @@ MW.util.checkArray = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkFloat64Array = function(x) {
-    MW.util.checkNullOrUndefined(x);
+MathWorkers.util.checkFloat64Array = function(x) {
+    MathWorkers.util.checkNullOrUndefined(x);
     if (!(x instanceof Float64Array)) {
         throw new TypeError("Expected type Float64Array but is type " + typeof x);
     }
@@ -252,9 +266,9 @@ MW.util.checkFloat64Array = function(x) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkVector = function(v) {
-    MW.util.checkNullOrUndefined(v);
-    if (!(v instanceof MW.Vector)) {
+MathWorkers.util.checkVector = function(v) {
+    MathWorkers.util.checkNullOrUndefined(v);
+    if (!(v instanceof MathWorkers.Vector)) {
         throw new TypeError("Expected type Vector but is not.");
     }
 };
@@ -266,9 +280,9 @@ MW.util.checkVector = function(v) {
  * @throws {TypeError}
  * @throws {Error}
  */
-MW.util.checkVectors = function(v, w) {
-    MW.util.checkVector(v);
-    MW.util.checkVector(w);
+MathWorkers.util.checkVectors = function(v, w) {
+    MathWorkers.util.checkVector(v);
+    MathWorkers.util.checkVector(w);
     if (v.length !== w.length) {
         throw new Error("Vectors have unequal lengths.");
     }
@@ -282,9 +296,9 @@ MW.util.checkVectors = function(v, w) {
  * @throws {TypeError}
  * @throws {Error}
  */
-MW.util.checkVectorMatrix = function(v, A) {
-    MW.util.checkVector(v);
-    MW.util.checkMatrix(A);
+MathWorkers.util.checkVectorMatrix = function(v, A) {
+    MathWorkers.util.checkVector(v);
+    MathWorkers.util.checkMatrix(A);
     if (v.length !== A.nrows) {
         throw new Error("Vector length and number Matrix rows are unequal.");
     }
@@ -296,9 +310,9 @@ MW.util.checkVectorMatrix = function(v, A) {
  * @ignore
  * @throws {TypeError}
  */
-MW.util.checkMatrix = function(A) {
-    MW.util.checkNullOrUndefined(A);
-    if (!(A instanceof MW.Matrix)) {
+MathWorkers.util.checkMatrix = function(A) {
+    MathWorkers.util.checkNullOrUndefined(A);
+    if (!(A instanceof MathWorkers.Matrix)) {
         throw new TypeError("Expected type Matrix but is not.");
     }
 };
@@ -310,9 +324,9 @@ MW.util.checkMatrix = function(A) {
  * @throws {TypeError}
  * @throws {Error}
  */
-MW.util.checkMatrices = function(A, B) {
-    MW.util.checkMatrix(A);
-    MW.util.checkMatrix(B);
+MathWorkers.util.checkMatrices = function(A, B) {
+    MathWorkers.util.checkMatrix(A);
+    MathWorkers.util.checkMatrix(B);
     if (!(A.nrows === B.nrows &amp;&amp; A.ncols === B.ncols)) {
         throw new Error("Matrices do not have equal numbers of rows and columns.");
     }
@@ -326,9 +340,9 @@ MW.util.checkMatrices = function(A, B) {
  * @throws {TypeError}
  * @throws {Error}
  */
-MW.util.checkMatrixVector = function(A, v) {
-    MW.util.checkMatrix(A);
-    MW.util.checkVector(v);
+MathWorkers.util.checkMatrixVector = function(A, v) {
+    MathWorkers.util.checkMatrix(A);
+    MathWorkers.util.checkVector(v);
     if (v.length !== A.ncols) {
         throw new Error("Vector length and number Matrix columns are unequal.");
     }
@@ -342,9 +356,9 @@ MW.util.checkMatrixVector = function(A, v) {
  * @throws {TypeError}
  * @throws {Error}
  */
-MW.util.checkMatrixMatrix = function(A, B) {
-    MW.util.checkMatrix(A);
-    MW.util.checkMatrix(B);
+MathWorkers.util.checkMatrixMatrix = function(A, B) {
+    MathWorkers.util.checkMatrix(A);
+    MathWorkers.util.checkMatrix(B);
     if (A.ncols !== B.nrows) {
         throw new Error("Matrices do not have compatible dimensions for matrix-matrix multiplication.");
     }
@@ -370,7 +384,7 @@ function EventEmitter() {
      * @param {function} callback the callback to be executed when the event is emitted
      */
     this.on = function(name, callback) {
-        MW.util.checkFunction(callback);
+        MathWorkers.util.checkFunction(callback);
         events[name] = [callback];
     };
 
@@ -399,15 +413,15 @@ function EventEmitter() {
  * @param {!string} workerScriptName the name of the script that the Workers are to execute
  * @constructor
  * @mixes EventEmitter
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.Coordinator = function(nWorkersInput, workerScriptName) {
+MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	var that = this;
 
 	/**
 	 * Buffer for data received from worker pool
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
 	var objectBuffer = {};
@@ -416,7 +430,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * Message buffer for messages received from worker pool. Order of
 	 * messages in array corresponds to the MathWorker id.
 	 *
-	 * @type {Array}
+	 * @member {Array}
 	 * @private
 	 */
 	var messageDataBuffer = [];
@@ -424,8 +438,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * True when all spawned workers have reported that they are ready. False otherwise.
 	 *
-	 * @type {boolean}
-	 * @public
+	 * @member {boolean}
 	 */
 	this.ready = false;
 
@@ -490,7 +503,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Vector to all workers
 	 *
-	 * @param {!MW.Vector} vec Vector to be sent
+	 * @param {!MathWorkers.Vector} vec Vector to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendVectorToWorkers = function(vec, tag) {
@@ -505,7 +518,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	/**
 	 * Broadcast a Matrix to all workers
 	 *
-	 * @param {!MW.Matrix} mat Matrix to be sent
+	 * @param {!MathWorkers.Matrix} mat Matrix to be sent
 	 * @param {!string} tag message tag
 	 */
 	this.sendMatrixToWorkers = function(mat, tag) {
@@ -616,7 +629,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	 * @private
 	 */
 	var handleVectorSendToCoordinator = function(data) {
-		objectBuffer = new MW.Vector();
+		objectBuffer = new MathWorkers.Vector();
 		objectBuffer.setVector(new Float64Array(data.vectorBuffer));
 		that.emit(data.tag);
 	};
@@ -634,7 +647,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		for (var i = 0; i &lt; data.nrows; ++i) {
 			tmp.push(new Float64Array(data[i]));
 		}
-		objectBuffer = new MW.Matrix();
+		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
 		that.emit(data.tag);
 	};
@@ -650,7 +663,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	var handleGatherVector = function(data) {
 		// Gather the vector parts from each worker
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Vector(data.len);
+            objectBuffer = new MathWorkers.Vector(data.len);
         }
         var tmpArray = new Float64Array(data.vectorPart);
         var offset = data.offset;
@@ -661,7 +674,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		nWorkersReported += 1;
 		if (nWorkersReported == global.nWorkers) {
 			if (data.rebroadcast) {
-				that.sendVectorToWorkers(/** @type {!MW.Vector}*/ objectBuffer, data.tag);
+				that.sendVectorToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -683,7 +696,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		// Gather the matrix rows from each worker
         var offset = data.offset;
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
+            objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
         for (var i = 0; i &lt; data.nrowsPart; ++i) {
 			objectBuffer.array[offset + i] = new Float64Array(data[i]);
@@ -693,7 +706,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 		if (nWorkersReported == global.nWorkers) {
 			// build the full vector and save to buffer
 			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+				that.sendMatrixToWorkers(objectBuffer, data.tag);
 			} else {
 				// emit
 				that.emit(data.tag);
@@ -715,7 +728,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         // Gather the matrix columns from each worker
         var i, k;
         if (nWorkersReported == 0) {
-            objectBuffer = new MW.Matrix(data.nrows, data.ncols);
+            objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
 
         // array in data is transposed
@@ -731,7 +744,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
             if (data.rebroadcast) {
-                that.sendMatrixToWorkers(/** @type {!MW.Matrix}*/ objectBuffer, data.tag);
+                that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
                 // emit
                 that.emit(data.tag);
@@ -796,7 +809,7 @@ MW.Coordinator = function(nWorkersInput, workerScriptName) {
 	};
 
 };
-MW.Coordinator.prototype = new EventEmitter();
+MathWorkers.Coordinator.prototype = new EventEmitter();
 
 // Copyright 2014 Adrian W. Lange
 
@@ -806,14 +819,14 @@ MW.Coordinator.prototype = new EventEmitter();
  *
  * @constructor
  * @mixes EventEmitter
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.MathWorker = function() {
+MathWorkers.MathWorker = function() {
 
 	/**
 	 * Buffer for data received from the coordinator
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
  	var objectBuffer = {};
@@ -821,7 +834,7 @@ MW.MathWorker = function() {
 	/**
 	 * An object mapping an event tag key to a registered callback value
 	 *
-	 * @type {Object}
+	 * @member {Object}
 	 * @private
 	 */
  	var triggers = {};
@@ -881,7 +894,7 @@ MW.MathWorker = function() {
 	/**
 	 * Send a Vector to the coordinator
 	 *
-	 * @param {MW.Vector} vec the Vector to be sent
+	 * @param {MathWorkers.Vector} vec the Vector to be sent
 	 * @param {!string} tag message tag
 	 */
     this.sendVectorToCoordinator = function(vec, tag) {
@@ -895,7 +908,7 @@ MW.MathWorker = function() {
 	/**
 	 * Send a Matrix to the coordinator
 	 *
-	 * @param {MW.Matrix} mat the Matrix to be sent
+	 * @param {MathWorkers.Matrix} mat the Matrix to be sent
 	 * @param {!string} tag message tag
 	 */
     this.sendMatrixToCoordinator = function(mat, tag) {
@@ -943,7 +956,7 @@ MW.MathWorker = function() {
 
 	/**
 	 * MathWorker initialization. This message is received upon the coordinator creating this worker for
-	 * the worker pool in MW.global.createPool().
+	 * the worker pool in MathWorkers.global.createPool().
 	 * Sets various internal variables for this worker, and then sends a ready message to the coordinator.
 	 *
 	 * @param {Object} data message data
@@ -1000,7 +1013,7 @@ MW.MathWorker = function() {
 	 * @private
 	 */
  	var handleBroadcastVector = function(data) {
- 		objectBuffer = MW.Vector.fromArray(new Float64Array(data.vec));
+ 		objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(data.vec));
  		handleTrigger(data, objectBuffer);
  	};
 
@@ -1016,12 +1029,12 @@ MW.MathWorker = function() {
 		for (var i = 0; i &lt; data.nrows; ++i) {
 			tmp.push(new Float64Array(data[i]));
 		}
-		objectBuffer = new MW.Matrix();
+		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
  		handleTrigger(data, objectBuffer);
  	};
 };
-MW.MathWorker.prototype = new EventEmitter();
+MathWorkers.MathWorker.prototype = new EventEmitter();
 
 
 /*
@@ -1040,7 +1053,7 @@ MW.MathWorker.prototype = new EventEmitter();
  *                                coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
@@ -1058,7 +1071,7 @@ MW.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
@@ -1083,7 +1096,7 @@ MW.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, rebroadca
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
+MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
@@ -1105,7 +1118,7 @@ MW.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols, offset, 
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
+MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
@@ -1121,7 +1134,7 @@ MW.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  *                              coordinator objectBuffer.
  * @ignore
  */
-MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
+MathWorkers.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
     self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
@@ -1137,23 +1150,21 @@ MW.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
  * @param {number} [size] the length of the Vector being constructed. If not provided or less than 1,
  *                        a Vector object is still created but with a null array.
  * @constructor
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.Vector = function(size) {
+MathWorkers.Vector = function(size) {
 
     /**
      * The underlying Float64Array for a Vector
      *
-     * @type {Float64Array}
-     * @public
+     * @member {Float64Array}
      */
     this.array = null;
 
     /**
      * The size of the Vector's Float64Array
      *
-     * @type {number}
-     * @public
+     * @member {number}
      */
     this.length = size || 0;
     if (size > 0) {
@@ -1166,11 +1177,11 @@ MW.Vector = function(size) {
  *
  * @param {!Array.&lt;number> | !Float64Array} arr the number array to be copied
  * @returns {MathWorkers.Vector} the new Vector object
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.fromArray = function(arr) {
-    MW.util.checkArray(arr);
-    var vec = new MW.Vector(arr.length);
+MathWorkers.Vector.fromArray = function(arr) {
+    MathWorkers.util.checkArray(arr);
+    var vec = new MathWorkers.Vector(arr.length);
     for (var i = 0, ni = arr.length; i &lt; ni; ++i) {
         vec.array[i] = arr[i];
     }
@@ -1181,10 +1192,10 @@ MW.Vector.fromArray = function(arr) {
  * Assign the underlying Float64Array for this Vector
  *
  * @param {!Float64Array} arr the Float64Array to be assigned to this Vector object
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.setVector = function(arr) {
-    MW.util.checkFloat64Array(arr);
+MathWorkers.Vector.prototype.setVector = function(arr) {
+    MathWorkers.util.checkFloat64Array(arr);
     this.array = arr;
     this.length = arr.length;
 };
@@ -1194,10 +1205,10 @@ MW.Vector.prototype.setVector = function(arr) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MathWorkers.Vector} the new zeroed Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.zeroes = function(size) {
-    var vec = new MW.Vector(size);
+MathWorkers.Vector.zeroes = function(size) {
+    var vec = new MathWorkers.Vector(size);
     for (var i = 0; i &lt; size; ++i) {
         vec.array[i] = 0.0;
     }
@@ -1209,10 +1220,10 @@ MW.Vector.zeroes = function(size) {
  *
  * @param {!number} size the length of the Vector to be created
  * @returns {MathWorkers.Vector} the new random Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.randomVector = function(size) {
-    var vec = new MW.Vector(size);
+MathWorkers.Vector.randomVector = function(size) {
+    var vec = new MathWorkers.Vector(size);
     for (var i = 0; i &lt; size; ++i) {
         vec.array[i] = Math.random();
     }
@@ -1223,9 +1234,9 @@ MW.Vector.randomVector = function(size) {
  * Convert the Vector data into a printable string
  *
  * @returns {string} the string representation of the Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.toString = function() {
+MathWorkers.Vector.prototype.toString = function() {
     var str = "[";
     for (var i = 0; i &lt; this.length - 1; ++i) {
         str += this.array[i] + ", ";
@@ -1237,9 +1248,9 @@ MW.Vector.prototype.toString = function() {
  * Compute the sum of all elements in the Vector
  *
  * @returns {number} the sum of all elements
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.sum = function() {
+MathWorkers.Vector.prototype.sum = function() {
     var result = 0.0;
     var i;
     var ni = this.length;
@@ -1263,9 +1274,9 @@ MW.Vector.prototype.sum = function() {
  * Compute the product of all elements in the Vector
  *
  * @returns {number} the product of all elements
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.product = function() {
+MathWorkers.Vector.prototype.product = function() {
     var result = 1.0;
     var i;
     var ni = this.length;
@@ -1290,11 +1301,11 @@ MW.Vector.prototype.product = function() {
  *
  * @param {MathWorkers.Vector} w the Vector to add with this Vector
  * @returns {MathWorkers.Vector} the element-wise sum of this Vector with w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.plus = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.plus = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1321,11 +1332,11 @@ MW.Vector.prototype.plus = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to subtract from this Vector
  * @returns {MathWorkers.Vector} the element-wise difference of w from this Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.minus = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.minus = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1352,11 +1363,11 @@ MW.Vector.prototype.minus = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to multiply with this Vector
  * @returns {MathWorkers.Vector} the element-wise product of this Vector with w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.times = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.times = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1383,11 +1394,11 @@ MW.Vector.prototype.times = function(w) {
  *
  * @param {MathWorkers.Vector} w the Vector to divide this Vector by
  * @returns {MathWorkers.Vector} the element-wise quotient of this Vector by w
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.divide = function(w) {
-    MW.util.checkVectors(this, w);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.divide = function(w) {
+    MathWorkers.util.checkVectors(this, w);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1414,11 +1425,11 @@ MW.Vector.prototype.divide = function(w) {
  *
  * @param {!number} alpha the scalar to multiply by
  * @returns {MathWorkers.Vector} the scaled Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.scale = function(alpha) {
-    MW.util.checkNumber(alpha);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.scale = function(alpha) {
+    MathWorkers.util.checkNumber(alpha);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1446,11 +1457,11 @@ MW.Vector.prototype.scale = function(alpha) {
  *
  * @param {!function} fn the function to be applied to each element of the Vector
  * @returns {MathWorkers.Vector} the mapped Vector
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.apply = function(fn) {
-    MW.util.checkFunction(fn);
-    var result = new MW.Vector(this.length);
+MathWorkers.Vector.prototype.apply = function(fn) {
+    MathWorkers.util.checkFunction(fn);
+    var result = new MathWorkers.Vector(this.length);
     var i;
     var ni = this.length;
     if (global.unrollLoops) {
@@ -1477,10 +1488,10 @@ MW.Vector.prototype.apply = function(fn) {
  *
  * @param {!MathWorkers.Vector} w the other Vector to be dotted with this Vector
  * @returns {number} the resulting dot product value
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.dotVector = function(w) {
-    MW.util.checkVectors(this, w);
+MathWorkers.Vector.prototype.dotVector = function(w) {
+    MathWorkers.util.checkVectors(this, w);
     var i;
     var ni = this.length;
     var tot = 0.0;
@@ -1510,14 +1521,14 @@ MW.Vector.prototype.dotVector = function(w) {
  *
  * @param {!MathWorkers.Matrix} A the matrix to multiply with
  * @returns {MathWorkers.Vector} the resulting Vector of the vector-matrix product
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.dotMatrix = function(A) {
-    MW.util.checkVectorMatrix(this, A);
+MathWorkers.Vector.prototype.dotMatrix = function(A) {
+    MathWorkers.util.checkVectorMatrix(this, A);
     var i, j, tot;
     var ni = A.ncols;
     var nj = this.length;
-    var w = new MW.Vector(ni);
+    var w = new MathWorkers.Vector(ni);
     if (global.unrollLoops) {
         var nj3 = nj - 3;
         for (i = 0; i &lt; ni; ++i) {
@@ -1557,11 +1568,11 @@ MW.Vector.prototype.dotMatrix = function(A) {
  *
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerSum = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerSum = function(tag, rebroadcast) {
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var tot = 0.0;
     var i;
     if (global.unrollLoops) {
@@ -1577,7 +1588,7 @@ MW.Vector.prototype.workerSum = function(tag, rebroadcast) {
             tot += this.array[i];
         }
     }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+    MathWorkers.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
 
 /**
@@ -1585,11 +1596,11 @@ MW.Vector.prototype.workerSum = function(tag, rebroadcast) {
  *
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerProduct = function(tag, rebroadcast) {
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerProduct = function(tag, rebroadcast) {
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var tot = 1.0;
     var i;
     if (global.unrollLoops) {
@@ -1605,7 +1616,7 @@ MW.Vector.prototype.workerProduct = function(tag, rebroadcast) {
             tot *= this.array[i];
         }
     }
-    MW.MathWorker.reduceVectorProduct(tot, tag, rebroadcast);
+    MathWorkers.MathWorker.reduceVectorProduct(tot, tag, rebroadcast);
 };
 
 
@@ -1615,12 +1626,12 @@ MW.Vector.prototype.workerProduct = function(tag, rebroadcast) {
  * @param {!MathWorkers.Vector} w the Vector to add with this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
-    MW.util.checkVectors(this, w);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1640,7 +1651,7 @@ MW.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
             x[offset++] = this.array[i] + w.array[i];
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -1649,12 +1660,12 @@ MW.Vector.prototype.workerPlus = function(w, tag, rebroadcast) {
  * @param {!MathWorkers.Vector} w the Vector to subtract from this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
-    MW.util.checkVectors(this, w);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1674,7 +1685,7 @@ MW.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
             x[offset++] = this.array[i] - w.array[i];
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -1683,12 +1694,12 @@ MW.Vector.prototype.workerMinus = function(w, tag, rebroadcast) {
  * @param {!MathWorkers.Vector} w the Vector to multiply with this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
-    MW.util.checkVectors(this, w);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1708,7 +1719,7 @@ MW.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
             x[offset++] = this.array[i] * w.array[i];
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -1717,12 +1728,12 @@ MW.Vector.prototype.workerTimes = function(w, tag, rebroadcast) {
  * @param {!MathWorkers.Vector} w the Vector to divide this Vector by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerDivide = function(w, tag, rebroadcast) {
-    MW.util.checkVectors(this, w);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerDivide = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1742,7 +1753,7 @@ MW.Vector.prototype.workerDivide = function(w, tag, rebroadcast) {
             x[offset++] = this.array[i] / w.array[i];
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -1751,12 +1762,12 @@ MW.Vector.prototype.workerDivide = function(w, tag, rebroadcast) {
  * @param {!number} alpha the scalar to multiply by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
+    MathWorkers.util.checkNumber(alpha);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1776,7 +1787,7 @@ MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
             x[offset++] = this.array[i] * alpha;
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -1786,12 +1797,12 @@ MW.Vector.prototype.workerScale = function(alpha, tag, rebroadcast) {
  * @param {!function} fn the function to be applied to each element of this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerApply = function(fn, tag, rebroadcast) {
-    MW.util.checkFunction(fn);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerApply = function(fn, tag, rebroadcast) {
+    MathWorkers.util.checkFunction(fn);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     var i;
@@ -1811,21 +1822,21 @@ MW.Vector.prototype.workerApply = function(fn, tag, rebroadcast) {
             x[offset++] = fn(this.array[i]);
         }
     }
-    MW.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
  * Compute the dot product of this Vector with another Vector in parallel.
  *
- * @param {!MW.Vector} w the other Vector to be dotted with this Vector
+ * @param {!MathWorkers.Vector} w the other Vector to be dotted with this Vector
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
-    MW.util.checkVectors(this, w);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.length);
+MathWorkers.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.length);
     var i;
     var tot = 0.0;
     if (global.unrollLoops) {
@@ -1844,7 +1855,7 @@ MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
             tot += this.array[i] * w.array[i];
         }
     }
-    MW.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+    MathWorkers.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
 };
 
 /**
@@ -1855,14 +1866,14 @@ MW.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} A the matrix to multiply with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Vector
+ * @memberof MathWorkers.Vector
  */
-MW.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
-    MW.util.checkVectorMatrix(this, A);
-    MW.util.checkNullOrUndefined(tag);
+MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
+    MathWorkers.util.checkVectorMatrix(this, A);
+    MathWorkers.util.checkNullOrUndefined(tag);
     var i, j;
     var nj = this.length;
-    var lb = MW.util.loadBalance(A.ncols);
+    var lb = MathWorkers.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     if (global.unrollLoops) {
@@ -1889,7 +1900,7 @@ MW.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
             w[offset++] = tot;
         }
     }
-    MW.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
 
 // Copyright 2014 Adrian W. Lange
@@ -1904,11 +1915,29 @@ MW.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
  * @param {number} [ncols] the number of columns in the matrix. If not provided or less than 1, a Matrix
  *                         object is still created but with a null array.
  * @constructor
- * @memberof MW
+ * @memberof MathWorkers
  */
-MW.Matrix = function(nrows, ncols) {
+MathWorkers.Matrix = function(nrows, ncols) {
+
+    /**
+     * &lt;p>The underlying Array.&amp;lt;Float64Array&amp;gt; for a Matrix&lt;/p>
+     *
+     * @member {Array.&lt;Float64Array>}
+     */
     this.array = [];
+
+    /**
+     * The number of rows in this Matrix
+     *
+     * @member {number}
+     */
     this.nrows = nrows || 0;
+
+    /**
+     * The number of columns in this Matrix
+     *
+     * @member {number}
+     */
     this.ncols = ncols || 0;
 
     if (nrows > 0 &amp;&amp; ncols > 0) {
@@ -1924,11 +1953,11 @@ MW.Matrix = function(nrows, ncols) {
  *
  * @param {!Array.&lt;Array.&lt;number>> | !Array.&lt;Float64Array>} arr the 2-dimensional array to be copied
  * @returns {MathWorkers.Matrix} the new Matrix object
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.fromArray = function(arr) {
-    MW.util.checkArray(arr);
-    var mat = new MW.Matrix(arr.length, arr[0].length);
+MathWorkers.Matrix.fromArray = function(arr) {
+    MathWorkers.util.checkArray(arr);
+    var mat = new MathWorkers.Matrix(arr.length, arr[0].length);
     var i, j, nj;
     var ni = arr.length;
     for (i = 0; i &lt; ni; ++i) {
@@ -1944,11 +1973,11 @@ MW.Matrix.fromArray = function(arr) {
  * Assign the underlying Array.&lt;Float64Array> for this Matrix
  *
  * @param {!Array.&lt;Float64Array>} arr the Array.&lt;Float64Array> to be assigned to this Matrix object
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.setMatrix = function(arr) {
-    MW.util.checkArray(arr);
-    MW.util.checkFloat64Array(arr[0]);
+MathWorkers.Matrix.prototype.setMatrix = function(arr) {
+    MathWorkers.util.checkArray(arr);
+    MathWorkers.util.checkFloat64Array(arr[0]);
     this.array = arr;
     this.nrows = arr.length;
     this.ncols = arr[0].length;
@@ -1959,10 +1988,10 @@ MW.Matrix.prototype.setMatrix = function(arr) {
  *
  * @param {!number} j the index of the column to which to copy
  * @param {!Array.&lt;number> | !Float64Array} vec the vector to be copied
- * @memberod MW.Matrix
+ * @memberod MathWorkers.Matrix
  * @ignore
  */
-MW.Matrix.prototype.copyColumn = function(j, vec) {
+MathWorkers.Matrix.prototype.copyColumn = function(j, vec) {
     for (var i = 0, ni = this.nrows; i &lt; ni; ++i) {
         vec[i] = this.array[i][j];
     }
@@ -1973,10 +2002,10 @@ MW.Matrix.prototype.copyColumn = function(j, vec) {
  *
  * @param {!number} i the index of the row to which to copy
  * @param {!Array.&lt;number> | !Float64Array} vec the vector to be copied
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  * @ignore
  */
-MW.Matrix.prototype.copyRow = function(i, vec) {
+MathWorkers.Matrix.prototype.copyRow = function(i, vec) {
     for (var j = 0, nj = this.ncols; j &lt; nj; ++j) {
         vec[j] = this.array[i][j];
     }
@@ -1986,9 +2015,9 @@ MW.Matrix.prototype.copyRow = function(i, vec) {
  * Test if this matrix is a square matrix.
  *
  * @returns {boolean} true if this matrix has an equal number row and columns. False otherwise.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.isSquare = function() {
+MathWorkers.Matrix.prototype.isSquare = function() {
     return this.nrows === this.ncols;
 };
 
@@ -1998,10 +2027,10 @@ MW.Matrix.prototype.isSquare = function() {
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
  * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.zeroes = function(nrows, ncols) {
-    var mat = new MW.Matrix(nrows, ncols);
+MathWorkers.Matrix.zeroes = function(nrows, ncols) {
+    var mat = new MathWorkers.Matrix(nrows, ncols);
     for (var i = 0; i &lt; nrows; ++i) {
         for (var j = 0; j &lt; ncols; ++j) {
             mat.array[i][j] = 0.0;
@@ -2015,10 +2044,10 @@ MW.Matrix.zeroes = function(nrows, ncols) {
  *
  * @param {!number} n the number of rows and columns for the identity matrix
  * @returns {MathWorkers.Matrix} the new identity Matrix object
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.identity = function(n) {
-    var mat = new MW.Matrix(n, n);
+MathWorkers.Matrix.identity = function(n) {
+    var mat = new MathWorkers.Matrix(n, n);
     for (var i = 0; i &lt; n; ++i) {
         for (var j = 0; j &lt; n; ++j) {
             mat.array[i][j] = 0.0;
@@ -2034,10 +2063,10 @@ MW.Matrix.identity = function(n) {
  * @param {!number} nrows the number of rows for the new Matrix
  * @param {!number} ncols the number of columns for the new Matrix
  * @returns {MathWorkers.Matrix} an nrows by ncols Matrix populated with zeroes
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.randomMatrix = function(nrows, ncols) {
-    var mat = new MW.Matrix(nrows, ncols);
+MathWorkers.Matrix.randomMatrix = function(nrows, ncols) {
+    var mat = new MathWorkers.Matrix(nrows, ncols);
     for (var i = 0; i &lt; nrows; ++i) {
         for (var j = 0; j &lt; ncols; ++j) {
             mat.array[i][j] = Math.random();
@@ -2050,9 +2079,9 @@ MW.Matrix.randomMatrix = function(nrows, ncols) {
  * Convert the Matrix data into a printable string
  *
  * @returns {string} the string representation of the Matrix
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.toString = function() {
+MathWorkers.Matrix.prototype.toString = function() {
     var str = "";
     for (var i = 0; i &lt; this.nrows; ++i) {
         var row = "[";
@@ -2072,11 +2101,11 @@ MW.Matrix.prototype.toString = function() {
  *
  * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
  * @returns {MathWorkers.Matrix} the element-wise sum of the Matrix and B
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.plus = function(B) {
-    MW.util.checkMatrices(this, B);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.plus = function(B) {
+    MathWorkers.util.checkMatrices(this, B);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2112,11 +2141,11 @@ MW.Matrix.prototype.plus = function(B) {
  *
  * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
  * @returns {MathWorkers.Matrix} the element-wise difference of B from this Matrix
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.minus = function(B) {
-    MW.util.checkMatrices(this, B);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.minus = function(B) {
+    MathWorkers.util.checkMatrices(this, B);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2152,11 +2181,11 @@ MW.Matrix.prototype.minus = function(B) {
  *
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @returns {MathWorkers.Matrix} the element-wise product of this Matrix and B
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.times = function(B) {
-    MW.util.checkMatrices(this, B);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.times = function(B) {
+    MathWorkers.util.checkMatrices(this, B);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2192,11 +2221,11 @@ MW.Matrix.prototype.times = function(B) {
  *
  * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
  * @returns {MathWorkers.Matrix} the element-wise quotient of this Matrix by B
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.divide = function(B) {
-    MW.util.checkMatrices(this, B);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.divide = function(B) {
+    MathWorkers.util.checkMatrices(this, B);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai, bi;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2232,11 +2261,11 @@ MW.Matrix.prototype.divide = function(B) {
  *
  * @param {!number} alpha the scalar to multiply by
  * @returns {MathWorkers.Matrix} the scaled Matrix
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.scale = function(alpha) {
-    MW.util.checkNumber(alpha);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.scale = function(alpha) {
+    MathWorkers.util.checkNumber(alpha);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2271,11 +2300,11 @@ MW.Matrix.prototype.scale = function(alpha) {
  *
  * @param {!function} fn the function to be applied to each element of the Matrix
  * @returns {MathWorkers.Matrix} the mapped Matrix
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.apply = function(fn) {
-    MW.util.checkFunction(fn);
-    var C = new MW.Matrix(this.nrows, this.ncols);
+MathWorkers.Matrix.prototype.apply = function(fn) {
+    MathWorkers.util.checkFunction(fn);
+    var C = new MathWorkers.Matrix(this.nrows, this.ncols);
     var i, j, ai;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2308,10 +2337,10 @@ MW.Matrix.prototype.apply = function(fn) {
  * Transpose this Matrix. Returns a new Matrix to allow for arbitrary shaped matrices.
  *
  * @returns {MathWorkers.Matrix} a new Matrix that is the transpose of this Matrix
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.transpose = function() {
-    var B = new MW.Matrix(this.ncols, this.nrows);
+MathWorkers.Matrix.prototype.transpose = function() {
+    var B = new MathWorkers.Matrix(this.ncols, this.nrows);
     var i, j, ai;
     var ni = this.nrows;
     var nj = this.ncols;
@@ -2329,9 +2358,9 @@ MW.Matrix.prototype.transpose = function() {
  *
  * @returns {MathWorkers.Matrix} this Matrix transposed
  * @throws {Error} thrown if this Matrix is not a square matrix.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.transposeInPlace = function() {
+MathWorkers.Matrix.prototype.transposeInPlace = function() {
     if (this.isSquare()) {
         var i, j;
         var ni = this.nrows;
@@ -2356,11 +2385,11 @@ MW.Matrix.prototype.transposeInPlace = function() {
  *
  * @param {!MathWorkers.Vector} v the Vector to be multiplied with
  * @returns {MathWorkers.Vector} the resulting Vector of the Matrix-Vector product
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.dotVector = function(v) {
-    MW.util.checkMatrixVector(this, v);
-    var w = new MW.Vector(this.nrows);
+MathWorkers.Matrix.prototype.dotVector = function(v) {
+    MathWorkers.util.checkMatrixVector(this, v);
+    var w = new MathWorkers.Vector(this.nrows);
     var tot;
     var i, j;
     var ni = this.nrows;
@@ -2401,11 +2430,11 @@ MW.Matrix.prototype.dotVector = function(v) {
  *
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @returns {MathWorkers.Matrix} the resulting Matrix of the matrix-matrix product
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.dotMatrix = function(B) {
-    MW.util.checkMatrixMatrix(this, B);
-    var C = new MW.Matrix(this.nrows, B.ncols);
+MathWorkers.Matrix.prototype.dotMatrix = function(B) {
+    MathWorkers.util.checkMatrixMatrix(this, B);
+    var C = new MathWorkers.Matrix(this.nrows, B.ncols);
 
     var i, j, k, tot, ai;
     var ni = this.nrows;
@@ -2460,12 +2489,12 @@ MW.Matrix.prototype.dotMatrix = function(B) {
  * @param {!MathWorkers.Matrix} B the Matrix to add to this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -2500,7 +2529,7 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2509,12 +2538,12 @@ MW.Matrix.prototype.workerPlus = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to subtract from this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -2549,7 +2578,7 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2558,12 +2587,12 @@ MW.Matrix.prototype.workerMinus = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -2598,7 +2627,7 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2607,12 +2636,12 @@ MW.Matrix.prototype.workerTimes = function(B, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to divide this Matrix by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
-    MW.util.checkMatrices(this, B);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrices(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, bi, co;
@@ -2647,7 +2676,7 @@ MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2656,12 +2685,12 @@ MW.Matrix.prototype.workerDivide = function(B, tag, rebroadcast) {
  * @param {!number} alpha the scalar to multiply by
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
+    MathWorkers.util.checkNumber(alpha);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, co;
@@ -2694,7 +2723,7 @@ MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2704,12 +2733,12 @@ MW.Matrix.prototype.workerScale = function(alpha, tag, rebroadcast) {
  * @param {!function} fn the function to be applied to each element of this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
-    MW.util.checkFunction(fn);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
+    MathWorkers.util.checkFunction(fn);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var C = [];
     var offset = 0;
     var i, j, ai, co;
@@ -2742,7 +2771,7 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
             ++offset;
         }
     }
-    MW.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(C, this.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2753,12 +2782,12 @@ MW.Matrix.prototype.workerApply = function(fn, tag, rebroadcast) {
  * @param {!MathWorkers.Vector} v the Vector to be multiplied with
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
-    MW.util.checkMatrixVector(this, v);
-    MW.util.checkNullOrUndefined(tag);
-    var lb = MW.util.loadBalance(this.nrows);
+MathWorkers.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
+    MathWorkers.util.checkMatrixVector(this, v);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var lb = MathWorkers.util.loadBalance(this.nrows);
     var w = new Float64Array(lb.ito - lb.ifrom);
     var i, j, tot, ai;
     var nj = this.ncols;
@@ -2789,7 +2818,7 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
             w[offset++] = tot;
         }
     }
-    MW.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(w, v.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
@@ -2799,16 +2828,16 @@ MW.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
  * @param {!MathWorkers.Matrix} B the Matrix to multiply with this Matrix
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
- * @memberof MW.Matrix
+ * @memberof MathWorkers.Matrix
  */
-MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
-    MW.util.checkMatrixMatrix(this, B);
-    MW.util.checkNullOrUndefined(tag);
+MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
+    MathWorkers.util.checkMatrixMatrix(this, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
     var i, j, k, tot, ai;
     var ni = this.nrows;
     var nj = this.ncols;
-    var lb = MW.util.loadBalance(B.ncols);
+    var lb = MathWorkers.util.loadBalance(B.ncols);
     var nk = lb.ito - lb.ifrom;
 
     // transposed
@@ -2851,7 +2880,7 @@ MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
         }
     }
 
-    MW.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
 // Copyright 2014 Adrian W. Lange
@@ -2866,29 +2895,30 @@ MW.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
  *
  * @namespace MathWorkers.Batch
  */
-MW.Batch = {};
+MathWorkers.Batch = {};
 
 /**
- * Compute (in parallel) a linear combination of Vectors, each with a coefficient in a corresponding array.
+ * &lt;p>Compute (in parallel) a linear combination of Vectors, each with a coefficient in a corresponding array:&lt;/p>
+ * &lt;p>w = c&lt;sub>0&lt;/sub> * v&lt;sub>0&lt;/sub> + c&lt;sub>1&lt;/sub> * v&lt;sub>1&lt;/sub> + ...&lt;/p>
  *
- * @param {!Array.&lt;MW.Vector>} vectors the array of Vectors
+ * @param {!Array.&lt;MathWorkers.Vector>} vectors the array of Vectors
  * @param {!Array.&lt;number>} coefficients the array of coefficients
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @function workerVectorLinearCombination
  * @memberof MathWorkers.Batch
  */
-MW.Batch.workerVectorLinearCombination = function (vectors, coefficients, tag, rebroadcast) {
-    MW.util.checkNumber(coefficients[0]);
-    MW.util.checkVector(vectors[0]);
-    MW.util.checkNullOrUndefined(tag);
+MathWorkers.Batch.workerVectorLinearCombination = function (vectors, coefficients, tag, rebroadcast) {
+    MathWorkers.util.checkNumber(coefficients[0]);
+    MathWorkers.util.checkVector(vectors[0]);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
     // First combo initializes x
     var i, a, ni3;
     var offset = 0;
     var vec = vectors[0];
     var coeff = coefficients[0];
-    var lb = MW.util.loadBalance(vec.length);
+    var lb = MathWorkers.util.loadBalance(vec.length);
     var x = new Float64Array(lb.ito - lb.ifrom);
     if (global.unrollLoops) {
         ni3 = lb.ito - 3;
@@ -2912,8 +2942,8 @@ MW.Batch.workerVectorLinearCombination = function (vectors, coefficients, tag, r
         offset = 0;
         vec = vectors[a];
         coeff = coefficients[a];
-        MW.util.checkNumber(coeff);
-        MW.util.checkVectors(vectors[a - 1], vec);
+        MathWorkers.util.checkNumber(coeff);
+        MathWorkers.util.checkVectors(vectors[a - 1], vec);
         if (global.unrollLoops) {
             for (i = lb.ifrom; i &lt; ni3; ++i) {
                 x[offset++] += coeff * vec.array[i];
@@ -2931,30 +2961,31 @@ MW.Batch.workerVectorLinearCombination = function (vectors, coefficients, tag, r
         }
     }
 
-    MW.MathWorker.gatherVector(x, vec.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(x, vec.length, lb.ifrom, tag, rebroadcast);
 };
 
 /**
- * Compute (in parallel) a linear combination of matrices, each with a coefficient in a corresponding array.
+ * &lt;p>Compute (in parallel) a linear combination of matrices, each with a coefficient in a corresponding array:&lt;/p>
+ * &lt;p>B = c&lt;sub>0&lt;/sub> * A&lt;sub>0&lt;/sub> + c&lt;sub>1&lt;/sub> * A&lt;sub>1&lt;/sub> + ...&lt;/p>
  *
- * @param {!Array.&lt;MW.Matrix>} matrices the array of Matrix objects
+ * @param {!Array.&lt;MathWorkers.Matrix>} matrices the array of Matrix objects
  * @param {!Array.&lt;number>} coefficients the array of coefficients
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @function workerMatrixLinearCombination
  * @memberof MathWorkers.Batch
  */
-MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
-    MW.util.checkNumber(coefficients[0]);
-    MW.util.checkMatrix(matrices[0]);
-    MW.util.checkNullOrUndefined(tag);
+MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, rebroadcast) {
+    MathWorkers.util.checkNumber(coefficients[0]);
+    MathWorkers.util.checkMatrix(matrices[0]);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
     // First combo initializes M
     var M = [];
     var offset = 0;
     var mat = matrices[0];
     var coeff = coefficients[0];
-    var lb = MW.util.loadBalance(matrices[0].nrows);
+    var lb = MathWorkers.util.loadBalance(matrices[0].nrows);
     for (var i = lb.ifrom; i &lt; lb.ito; ++i) {
         M.push(new Float64Array(mat.ncols));
         for (var j = 0; j &lt; mat.ncols; ++j) {
@@ -2968,8 +2999,8 @@ MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, r
         offset = 0;
         mat = matrices[a];
         coeff = coefficients[a];
-        MW.util.checkNumber(coeff);
-        MW.util.checkMatrices(matrices[a-1], mat);
+        MathWorkers.util.checkNumber(coeff);
+        MathWorkers.util.checkMatrices(matrices[a-1], mat);
         for (i = lb.ifrom; i &lt; lb.ito; ++i) {
             for (j = 0; j &lt; mat.ncols; ++j) {
                 M[offset][j] += coeff * mat.array[i][j]
@@ -2978,35 +3009,36 @@ MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, r
         }
     }
 
-    MW.MathWorker.gatherMatrixRows(M, mat.nrows, lb.ifrom, tag, rebroadcast);
-},
+    MathWorkers.MathWorker.gatherMatrixRows(M, mat.nrows, lb.ifrom, tag, rebroadcast);
+};
 
 /**
- * Compute (in parallel) a matrix-vector product in combination with adding another vector to its result and also
- * multiplying by scalars. Operation is of the form: z = alpha * A.x + beta * y. The parameters beta and y are
- * optional, but both must be provided for them to be included.
+ * &lt;p>Compute (in parallel) a matrix-vector product in combination with adding another vector to its result and also
+ * multiplying by scalars. Operation is of the form:&lt;/p>
+ * &lt;p> z = alpha * A.x + beta * y&lt;/p>
+ * &lt;p>The parameters beta and y are optional, but both must be provided for them to be included.&lt;/p>
  *
  * @param {!number} alpha scalar to multiply the matrix-vector product by
- * @param {!MW.Matrix} A the Matrix in the matrix-vector product
- * @param {!MW.Vector} x the Vector in the matrix-vector product
+ * @param {!MathWorkers.Matrix} A the Matrix in the matrix-vector product
+ * @param {!MathWorkers.Vector} x the Vector in the matrix-vector product
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @param {number} [beta] optional scalar to multiply Vector y by
- * @param {MW.Vector} [y] optional Vector to be scaled by beta and then added the the matrix-vector product.
+ * @param {MathWorkers.Vector} [y] optional Vector to be scaled by beta and then added the the matrix-vector product.
  * @function workerMatrixVectorPlus
  * @memberof MathWorkers.Batch
  */
- MW.Batch.workerMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, beta, y) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkMatrixVector(A, x);
-    MW.util.checkNullOrUndefined(tag);
+ MathWorkers.Batch.workerMatrixVectorPlus = function(alpha, A, x, tag, rebroadcast, beta, y) {
+    MathWorkers.util.checkNumber(alpha);
+    MathWorkers.util.checkMatrixVector(A, x);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
-    var lb = MW.util.loadBalance(A.nrows);
+    var lb = MathWorkers.util.loadBalance(A.nrows);
     var z = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     if (beta &amp;&amp; y) {
-        MW.util.checkNumber(beta);
-        MW.util.checkVectors(x, y);
+        MathWorkers.util.checkNumber(beta);
+        MathWorkers.util.checkVectors(x, y);
         for (var i = lb.ifrom; i &lt; lb.ito; ++i) {
             var tot = 0.0;
             for (var j = 0; j &lt; this.ncols; ++j) {
@@ -3023,40 +3055,41 @@ MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, r
             z[offset++] = alpha * tot;
         }
     }
-    MW.MathWorker.gatherVector(z, x.length, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherVector(z, x.length, lb.ifrom, tag, rebroadcast);
 };
 
 
 /**
- * Compute (in parallel) a matrix-matrix product in combination with adding another matrix to its result and also
- * multiplying by scalars. Operation is of the form: D = alpha * A.B + beta * C. The parameters beta and C are
- * optional, but both must be provided for them to be included.
+ * &lt;p>Compute (in parallel) a matrix-matrix product in combination with adding another matrix to its result and also
+ * multiplying by scalars. Operation is of the form:&lt;/p>
+ * &lt;p>D = alpha * A.B + beta * C&lt;/p>
+ * &lt;p>The parameters beta and C are optional, but both must be provided for them to be included.&lt;/p>
  *
  * @param {!number} alpha the scalar to multiply the matrix-matrix product by
- * @param {!MW.Matrix} A the left-side Matrix in the matrix-matrix product
- * @param {!MW.Matrix} B the right-side Matrix in the matrix-matrix product
+ * @param {!MathWorkers.Matrix} A the left-side Matrix in the matrix-matrix product
+ * @param {!MathWorkers.Matrix} B the right-side Matrix in the matrix-matrix product
  * @param {!string} tag message tag
  * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
  * @param {number} [beta] the scalar to multiply the Matrix C by
- * @param {MW.Matrix} [C] the Matrix to be scaled by beta and then added to the matrix-matrix product
+ * @param {MathWorkers.Matrix} [C] the Matrix to be scaled by beta and then added to the matrix-matrix product
  * @function workerMatrixMatrixPlus
  * @memberof MathWorkers.Batch
  */
- MW.Batch.workerMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
-    MW.util.checkNumber(alpha);
-    MW.util.checkMatrixMatrix(A, B);
-    MW.util.checkNullOrUndefined(tag);
+ MathWorkers.Batch.workerMatrixMatrixPlus = function(alpha, A, B, tag, rebroadcast, beta, C) {
+    MathWorkers.util.checkNumber(alpha);
+    MathWorkers.util.checkMatrixMatrix(A, B);
+    MathWorkers.util.checkNullOrUndefined(tag);
 
     // Transpose B for better row-major memory access
     // If square, save on memory by doing an in-place transpose
     var Bt = B.isSquare() ? B.transposeInPlace() : B.transpose();
-    var lb = MW.util.loadBalance(A.nrows);
+    var lb = MathWorkers.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
 
     if (beta &amp;&amp; C) {
-        MW.util.checkNumber(beta);
-        MW.util.checkMatrix(C);
+        MathWorkers.util.checkNumber(beta);
+        MathWorkers.util.checkMatrix(C);
         if (!(A.nrows === C.nrows &amp;&amp; B.ncols === C.ncols)) {
             throw new Error("Matrix dimensions not compatible for addition.");
         }
@@ -3091,7 +3124,7 @@ MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, r
         B.transposeInPlace();
     }
 
-    MW.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
+    MathWorkers.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
 };
 
 
@@ -3102,7 +3135,22 @@ MW.Batch.workerMatrixLinearCombination = function(matrices, coefficients, tag, r
  *
  * @namespace MathWorkers.Stats
  */
-MW.Stats = {};
+MathWorkers.Stats = {};
+
+/**
+ * A statistical summary of a sample of numbers
+ *
+ * @typedef {Object} StatisticsSummary
+ * @property {number} n number of elements sampled in this summary
+ * @property {number} mean mean of the sample
+ * @property {number} variance variance of the sample
+ * @property {number} stddev standard deviation of the sample
+ * @property {number} minimum minimum value in the sample
+ * @property {number} maximum maximum value in the sample
+ * @property {?number} quartile25 25th percentile value
+ * @property {?number} quartile50 50th percentile value (or, the median)
+ * @property {?number} quartile75 75th percentile value
+ */
 
 /**
  * Compute basic summary statistics for a generic Array, Float64Array, Vector, or Matrix
@@ -3113,19 +3161,21 @@ MW.Stats = {};
  *
  * Quartiles are not reported if the data passed in contains less than 3 elements
  *
+ * @param data {Array.&lt;number>|Float64Array|MathWorkers.Vector|MathWorkers.Matrix} sample of numbers to be summarized
+ * @returns {StatisticsSummary}
  * @function summary
  * @memberof MathWorkers.Stats
  */
-MW.Stats.summary = function (data) {
-    MW.util.checkNullOrUndefined(data);
+MathWorkers.Stats.summary = function (data) {
+    MathWorkers.util.checkNullOrUndefined(data);
     // Copy the data to a local array so that we can sort without affecting data
     var i;
     var arr = [];
-    if (data instanceof MW.Vector) {
+    if (data instanceof MathWorkers.Vector) {
         for (i = 0; i &lt; data.array.length; ++i) {
             arr.push(data.array[i]);
         }
-    } else if (data instanceof MW.Matrix) {
+    } else if (data instanceof MathWorkers.Matrix) {
         for (i = 0; i &lt; data.nrows; ++i) {
             for (var j = 0; j &lt; data.ncols; ++j) {
                 arr.push(data.array[i][j]);
@@ -3199,7 +3249,7 @@ MW.Stats.summary = function (data) {
 };
 
 
-return MW;
+return MathWorkers;
 }());</code></pre>
         </article>
     </section>
@@ -3210,13 +3260,13 @@ return MW;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MathWorkers.html">MathWorkers</a></li></ul><h3>Classes</h3><ul><li><a href="MW.Coordinator.html">Coordinator</a></li><li><a href="MW.MathWorker.html">MathWorker</a></li><li><a href="MW.Matrix.html">Matrix</a></li><li><a href="MW.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="MathWorkers.Batch.html">Batch</a></li><li><a href="MathWorkers.Stats.html">Stats</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-MathWorkers.html">MathWorkers</a></li></ul><h3>Classes</h3><ul><li><a href="MathWorkers.Coordinator.html">Coordinator</a></li><li><a href="MathWorkers.MathWorker.html">MathWorker</a></li><li><a href="MathWorkers.Matrix.html">Matrix</a></li><li><a href="MathWorkers.Vector.html">Vector</a></li></ul><h3>Namespaces</h3><ul><li><a href="MathWorkers.Batch.html">Batch</a></li><li><a href="MathWorkers.Global.html">Global</a></li><li><a href="MathWorkers.Stats.html">Stats</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Tue Nov 04 2014 23:48:31 GMT-0600 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha9</a> on Wed Nov 05 2014 22:26:01 GMT-0600 (CST)
 </footer>
 
 <script> prettyPrint(); </script>
