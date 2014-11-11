@@ -14,6 +14,17 @@ MathWorkers.Global = {};
  */
 var global = {};
 
+// For documentation and such. Make sure to update on releases.
+global.version = "1.0.0";
+/**
+ * Retrieve the MathWorkers code version
+ *
+ * @returns {string}
+ */
+MathWorkers.Global.getVersion = function () {
+    return global.version;
+};
+
 // Globally scoped useful variables, defaults
 global.workerPool = [];
 global.nWorkers = 1;

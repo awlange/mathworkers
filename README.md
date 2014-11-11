@@ -1,7 +1,7 @@
 #[MathWorkersJS](http://www.mathworkersjs.org)
 
-An open-source parallel JavaScript math library built around HTML5 Web Workers
+An open-source parallel JavaScript math library built around HTML5 web workers.
 
-## Documentation
+## Site
 
-For current documentation, visit [mathworkersjs.org](http://www.mathworkersjs.org).
+For documentation and more, visit [mathworkersjs.org](http://www.mathworkersjs.org).
