@@ -15,7 +15,7 @@ MathWorkers.Global = {};
 var global = {};
 
 // For documentation and such. Make sure to update on releases.
-global.version = "1.0.0";
+global.version = "1.0.1";
 /**
  * Retrieve the MathWorkers code version
  *
@@ -85,5 +85,17 @@ global.createPool = function(nWorkersInput, workerScriptName) {
 	this.getWorker = function(workerId) {
 		return this.workerPool[workerId];
 	};
+};
+
+global.isNode = false;
+/**
+ * Turn off/on node.js mode
+ *
+ * @param node {!boolean} node.js mode to be set
+ * @function setNode
+ */
+MathWorkers.Global.setNode = function(node) {
+    MathWorkers.util.checkNullOrUndefined(node);
+    global.isNode = node;
 };
 

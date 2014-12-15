@@ -25,6 +25,7 @@
  *  @author Adrian W. Lange
  */
 
+(function() {
 var MathWorkers = (function() {
 "use strict";
 
