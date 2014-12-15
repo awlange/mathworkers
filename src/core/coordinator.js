@@ -37,9 +37,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	this.ready = false;
 
-	// Create the worker pool, which starts the workers
-	global.createPool(nWorkersInput, workerScriptName);
-
 	/**
 	 * Once all workers in the pool report that they are ready, execute the callback.
 	 *
@@ -130,6 +127,22 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 		}
 	};
 
+
+	// TODO: node.js for now, may be for web workers too
+	/**
+	 * Disconnect from workers
+	 */
+	this.disconnect = function() {
+		if (global.isNode && global.nodeCluster.isMaster) {
+			global.nodeCluster.disconnect();
+		}
+	};
+
+	/**
+	 * Create the worker pool, which starts the workers
+	 */
+	global.createPool(nWorkersInput, workerScriptName);
+
     /**
 	 * The onmessage router for all workers.
      * Routes the event appropriately based on the message handle.
@@ -175,7 +188,17 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
  	// Register the above onmessageHandler for each worker in the pool
  	// Also, initialize the message data buffer with empty objects
  	for (var wk = 0; wk < global.nWorkers; ++wk) {
- 		global.getWorker(wk).onmessage = onmessageHandler;
+		if (global.isNode) {
+			// Node.js cluster workers
+			// TODO: not so sure about this...
+			if (global.nodeCluster.isWorker) {
+				return;
+			}
+			global.getWorker(wk).on("message", onmessageHandler);
+		} else {
+			// HTML5 Web Workers
+			global.getWorker(wk).onmessage = onmessageHandler;
+		}
  		messageDataBuffer.push({});
  	}
 
@@ -402,7 +425,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 			nWorkersReported = 0;
 		}
 	};
-
 };
 MathWorkers.Coordinator.prototype = new EventEmitter();
 
