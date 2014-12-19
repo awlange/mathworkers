@@ -80,34 +80,32 @@ global.createPool = function(nWorkersInput, workerScriptName) {
     if (global.isNode) {
         // Node.js cluster workers
         global.nodeCluster = require("cluster");
-        global.nodeCluster.on('online', function() {
-            console.log("Yay, the worker responded after it was forked");
-        });
         if (global.nodeCluster.isMaster) {
             for (i = 0; i < nWorkersInput; ++i) {
                 worker = global.nodeCluster.fork();
-                //worker.send({
-                //    handle: "_init", id: i, nWorkers: nWorkersInput,
-                //    logLevel: global.logLevel, unrollLoops: global.unrollLoops
-                //});
+                worker.send(createInitData(i));
                 this.workerPool.push(worker);
                 this.nWorkers = this.workerPool.length;
             }
         } else if (global.nodeCluster.isWorker) {
             var workerScript = require(workerScriptName);
-            workerScript.run(process);
+            workerScript.run();
         }
     } else {
         // HTML5 Web Workers
         MathWorkers.util.checkWebWorkerSupport();
         for (i = 0; i < nWorkersInput; ++i) {
             worker = new Worker(workerScriptName);
-            worker.postMessage({
-                handle: "_init", id: i, nWorkers: nWorkersInput,
-                logLevel: global.logLevel, unrollLoops: global.unrollLoops
-            });
+            worker.postMessage(createInitData(i));
             this.workerPool.push(worker);
             this.nWorkers = this.workerPool.length;
+        }
+    }
+
+    function createInitData(i) {
+        return {
+            handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops
         }
     }
 

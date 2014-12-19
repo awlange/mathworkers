@@ -76,7 +76,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      */
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			global.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
+			comm.postMessageToWorker(wk, {handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
@@ -88,7 +88,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	this.sendDataToWorkers = function(data, tag) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			global.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: data});
+			comm.postMessageToWorker(wk, {handle: "_broadcastData", tag: tag, data: data});
 		}
 	};
 
@@ -102,7 +102,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 		// Must make a copy of the vector for each worker for transferable object message passing
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
 			var v = new Float64Array(vec.array);
-			global.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
+			comm.postMessageToWorker(wk, {handle: "_broadcastVector", tag: tag,
 				vec: v.buffer}, [v.buffer]);
 		}
 	};
@@ -123,7 +123,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 				matObject[i] = row.buffer;
 				matBufferList.push(row.buffer);
 			}
-			global.getWorker(wk).postMessage(matObject, matBufferList);
+			comm.postMessageToWorker(wk, matObject, matBufferList);
 		}
 	};
 
@@ -151,7 +151,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      * @private
      */
  	var onmessageHandler = function(event) {
- 		var data = event.data;
+ 		var data = event.data || event;
  		switch (data.handle) {
  			case "_workerReady":
  				handleWorkerReady();
@@ -181,7 +181,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
                 handleVectorProduct(data);
                 break;
  			default:
- 				console.error("Invalid Coordinator handle: " + data.handle);
+ 				console.error("Invalid Coordinator handle: " + data);
  		}
  	};
 
