@@ -8,7 +8,7 @@ var comm = {};
 
 comm.postMessage = function(message, buffer) {
     if (global.logLevel > 2) {
-        console.log("Posting message: " + message);
+        console.log("Posting message: %j", message);
     }
 
     if (global.isNode) {

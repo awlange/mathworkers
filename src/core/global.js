@@ -62,7 +62,7 @@ global.unrollLoops = false;
  * @memberof MathWorkers.Global
  * @function setUnrollLoops
  */
-MathWorkers.setUnrollLoops = function(unroll) {
+MathWorkers.Global.setUnrollLoops = function(unroll) {
     MathWorkers.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
@@ -88,8 +88,9 @@ global.createPool = function(nWorkersInput, workerScriptName) {
                 this.nWorkers = this.workerPool.length;
             }
         } else if (global.nodeCluster.isWorker) {
-            var workerScript = require(workerScriptName);
-            workerScript.run();
+            require(workerScriptName);
+            //var workerScript = require(workerScriptName);
+            //workerScript.run();
         }
     } else {
         // HTML5 Web Workers
