@@ -3,7 +3,7 @@ var MWs = require("../../lib/mathworkers.js");
 var Vector = MWs.Vector;
 var Matrix = MWs.Matrix;
 
-var n = 300;
+var n = 400;
 var A = MWs.Matrix.randomMatrix(n, n);
 var B = MWs.Matrix.randomMatrix(n, n);
 

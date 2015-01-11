@@ -1,12 +1,13 @@
 /**
  *  Homebrewed simple unit testing stuff for MathWorkers
  */
+(function() {
+var isNode = false; // node.js
 var UnitTester = (function() {
 
 // Global variables
 var T = {};
 var EPSILON = 10e-12;  // threshold for testing double precision equalities here
-
 
 T.Tester = function(testName) {
 	this.pass = true;
@@ -78,6 +79,9 @@ T.Tester = function(testName) {
 
 	// DOM manipulation function(s)
 	this.updatePage = function() {
+		if (isNode) {
+			return;
+		}
 		var elem = document.getElementById(this.name);
 		if (this.pass) {
 			elem.className = "passed";
@@ -90,4 +94,18 @@ T.Tester = function(testName) {
 };
 
 return T;
-}());
+})();
+
+
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+	// Exporting for node.js
+	isNode = true;
+	module.exports = UnitTester;
+} else if (typeof window !== 'undefined') {
+	// Exporting for browser
+	window.UnitTester = UnitTester;
+} else {
+	// Exporting for web worker
+	self.UnitTester = UnitTester;
+}
+})();
