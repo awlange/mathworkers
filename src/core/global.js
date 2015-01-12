@@ -15,7 +15,7 @@ MathWorkers.Global = {};
 var global = {};
 
 // For documentation and such. Make sure to update on releases.
-global.version = "1.0.0";
+global.version = "1.0.1";
 /**
  * Retrieve the MathWorkers code version
  *
@@ -62,28 +62,75 @@ global.unrollLoops = false;
  * @memberof MathWorkers.Global
  * @function setUnrollLoops
  */
-MathWorkers.setUnrollLoops = function(unroll) {
+MathWorkers.Global.setUnrollLoops = function(unroll) {
     MathWorkers.util.checkNullOrUndefined(unroll);
     global.unrollLoops = unroll;
 };
 
 /**
- * Creates the internal Web Worker pool, if Web Worker supported.
+ * Creates the internal worker pool.
+ * Attempts to use node.js cluster workers first.
+ * Then checks if Web Worker supported in browser.
  *
  * @ignore
  */
 global.createPool = function(nWorkersInput, workerScriptName) {
-    MathWorkers.util.checkWebWorkerSupport();
-	for (var i = 0; i < nWorkersInput; ++i) {
-		var worker = new Worker(workerScriptName);
-		worker.postMessage({handle: "_init", id: i, nWorkers: nWorkersInput,
-            logLevel: global.logLevel, unrollLoops: global.unrollLoops});
-		this.workerPool.push(worker);
-        this.nWorkers = this.workerPool.length;
-	}
+
+    var i, worker;
+    if (global.isNode) {
+        // Node.js cluster workers
+        global.nodeCluster = require("cluster");
+        if (global.nodeCluster.isMaster) {
+            for (i = 0; i < nWorkersInput; ++i) {
+                worker = global.nodeCluster.fork();
+                worker.send(createInitData(i));
+                this.workerPool.push(worker);
+                this.nWorkers = this.workerPool.length;
+            }
+        } else if (global.nodeCluster.isWorker) {
+            // worker loads script here
+            require(workerScriptName);
+        }
+    } else {
+        // HTML5 Web Workers
+        MathWorkers.util.checkWebWorkerSupport();
+        for (i = 0; i < nWorkersInput; ++i) {
+            worker = new Worker(workerScriptName);
+            worker.postMessage(createInitData(i));
+            this.workerPool.push(worker);
+            this.nWorkers = this.workerPool.length;
+        }
+    }
+
+    function createInitData(i) {
+        return {
+            handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops
+        }
+    }
 
 	this.getWorker = function(workerId) {
 		return this.workerPool[workerId];
 	};
 };
 
+global.isNode = false;
+global.nodeCluster = {};
+/**
+ * Turn off/on node.js mode
+ *
+ * @param node {!boolean} node.js mode to be set
+ * @function setNode
+ */
+MathWorkers.Global.setNode = function(node) {
+    MathWorkers.util.checkNullOrUndefined(node);
+    global.isNode = node;
+};
+
+// TODO: temporary
+MathWorkers.Global.isMaster = function() {
+    return global.isNode && global.nodeCluster && global.nodeCluster.isMaster;
+};
+MathWorkers.Global.isWorker = function() {
+    return global.isNode && global.nodeCluster && global.nodeCluster.isWorker;
+};

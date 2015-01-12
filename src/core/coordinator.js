@@ -37,9 +37,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	this.ready = false;
 
-	// Create the worker pool, which starts the workers
-	global.createPool(nWorkersInput, workerScriptName);
-
 	/**
 	 * Once all workers in the pool report that they are ready, execute the callback.
 	 *
@@ -79,7 +76,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      */
 	this.trigger = function(tag, args) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			global.getWorker(wk).postMessage({handle: "_trigger", tag: tag, args: args});
+			comm.postMessageToWorker(wk, {handle: "_trigger", tag: tag, args: args});
 		}
 	};
 
@@ -91,7 +88,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	this.sendDataToWorkers = function(data, tag) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			global.getWorker(wk).postMessage({handle: "_broadcastData", tag: tag, data: data});
+			comm.postMessageToWorker(wk, {handle: "_broadcastData", tag: tag, data: data});
 		}
 	};
 
@@ -104,9 +101,15 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	this.sendVectorToWorkers = function(vec, tag) {
 		// Must make a copy of the vector for each worker for transferable object message passing
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			var v = new Float64Array(vec.array);
-			global.getWorker(wk).postMessage({handle: "_broadcastVector", tag: tag,
-				vec: v.buffer}, [v.buffer]);
+			var buf;
+			if (global.isNode) {
+				// Convert ArrayBuffer to string
+				buf = MathWorkers.util.ab2str(vec.array.buffer);
+			} else {
+				var v = new Float64Array(vec.array);
+				buf = v.buffer;
+			}
+			comm.postMessageToWorker(wk, {handle: "_broadcastVector", tag: tag,	vec: buf}, [buf]);
 		}
 	};
 
@@ -121,14 +124,37 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 		for (var wk = 0; wk < global.nWorkers; ++wk) {
 			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
 			var matBufferList = [];
-			for (var i = 0; i < mat.nrows; ++i) {
-				var row = new Float64Array(mat.array[i]);
-				matObject[i] = row.buffer;
-				matBufferList.push(row.buffer);
+			var i, row;
+			if (global.isNode) {
+				for (i = 0; i < mat.nrows; ++i) {
+					// Convert ArrayBuffer to string
+					matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
+				}
+			} else {
+				for (i = 0; i < mat.nrows; ++i) {
+					row = new Float64Array(mat.array[i]);
+					matObject[i] = row.buffer;
+					matBufferList.push(row.buffer);
+				}
 			}
-			global.getWorker(wk).postMessage(matObject, matBufferList);
+			comm.postMessageToWorker(wk, matObject, matBufferList);
 		}
 	};
+
+
+	/**
+	 * Disconnect the coordinator from node.js cluster workers
+	 */
+	this.disconnect = function() {
+		if (global.isNode && global.nodeCluster.isMaster) {
+			global.nodeCluster.disconnect();
+		}
+	};
+
+	/**
+	 * Create the worker pool, which starts the workers
+	 */
+	global.createPool(nWorkersInput, workerScriptName);
 
     /**
 	 * The onmessage router for all workers.
@@ -138,7 +164,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      * @private
      */
  	var onmessageHandler = function(event) {
- 		var data = event.data;
+ 		var data = event.data || event;
  		switch (data.handle) {
  			case "_workerReady":
  				handleWorkerReady();
@@ -168,14 +194,24 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
                 handleVectorProduct(data);
                 break;
  			default:
- 				console.error("Invalid Coordinator handle: " + data.handle);
+ 				console.error("Invalid Coordinator handle: " + data);
  		}
  	};
 
  	// Register the above onmessageHandler for each worker in the pool
  	// Also, initialize the message data buffer with empty objects
  	for (var wk = 0; wk < global.nWorkers; ++wk) {
- 		global.getWorker(wk).onmessage = onmessageHandler;
+		if (global.isNode) {
+			// Node.js cluster workers
+			// TODO: not so sure about this...
+			if (global.nodeCluster.isWorker) {
+				return;
+			}
+			global.getWorker(wk).on("message", onmessageHandler);
+		} else {
+			// HTML5 Web Workers
+			global.getWorker(wk).onmessage = onmessageHandler;
+		}
  		messageDataBuffer.push({});
  	}
 
@@ -225,7 +261,12 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	var handleVectorSendToCoordinator = function(data) {
 		objectBuffer = new MathWorkers.Vector();
-		objectBuffer.setVector(new Float64Array(data.vectorBuffer));
+		var buf = data.vectorBuffer;
+		if (global.isNode) {
+			// Convert string into ArrayBuffer
+			buf = MathWorkers.util.str2ab(buf);
+		}
+		objectBuffer.setVector(new Float64Array(buf));
 		that.emit(data.tag);
 	};
 
@@ -239,8 +280,16 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 	 */
 	var handleMatrixSendToCoordinator = function(data) {
         var tmp = [];
-		for (var i = 0; i < data.nrows; ++i) {
-			tmp.push(new Float64Array(data[i]));
+		var i;
+		if (global.isNode) {
+			for (i = 0; i < data.nrows; ++i) {
+				// Convert string into ArrayBuffer
+				tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
+			}
+		} else {
+			for (i = 0; i < data.nrows; ++i) {
+				tmp.push(new Float64Array(data[i]));
+			}
 		}
 		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
@@ -260,7 +309,8 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         if (nWorkersReported == 0) {
             objectBuffer = new MathWorkers.Vector(data.len);
         }
-        var tmpArray = new Float64Array(data.vectorPart);
+		var buf = global.isNode ? MathWorkers.util.str2ab(data.vectorPart) : data.vectorPart;
+        var tmpArray = new Float64Array(buf);
         var offset = data.offset;
         for (var i = 0; i < tmpArray.length; ++i) {
             objectBuffer.array[offset + i] = tmpArray[i];
@@ -293,8 +343,15 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         if (nWorkersReported == 0) {
             objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
-        for (var i = 0; i < data.nrowsPart; ++i) {
-			objectBuffer.array[offset + i] = new Float64Array(data[i]);
+		var i;
+		if (global.isNode) {
+			for (i = 0; i < data.nrowsPart; ++i) {
+				objectBuffer.array[offset + i] = new Float64Array(MathWorkers.util.str2ab(data[i]));
+			}
+		} else {
+			for (i = 0; i < data.nrowsPart; ++i) {
+				objectBuffer.array[offset + i] = new Float64Array(data[i]);
+			}
 		}
 
 		nWorkersReported += 1;
@@ -329,12 +386,21 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         // array in data is transposed
         var tmpArray;
         var offsetk;
-        for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
-            tmpArray = new Float64Array(data[k]);
-            for (i = 0; i < tmpArray.length; ++i) {
-                objectBuffer.array[i][offsetk] = tmpArray[i];
-            }
-        }
+		if (global.isNode) {
+			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+				tmpArray = new Float64Array(MathWorkers.util.str2ab(data[k]));
+				for (i = 0; i < tmpArray.length; ++i) {
+					objectBuffer.array[i][offsetk] = tmpArray[i];
+				}
+			}
+		} else {
+			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+				tmpArray = new Float64Array(data[k]);
+				for (i = 0; i < tmpArray.length; ++i) {
+					objectBuffer.array[i][offsetk] = tmpArray[i];
+				}
+			}
+		}
 
         nWorkersReported += 1;
         if (nWorkersReported == global.nWorkers) {
@@ -402,7 +468,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 			nWorkersReported = 0;
 		}
 	};
-
 };
 MathWorkers.Coordinator.prototype = new EventEmitter();
 

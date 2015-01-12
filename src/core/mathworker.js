@@ -75,7 +75,7 @@ MathWorkers.MathWorker = function() {
 	 * @param {!string} tag message tag
 	 */
  	this.sendDataToCoordinator = function(data, tag) {
- 		self.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
+ 		comm.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
  	};
 
 	/**
@@ -87,8 +87,15 @@ MathWorkers.MathWorker = function() {
     this.sendVectorToCoordinator = function(vec, tag) {
         // only id 0 does the sending actually
         if (global.myWorkerId == 0) {
-            self.postMessage({handle: "_vectorSendToCoordinator", tag: tag,
-                vectorBuffer: vec.array.buffer}, [vec.array.buffer]);
+			var buf = vec.array.buffer;
+			if (global.isNode) {
+				// Convert ArrayBuffer to a string for communication
+				buf = MathWorkers.util.ab2str(buf);
+			}
+			comm.postMessage({
+				handle: "_vectorSendToCoordinator", tag: tag,
+				vectorBuffer: buf
+			}, [buf]);
         }
     };
 
@@ -100,14 +107,22 @@ MathWorkers.MathWorker = function() {
 	 */
     this.sendMatrixToCoordinator = function(mat, tag) {
         // only id 0 does the sending actually
-        if (id == 0) {
+        if (global.myWorkerId == 0) {
             var matObject = {handle: "_matrixSendToCoordinator", tag: tag, nrows: mat.nrows};
             var matBufferList = [];
-            for (var i = 0; i < mat.nrows; ++i) {
-                matObject[i] = mat.array[i].buffer;
-                matBufferList.push(mat.array[i].buffer);
-            }
-            self.postMessage(matObject, matBufferList);
+			var i;
+			if (global.isNode) {
+				for (i = 0; i < mat.nrows; ++i) {
+					// Convert ArrayBuffer to a string
+					matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
+				}
+			} else {
+				for (i = 0; i < mat.nrows; ++i) {
+					matObject[i] = mat.array[i].buffer;
+					matBufferList.push(mat.array[i].buffer);
+				}
+			}
+			comm.postMessage(matObject, matBufferList);
         }
     };
 
@@ -118,8 +133,8 @@ MathWorkers.MathWorker = function() {
 	 * @param {Object} event web worker event object
 	 * @private
 	 */
-	self.onmessage = function(event) {
-		var data = event.data;
+	comm.setOnMessage( function(event) {
+		var data = event.data || event;
 		switch (data.handle) {
 			case "_init":
 				handleInit(data);
@@ -139,7 +154,7 @@ MathWorkers.MathWorker = function() {
  			default:
  				console.error("Invalid MathWorker handle: " + data.handle);
  		}
- 	};
+ 	});
 
 	/**
 	 * MathWorker initialization. This message is received upon the coordinator creating this worker for
@@ -157,7 +172,7 @@ MathWorkers.MathWorker = function() {
  		if (global.logLevel > 2) {
             console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
         }
-        self.postMessage({handle: "_workerReady"});
+		comm.postMessage({handle: "_workerReady"});
  	};
 
 	/**
@@ -200,7 +215,12 @@ MathWorkers.MathWorker = function() {
 	 * @private
 	 */
  	var handleBroadcastVector = function(data) {
- 		objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(data.vec));
+		var buf = data.vec;
+		if (global.isNode) {
+			// Convert string to ArrayBuffer
+			buf = MathWorkers.util.str2ab(buf);
+		}
+ 		objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
  		handleTrigger(data, objectBuffer);
  	};
 
@@ -213,8 +233,16 @@ MathWorkers.MathWorker = function() {
 	 */
  	var handleBroadcastMatrix = function(data) {
  		var tmp = [];
-		for (var i = 0; i < data.nrows; ++i) {
-			tmp.push(new Float64Array(data[i]));
+		var i;
+		if (global.isNode) {
+			for (i = 0; i < data.nrows; ++i) {
+				// Convert string to ArrayBuffer
+				tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
+			}
+		} else {
+			for (i = 0; i < data.nrows; ++i) {
+				tmp.push(new Float64Array(data[i]));
+			}
 		}
 		objectBuffer = new MathWorkers.Matrix();
 		objectBuffer.setMatrix(tmp);
@@ -242,8 +270,9 @@ MathWorkers.MathWorker.prototype = new EventEmitter();
  */
 MathWorkers.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
-        len: totalLength, offset: offset, vectorPart: vec.buffer}, [vec.buffer]);
+	var buf = global.isNode ? MathWorkers.util.ab2str(vec.buffer) : vec.buffer;
+	comm.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+        len: totalLength, offset: offset, vectorPart: buf}, [buf]);
 };
 
 /**
@@ -263,11 +292,18 @@ MathWorkers.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, 
     var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
     var matBufferList = [];
-    for (var i = 0; i < mat.length; ++i) {
-        matObject[i] = mat[i].buffer;
-        matBufferList.push(mat[i].buffer);
-    }
-    self.postMessage(matObject, matBufferList);
+	var i;
+	if (global.isNode) {
+		for (i = 0; i < mat.length; ++i) {
+			matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
+		}
+	} else {
+		for (i = 0; i < mat.length; ++i) {
+			matObject[i] = mat[i].buffer;
+			matBufferList.push(mat[i].buffer);
+		}
+	}
+	comm.postMessage(matObject, matBufferList);
 };
 
 /**
@@ -288,11 +324,18 @@ MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols,
     var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
     var matBufferList = [];
-    for (var i = 0; i < mat.length; ++i) {
-        matObject[i] = mat[i].buffer;
-        matBufferList.push(mat[i].buffer);
-    }
-    self.postMessage(matObject, matBufferList);
+	var i;
+	if (global.isNode) {
+		for (i = 0; i < mat.length; ++i) {
+			matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
+		}
+	} else {
+		for (i = 0; i < mat.length; ++i) {
+			matObject[i] = mat[i].buffer;
+			matBufferList.push(mat[i].buffer);
+		}
+	}
+	comm.postMessage(matObject, matBufferList);
 };
 
 /**
@@ -307,7 +350,7 @@ MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols,
  */
 MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+	comm.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 
@@ -323,7 +366,7 @@ MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  */
 MathWorkers.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-    self.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
+	comm.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 

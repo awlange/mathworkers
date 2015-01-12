@@ -224,3 +224,50 @@ MathWorkers.util.checkMatrixMatrix = function(A, B) {
     }
 };
 
+
+/**
+ * Convenience function to get the values of an object/map
+ *
+ * @ignore
+ */
+MathWorkers.util.mapValues = function(m) {
+    var vals = [];
+    for (var key in m) {
+        if (m.hasOwnProperty(key)) {
+            vals.push(m[key]);
+        }
+    }
+    return vals;
+};
+
+
+/**
+ * Convert and ArrayBuffer to a String
+ *
+ * compliments of: http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+ *
+ * @ignore
+ * @param buf {ArrayBuffer} ArrayBuffer to convert
+ * @returns {string} the resulting string
+ */
+MathWorkers.util.ab2str = function(buf) {
+    return String.fromCharCode.apply(null, new Uint16Array(buf));
+};
+
+/**
+ * Convert a String to an ArrayBuffer
+ *
+ * compliments of: http://updates.html5rocks.com/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+ *
+ * @ignore
+ * @param str {string} String to convert
+ * @returns {ArrayBuffer} the resulting ArrayBuffer
+ */
+MathWorkers.util.str2ab = function(str) {
+    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+    var bufView = new Uint16Array(buf);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+};

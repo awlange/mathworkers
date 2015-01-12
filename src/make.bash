@@ -5,6 +5,7 @@ cat \
   core/mathworkers_head.js.txt \
   core/global.js \
   core/util.js \
+  core/communication.js \
   core/event_emitter.js \
   core/coordinator.js \
   core/mathworker.js \
