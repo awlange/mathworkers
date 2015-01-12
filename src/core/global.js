@@ -88,9 +88,8 @@ global.createPool = function(nWorkersInput, workerScriptName) {
                 this.nWorkers = this.workerPool.length;
             }
         } else if (global.nodeCluster.isWorker) {
+            // worker loads script here
             require(workerScriptName);
-            //var workerScript = require(workerScriptName);
-            //workerScript.run();
         }
     } else {
         // HTML5 Web Workers

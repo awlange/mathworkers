@@ -276,7 +276,6 @@ serialTests.push( function() {
     var B = Matrix.fromArray([[-3.0, 2.0],
         [1.0, -2.0]]);
     var AB = A.dotMatrix(B);
-    console.log(AB.toString());
     T.matrixEqual(Matrix.fromArray([[-1.0, -2.0],
         [-3.0, -2.0]]), AB);
     T.passed();
