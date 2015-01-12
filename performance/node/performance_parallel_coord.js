@@ -5,40 +5,45 @@
 
 var run = function(MWs, coord) {
 
-    console.log("Hey, am I a master process? : " + MWs.Global.isMaster());
-
+    // Loop size
     var nRuns = 10;
 
+    // Start the events
     coord.onReady(function () {
         coord.trigger("set");
         coord.trigger("foo");
     });
 
-    coord.on("bar", function () {
-        var messageList = coord.getMessageDataList();
-        console.log(messageList);
+    function createEventListener(eventName, triggerName, responseName) {
+        coord.on(eventName, function () {
+            var times = [];
+            var r = 1;
+            coord.trigger(triggerName);
+            var start = new Date().getTime();
 
-        var times = [];
-        var r = 1;
-        coord.trigger("run_matrixMatrixProduct");
-        var start = new Date().getTime();
+            coord.on(responseName, function () {
+                var buffer = coord.getBuffer();
+                times.push(new Date().getTime() - start);
+                if (r >= nRuns) {
+                    var stats = MWs.Stats.summary(times);
+                    console.log(stats);
 
-        coord.on("matrixMatrixProduct", function () {
-            var buffer = coord.getBuffer();
-            times.push(new Date().getTime() - start);
-            if (r >= nRuns) {
-                var stats = MWs.Stats.summary(times);
-                console.log(stats);
-
-                // Disconnect to terminate program
-                coord.disconnect();
-            } else {
-                coord.trigger("run_matrixMatrixProduct");
-                start = new Date().getTime();
-                r += 1;
-            }
+                    // Disconnect to terminate program
+                    coord.disconnect();
+                } else {
+                    coord.trigger(triggerName);
+                    start = new Date().getTime();
+                    r += 1;
+                }
+            });
         });
-    });
+    }
+
+    // The events to run
+    //createEventListener("bar", "run_matrixMatrixProduct", "matrixMatrixProduct");
+    createEventListener("bar", "run_vectorDot", "vectorDot");
+
+
 };
 
 

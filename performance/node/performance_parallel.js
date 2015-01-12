@@ -1,7 +1,7 @@
 // TODO: node.js tests
 var MWs = require("../../lib/mathworkers.js");
 MWs.Global.setNode(true);  // Turn on node.js mode
-//MWs.Global.setLogLevel(3);
+//MWs.Global.setLogLevel(1);
 //MWs.Global.setUnrollLoops(true);
 
 // Path is relative to where the mathworkers.js file is located
