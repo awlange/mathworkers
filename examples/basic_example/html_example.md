@@ -16,11 +16,11 @@ Worker code:
 
 ```JavaScript
 importScripts("mathworkers.js");
-var MW = new MathWorkers.MathWorker();
+var worker = new MathWorkers.MathWorker();
 
-MW.on("run", function() {
+worker.on("run", function() {
 	var v = Vector.randomVector(1024);
 	var w = Vector.randomVector(1024);
-	v.wkDotVector(w, "done");
+	v.workerDotVector(w, "done");
 });
 ```
