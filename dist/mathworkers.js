@@ -25,15 +25,18 @@
  *  @author Adrian W. Lange
  */
 
+"use strict";
+
 (function() {
 var MathWorkers = (function() {
-"use strict";
 
 /**
  * The MathWorkers module
  * @exports MathWorkers
  */
 var MathWorkers = {};
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -114,6 +117,14 @@ MathWorkers.Global.setUnrollLoops = function(unroll) {
 global.createPool = function(nWorkersInput, workerScriptName) {
 
     var i, worker;
+
+    function createInitData(i) {
+        return {
+            handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops
+        };
+    }
+
     if (global.isNode) {
         // Node.js cluster workers
         global.nodeCluster = require("cluster");
@@ -139,16 +150,9 @@ global.createPool = function(nWorkersInput, workerScriptName) {
         }
     }
 
-    function createInitData(i) {
-        return {
-            handle: "_init", id: i, nWorkers: nWorkersInput,
-            logLevel: global.logLevel, unrollLoops: global.unrollLoops
-        }
-    }
-
-	this.getWorker = function(workerId) {
-		return this.workerPool[workerId];
-	};
+    this.getWorker = function(workerId) {
+        return this.workerPool[workerId];
+    };
 };
 
 global.isNode = false;
@@ -171,6 +175,8 @@ MathWorkers.Global.isMaster = function() {
 MathWorkers.Global.isWorker = function() {
     return global.isNode && global.nodeCluster && global.nodeCluster.isWorker;
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -444,6 +450,8 @@ MathWorkers.util.str2ab = function(str) {
     }
     return buf;
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -480,6 +488,8 @@ comm.setOnMessage = function(onmessageHandler) {
         self.onmessage = onmessageHandler;
     }
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -518,6 +528,8 @@ function EventEmitter() {
         });
     };
 }
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -992,6 +1004,8 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
 };
 MathWorkers.Coordinator.prototype = new EventEmitter();
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -1362,6 +1376,8 @@ MathWorkers.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
 	comm.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
+
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -1781,6 +1797,8 @@ MathWorkers.Vector.prototype.dotMatrix = function(A) {
 };
 
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 /*
@@ -2126,6 +2144,8 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     }
     MathWorkers.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -2701,6 +2721,8 @@ MathWorkers.Matrix.prototype.dotMatrix = function(B) {
     return C;
 };
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 /*
@@ -3107,6 +3129,8 @@ MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 // TODO: Finish unrolling these guys
@@ -3352,6 +3376,8 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
 };
 
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -3471,6 +3497,8 @@ MathWorkers.Stats.summary = function (data) {
         quartile75: q75
     };
 };
+
+
 
 
 return MathWorkers;

@@ -77,6 +77,14 @@ MathWorkers.Global.setUnrollLoops = function(unroll) {
 global.createPool = function(nWorkersInput, workerScriptName) {
 
     var i, worker;
+
+    function createInitData(i) {
+        return {
+            handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops
+        };
+    }
+
     if (global.isNode) {
         // Node.js cluster workers
         global.nodeCluster = require("cluster");
@@ -102,16 +110,9 @@ global.createPool = function(nWorkersInput, workerScriptName) {
         }
     }
 
-    function createInitData(i) {
-        return {
-            handle: "_init", id: i, nWorkers: nWorkersInput,
-            logLevel: global.logLevel, unrollLoops: global.unrollLoops
-        }
-    }
-
-	this.getWorker = function(workerId) {
-		return this.workerPool[workerId];
-	};
+    this.getWorker = function(workerId) {
+        return this.workerPool[workerId];
+    };
 };
 
 global.isNode = false;

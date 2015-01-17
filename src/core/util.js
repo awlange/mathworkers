@@ -15,7 +15,7 @@ MathWorkers.util = {};
  */
 MathWorkers.util.checkWebWorkerSupport = function() {
     if (typeof(Worker) === "undefined") {
-        throw Error("Web Worker support not available for MathWorkers.");
+        throw new Error("Web Worker support not available for MathWorkers.");
     }
 };
 

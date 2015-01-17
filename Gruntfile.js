@@ -11,18 +11,18 @@ module.exports = function(grunt) {
       dist: {
         src: [
           'src/_intro.js',
-          'src/core/global.js'
-          'src/core/util.js'
-          'src/core/communication.js'
-          'src/core/event_emitter.js'
-          'src/core/coordinator.js'
-          'src/core/mathworker.js'
-          'src/core/vector.js'
-          'src/core/vector_worker.js'
-          'src/core/matrix.js'
-          'src/core/matrix_worker.js'
-          'src/core/batch.js'
-          'src/statistics/basic_statistics.js'
+          'src/core/global.js',
+          'src/core/util.js',
+          'src/core/communication.js',
+          'src/core/event_emitter.js',
+          'src/core/coordinator.js',
+          'src/core/mathworker.js',
+          'src/core/vector.js',
+          'src/core/vector_worker.js',
+          'src/core/matrix.js',
+          'src/core/matrix_worker.js',
+          'src/core/batch.js',
+          'src/statistics/basic_statistics.js',
           'src/_outro.js'
         ],
         dest: 'dist/<%= pkg.name.replace(".js", "") %>.js'
