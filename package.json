@@ -1,0 +1,33 @@
+{
+  "name": "mathworkers",
+  "version": "1.0.3",
+  "main": "dist/mathworkers.min.js",
+  "description": "A parallel JavaScript math and statistics library built around HTML5 Web Workers and Node.js cluster.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/awlange/mathworkers.git"
+  },
+  "keywords": [
+    "mathworkers",
+    "parallel",
+    "cluster",
+    "web workers",
+    "math",
+    "mathematics",
+    "statistics",
+    "vector",
+    "matrix"
+  ],
+  "author": "Adrian W. Lange <adrian.w.lange@gmail.com>",
+  "license": "Apache v2.0",
+  "readmeFilename": "README.md",
+  "dependencies": {},
+  "devDependencies": {
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-qunit": "~0.3.0"
+  }
+}

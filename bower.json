@@ -1,0 +1,12 @@
+{
+  "name": "mathworkers",
+  "version": "0.0.0",
+  "main": "dist/mathworkers.min.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test"
+  ],
+  "dependencies": {}
+}
