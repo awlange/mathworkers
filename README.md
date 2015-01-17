@@ -6,7 +6,7 @@ A parallel JavaScript math and statistics library built around HTML5 Web Workers
 
 A JavaScript library by Adrian W. Lange.
 
-See the [project homepage](http://mathworkersjs.org).
+See the [project homepage](http://www.mathworkersjs.org/).
 
 ## Installation
 
@@ -26,7 +26,7 @@ For advanced usage, see the documentation.
 
 ## Documentation
 
-Start with `docs/MAIN.md`.
+Visit the [project homepage](http://www.mathworkersjs.org/)
 
 ## Contributing
 
