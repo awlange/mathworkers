@@ -9,14 +9,6 @@
 MathWorkers.Global = {};
 
 /**
- *  Data available globally only within the MathWorkers class
- *  @ignore
- */
-var global = {};
-
-// For documentation and such. Make sure to update on releases.
-global.version = "1.2.0";
-/**
  * Retrieve the MathWorkers code version
  *
  * @returns {string}
