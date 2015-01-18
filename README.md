@@ -38,11 +38,11 @@ Or grab the [source](https://github.com/awlange/mathworkers/dist/mathworkers.js)
 
 ### Basic Serial
 
-Basic serial usage for computing the dot product of two Vectors:
+Basic serial usage for computing a dot product of two Vectors:
 
 ```JavaScript
-var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
-var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
+var v = MathWorkers.Vector.randomVector(1024);
+var w = MathWorkers.Vector.randomVector(1024);
 var dot = v.dotVector(w);
 console.log(dot);
 ```
@@ -79,8 +79,8 @@ var worker = new MathWorkers.MathWorker();
 
 // On the Coordinator trigger, compute the dot product in parallel
 worker.on("compute", function() {
-    var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
-    var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
+    var v = MathWorkers.Vector.randomVector(1024);
+    var w = MathWorkers.Vector.randomVector(1024);
     v.workerDotVector(w, "dot");
 });
 ```
