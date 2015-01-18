@@ -1,3 +1,3 @@
 test("the base function exists", function() {
-  ok(mathworkers);
+  ok(MathWorkers);
 });
