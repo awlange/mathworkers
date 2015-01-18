@@ -3,7 +3,7 @@
  * not to be executed by any worker processes
  */
 
-var run = function(MWs, coord) {
+var run = function(MathWorkers, coord) {
 
     // Loop size
     var nRuns = 10;
@@ -25,7 +25,7 @@ var run = function(MWs, coord) {
                 var buffer = coord.getBuffer();
                 times.push(new Date().getTime() - start);
                 if (r >= nRuns) {
-                    var stats = MWs.Stats.summary(times);
+                    var stats = MathWorkers.Stats.summary(times);
                     console.log(stats);
 
                     // Disconnect to terminate program

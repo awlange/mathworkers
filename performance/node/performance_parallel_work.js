@@ -1,5 +1,5 @@
 // Worker code for node.js
-var MathWorkers = require("../../lib/mathworkers.js");
+require("../../dist/mathworkers.js");
 MathWorkers.Global.setNode(true);
 
 var worker = new MathWorkers.MathWorker();
