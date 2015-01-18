@@ -1,5 +1,5 @@
 // Worker code for node.js
-require("../../dist/mathworkers.js");
+var MathWorkers = require("../../dist/mathworkers.js");
 MathWorkers.Global.setNode(true);
 
 var worker = new MathWorkers.MathWorker();
@@ -21,7 +21,7 @@ worker.on("set", function() {
 });
 
 worker.on("foo", function() {
-    MWs.sendDataToCoordinator("Hello from process: " + process.pid, "bar");
+    worker.sendDataToCoordinator("Hello from process: " + process.pid, "bar");
 });
 
 worker.on("run_vectorDot", function() {
