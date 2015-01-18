@@ -356,10 +356,10 @@ MathWorkers.Vector.prototype.dotVector = function(w) {
     if (global.unrollLoops) {
         var ni3 = ni - 3;
         for (i = 0; i < ni3; i += 4) {
-            tot += this.array[i] * w.array[i]
-                + this.array[i+1] * w.array[i+1]
-                + this.array[i+2] * w.array[i+2]
-                + this.array[i+3] * w.array[i+3];
+            tot += this.array[i] * w.array[i] +
+                this.array[i+1] * w.array[i+1] +
+                this.array[i+2] * w.array[i+2] +
+                this.array[i+3] * w.array[i+3];
         }
         for (; i < ni; ++i) {
             tot += this.array[i] * w.array[i];
@@ -392,10 +392,10 @@ MathWorkers.Vector.prototype.dotMatrix = function(A) {
         for (i = 0; i < ni; ++i) {
             tot = 0.0;
             for (j = 0; j < nj3; j += 4) {
-                tot += this.array[j] * A.array[j][i]
-                    + this.array[j+1] * A.array[j+1][i]
-                    + this.array[j+2] * A.array[j+2][i]
-                    + this.array[j+3] * A.array[j+3][i];
+                tot += this.array[j] * A.array[j][i] +
+                    this.array[j+1] * A.array[j+1][i] +
+                    this.array[j+2] * A.array[j+2][i] +
+                    this.array[j+3] * A.array[j+3][i];
             }
             for (; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];

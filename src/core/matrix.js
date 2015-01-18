@@ -496,10 +496,10 @@ MathWorkers.Matrix.prototype.dotVector = function(v) {
             tot = 0.0;
             ai = this.array[i];
             for (j = 0; j < nj3; j += 4) {
-                tot += ai[j] * v.array[j]
-                    + ai[j+1] * v.array[j+1]
-                    + ai[j+2] * v.array[j+2]
-                    + ai[j+3] * v.array[j+3];
+                tot += ai[j] * v.array[j] +
+                    ai[j+1] * v.array[j+1] +
+                    ai[j+2] * v.array[j+2] +
+                    ai[j+3] * v.array[j+3];
             }
             for (; j < nj; ++j) {
                 tot += ai[j] * v.array[j];
@@ -545,10 +545,10 @@ MathWorkers.Matrix.prototype.dotMatrix = function(B) {
                 tot = 0.0;
                 ai = this.array[i];
                 for (j = 0; j < nj3; j += 4) {
-                    tot += ai[j] * Bk[j]
-                        + ai[j+1] * Bk[j+1]
-                        + ai[j+2] * Bk[j+2]
-                        + ai[j+3] * Bk[j+3];
+                    tot += ai[j] * Bk[j] +
+                        ai[j+1] * Bk[j+1] +
+                        ai[j+2] * Bk[j+2] +
+                        ai[j+3] * Bk[j+3];
                 }
                 for (; j < nj; ++j) {
                     tot += ai[j] * Bk[j];

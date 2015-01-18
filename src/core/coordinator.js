@@ -224,7 +224,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      */
     var handleWorkerReady = function() {
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             that.ready = true;
             that.emit("_ready");
             // reset for next message
@@ -242,7 +242,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
     var handleSendData = function(data) {
         messageDataBuffer[data.id] = data.data;
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             that.emit(data.tag);
             // reset for next message
             nWorkersReported = 0;
@@ -303,7 +303,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      */
     var handleGatherVector = function(data) {
         // Gather the vector parts from each worker
-        if (nWorkersReported == 0) {
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Vector(data.len);
         }
         var buf = global.isNode ? MathWorkers.util.str2ab(data.vectorPart) : data.vectorPart;
@@ -314,7 +314,7 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         }
 
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             if (data.rebroadcast) {
                 that.sendVectorToWorkers(objectBuffer, data.tag);
             } else {
@@ -325,81 +325,79 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
-	/**
-	 * Gather Matrix rows from workers into a new Matrix stored in the
-	 * Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
-	var handleGatherMatrixRows = function(data) {
-		// Gather the matrix rows from each worker
-        var offset = data.offset;
-        if (nWorkersReported == 0) {
+    /**
+     * Gather Matrix rows from workers into a new Matrix stored in the
+     * Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleGatherMatrixRows = function(data) {
+        // Gather the matrix rows from each worker
+        var i, offset = data.offset;
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
-		var i;
-		if (global.isNode) {
-			for (i = 0; i < data.nrowsPart; ++i) {
-				objectBuffer.array[offset + i] = new Float64Array(MathWorkers.util.str2ab(data[i]));
-			}
-		} else {
-			for (i = 0; i < data.nrowsPart; ++i) {
-				objectBuffer.array[offset + i] = new Float64Array(data[i]);
-			}
-		}
+        if (global.isNode) {
+            for (i = 0; i < data.nrowsPart; ++i) {
+                objectBuffer.array[offset + i] = new Float64Array(MathWorkers.util.str2ab(data[i]));
+            }
+        } else {
+            for (i = 0; i < data.nrowsPart; ++i) {
+                objectBuffer.array[offset + i] = new Float64Array(data[i]);
+            }
+        }
 
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			// build the full vector and save to buffer
-			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(objectBuffer, data.tag);
-			} else {
-				// emit
-				that.emit(data.tag);
-			}
-			//reset
-			nWorkersReported = 0;
-		}
-	};
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+          // build the full vector and save to buffer
+          if (data.rebroadcast) {
+              that.sendMatrixToWorkers(objectBuffer, data.tag);
+          } else {
+              that.emit(data.tag);
+          }
+          //reset
+          nWorkersReported = 0;
+        }
+    };
 
-	/**
-	 * Gather Matrix columns from workers into a new Matrix stored in the
-	 * Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
+    /**
+     * Gather Matrix columns from workers into a new Matrix stored in the
+     * Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
     var handleGatherMatrixColumns = function(data) {
         // Gather the matrix columns from each worker
         var i, k;
-        if (nWorkersReported == 0) {
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
 
         // array in data is transposed
         var tmpArray;
         var offsetk;
-		if (global.isNode) {
-			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
-				tmpArray = new Float64Array(MathWorkers.util.str2ab(data[k]));
-				for (i = 0; i < tmpArray.length; ++i) {
-					objectBuffer.array[i][offsetk] = tmpArray[i];
-				}
-			}
-		} else {
-			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
-				tmpArray = new Float64Array(data[k]);
-				for (i = 0; i < tmpArray.length; ++i) {
-					objectBuffer.array[i][offsetk] = tmpArray[i];
-				}
-			}
-		}
+        if (global.isNode) {
+            for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+              tmpArray = new Float64Array(MathWorkers.util.str2ab(data[k]));
+              for (i = 0; i < tmpArray.length; ++i) {
+                  objectBuffer.array[i][offsetk] = tmpArray[i];
+              }
+            }
+        } else {
+            for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+                tmpArray = new Float64Array(data[k]);
+                for (i = 0; i < tmpArray.length; ++i) {
+                    objectBuffer.array[i][offsetk] = tmpArray[i];
+                }
+            }
+        }
 
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             if (data.rebroadcast) {
                 that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
@@ -419,13 +417,13 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      * @private
      */
     var handleVectorSum = function(data) {
-        if (nWorkersReported == 0) {
+        if (nWorkersReported === 0) {
             objectBuffer = data.tot;
         } else {
             objectBuffer += data.tot;
         }
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             if (data.rebroadcast) {
                 // rebroadcast the result back to the workers
                 that.sendDataToWorkers(objectBuffer, data.tag);
@@ -438,32 +436,32 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
-	/**
-	 * Product reduction for a Vector. Stores the full product in the objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object}
-	 * @private
-	 */
-	var handleVectorProduct = function(data) {
-        if (nWorkersReported == 0) {
+    /**
+     * Product reduction for a Vector. Stores the full product in the objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object}
+     * @private
+     */
+    var handleVectorProduct = function(data) {
+        if (nWorkersReported === 0) {
             objectBuffer = data.tot;
         } else {
             objectBuffer *= data.tot;
         }
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			if (data.rebroadcast) {
-				// rebroadcast the result back to the workers
-				that.sendDataToWorkers(objectBuffer, data.tag);
-			} else {
-				// save result to buffer and emit to the browser-side coordinator
-				that.emit(data.tag);
-			}
-			// reset for next message
-			nWorkersReported = 0;
-		}
-	};
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+            if (data.rebroadcast) {
+                // rebroadcast the result back to the workers
+                that.sendDataToWorkers(objectBuffer, data.tag);
+            } else {
+                // save result to buffer and emit to the browser-side coordinator
+                that.emit(data.tag);
+            }
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
 };
 MathWorkers.Coordinator.prototype = new EventEmitter();
 
