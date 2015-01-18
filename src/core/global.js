@@ -15,7 +15,7 @@ MathWorkers.Global = {};
 var global = {};
 
 // For documentation and such. Make sure to update on releases.
-global.version = "1.1.0";
+global.version = "1.2.0";
 /**
  * Retrieve the MathWorkers code version
  *
