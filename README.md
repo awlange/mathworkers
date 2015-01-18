@@ -103,17 +103,19 @@ var coord = new MathWorkers.Coordinator(2, "work.js");
 
 // Branch the master thread
 if (MathWorkers.Global.isMaster()) {
-   coord.onReady(function() {
-       coord.trigger("run");
-   });
+    // Begin the computation once the workers are ready
+    coord.onReady(function() {
+        coord.trigger("compute");
+    });
+   
+    // Obtain the resulting dot product
+    coord.on("done", function() {
+        var dot = coord.getBuffer();
+        console.log(dot);
  
-   coord.on("done", function() {
-       var dot = coord.getBuffer();
-       console.log(dot);
- 
-       // Disconnect from the workers to terminate the program
-       coord.disconnect();
-   });
+        // Disconnect from the workers to terminate the program
+        coord.disconnect();
+    });
 }
 ```
 
@@ -123,10 +125,10 @@ Worker code, "work.js", which is executed by both workers in parallel:
 // Load MathWorkersJS for this worker and turn on Node.js mode
 var MathWorkers = require("mathworkers.js");
 MathWorkers.Global.setNode(true);
-
 var worker = new MathWorkers.MathWorker();
 
-worker.on("run", function() {
+// On the Coordinator trigger, compute the dot product in parallel
+worker.on("compute", function() {
     var v = Vector.randomVector(1024);
     var w = Vector.randomVector(1024);
     v.workerDotVector(w, "done");
