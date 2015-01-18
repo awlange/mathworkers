@@ -20,7 +20,7 @@
  *  limitations under the License.
  *
  *  @file MathWorkers.js library
- *  @version 1.1.0
+ *  @version 1.2.0
  *  @copyright Adrian W. Lange
  *  @author Adrian W. Lange
  */
@@ -36,6 +36,15 @@ var MathWorkers = (function() {
  */
 var MathWorkers = {};
 
+/**
+ *  Data available globally only within the MathWorkers class
+ *  @ignore
+ */
+var global = {};
+
+// For documentation and such. Make sure to update on releases.
+global.version = "1.2.0";
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -48,14 +57,6 @@ var MathWorkers = {};
  */
 MathWorkers.Global = {};
 
-/**
- *  Data available globally only within the MathWorkers class
- *  @ignore
- */
-var global = {};
-
-// For documentation and such. Make sure to update on releases.
-global.version = "1.2.0";
 /**
  * Retrieve the MathWorkers code version
  *
