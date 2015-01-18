@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>MathWorkers Serial Unit Tests</title>
+        <link href="./test.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+    <!-- Display results of tests -->
+    <h1>MathWorkers Statistics Component Unit Tests</h1>
+
+    <h2>Statistics tests</h2>
+    <ul>
+        <li>summaryOdd<div id="summaryOdd" class="pending">pending</div></li>
+        <li>summaryEven<div id="summaryEven" class="pending">pending</div></li>
+        <li>summaryEvenMatrix<div id="summaryEvenMatrix" class="pending">pending</div></li>
+        <li>summaryOnly2<div id="summaryOnly2" class="pending">pending</div></li>
+    </ul>
+
+    <!-- Scripts to run test below (being loose with the indentation) -->
+    <script src="../../dist/mathworkers.js"></script>
+    <script src="unit_tester.js"></script>
+    <script>
+/*
+ * Serial tests
+ */
+var MWs = MathWorkers;
+var Vector = MWs.Vector;
+var Matrix = MWs.Matrix;
+var util = MWs.util;
+var UT = UnitTester;
+var serialTests = [];
+
+serialTests.push( function() {
+    var T = new UT.Tester("summaryOdd");
+    // Numbers from: http://en.wikipedia.org/wiki/Quartile
+    var v = [7, 36, 15, 39, 49, 40, 41, 42, 43, 6, 47];
+    var summary = MWs.Stats.summary(v);
+    T.isTrue(summary.n === 11);
+    T.doubleEqual(33.18181818181818, summary.mean);
+    T.doubleEqual(229.05785123966942, summary.variance);
+    T.doubleEqual(15.134657288477642, summary.stddev);
+    T.doubleEqual(6, summary.minimum);
+    T.doubleEqual(49, summary.maximum);
+    T.doubleEqual(25.5, summary.quartile25);
+    T.doubleEqual(40.0, summary.quartile50);
+    T.doubleEqual(42.5, summary.quartile75);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("summaryEven");
+    // Numbers from: http://en.wikipedia.org/wiki/Quartile
+    var v = Vector.fromArray([41, 7, 39, 36, 40, 15]);
+    var summary = MWs.Stats.summary(v);
+    T.isTrue(summary.n === 6);
+    T.doubleEqual(29.666666666666668, summary.mean);
+    T.doubleEqual(181.88888888888889, summary.variance);
+    T.doubleEqual(13.486618882762606, summary.stddev);
+    T.doubleEqual(7, summary.minimum);
+    T.doubleEqual(41, summary.maximum);
+    T.doubleEqual(15.0, summary.quartile25);
+    T.doubleEqual(37.5, summary.quartile50);
+    T.doubleEqual(40.0, summary.quartile75);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("summaryEvenMatrix");
+    // Numbers from: http://en.wikipedia.org/wiki/Quartile
+    var v = Matrix.fromArray([[41, 7, 39], [36, 40, 15]]);
+    var summary = MWs.Stats.summary(v);
+    T.isTrue(summary.n === 6);
+    T.doubleEqual(29.666666666666668, summary.mean);
+    T.doubleEqual(181.88888888888889, summary.variance);
+    T.doubleEqual(13.486618882762606, summary.stddev);
+    T.doubleEqual(7, summary.minimum);
+    T.doubleEqual(41, summary.maximum);
+    T.doubleEqual(15.0, summary.quartile25);
+    T.doubleEqual(37.5, summary.quartile50);
+    T.doubleEqual(40.0, summary.quartile75);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("summaryOnly2");
+    var v = Vector.fromArray([41, 7]);
+    var summary = MWs.Stats.summary(v);
+    T.isTrue(summary.n === 2);
+    T.doubleEqual(24.0, summary.mean);
+    T.doubleEqual(289.0, summary.variance);
+    T.doubleEqual(17.0, summary.stddev);
+    T.doubleEqual(7, summary.minimum);
+    T.doubleEqual(41, summary.maximum);
+    T.isTrue(undefined === summary.quartile25);
+    T.isTrue(undefined === summary.quartile50);
+    T.isTrue(undefined === summary.quartile75);
+    T.passed();
+});
+
+
+serialTests.forEach( function(fn) {
+    fn.call(this);
+});
+    </script>
+    </body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MathWorkers Serial Unit Tests</title>
+		<link href="./test.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+  		<!-- Display results of tests -->
+  		<h1>MathWorkers Serial Unit Tests</h1>
+
+  		<h2>Vector tests</h2>
+  		<ul>
+            <li>sum<div id="sum" class="pending">pending</div></li>
+            <li>product<div id="product" class="pending">pending</div></li>
+  			<li>plus<div id="plus" class="pending">pending</div></li>
+  			<li>minus<div id="minus" class="pending">pending</div></li>
+  			<li>times<div id="times" class="pending">pending</div></li>
+  			<li>divide<div id="divide" class="pending">pending</div></li>
+  			<li>scale<div id="scale" class="pending">pending</div></li>
+  			<li>apply<div id="apply" class="pending">pending</div></li>
+			<li>dotVector<div id="dotVector" class="pending">pending</div></li>
+  			<li>vectorDotMatrix<div id="vectorDotMatrix" class="pending">pending</div></li>
+  		</ul>
+
+  		<h2>Matrix tests</h2>
+  		<ul>
+			<li>matrixZeroes<div id="matrixZeroes" class="pending">pending</div></li>
+			<li>matrixIdentity<div id="matrixIdentity" class="pending">pending</div></li>
+			<li>matrixCopyRow<div id="matrixCopyRow" class="pending">pending</div></li>
+			<li>matrixCopyColumn<div id="matrixCopyColumn" class="pending">pending</div></li>
+			<li>matrixPlus<div id="matrixPlus" class="pending">pending</div></li>
+			<li>matrixMinus<div id="matrixMinus" class="pending">pending</div></li>
+			<li>matrixTimes<div id="matrixTimes" class="pending">pending</div></li>
+			<li>matrixDivide<div id="matrixDivide" class="pending">pending</div></li>
+			<li>matrixScale<div id="matrixScale" class="pending">pending</div></li>
+			<li>matrixApply<div id="matrixApply" class="pending">pending</div></li>
+			<li>matrixDotVector<div id="matrixDotVector" class="pending">pending</div></li>
+			<li>matrixTransposeSquare<div id="matrixTransposeSquare" class="pending">pending</div></li>
+			<li>matrixTransposeRect<div id="matrixTransposeRect" class="pending">pending</div></li>
+			<li>matrixDotMatrix1<div id="matrixDotMatrix1" class="pending">pending</div></li>
+			<li>matrixDotMatrix2<div id="matrixDotMatrix2" class="pending">pending</div></li>
+			<li>matrixDotMatrix3<div id="matrixDotMatrix3" class="pending">pending</div></li>
+			<li>matrixDotMatrix4<div id="matrixDotMatrix4" class="pending">pending</div></li>
+			<li>matrixDotMatrix5<div id="matrixDotMatrix5" class="pending">pending</div></li>
+  		</ul>
+
+        <h2>Checker tests</h2>
+        <ul>
+            <li>checkNullOrUndefined<div id="checkNullOrUndefined" class="pending">pending</div></li>
+            <li>checkNumber<div id="checkNumber" class="pending">pending</div></li>
+            <li>checkFunction<div id="checkFunction" class="pending">pending</div></li>
+            <li>checkArray<div id="checkArray" class="pending">pending</div></li>
+            <li>checkFloat64Array<div id="checkFloat64Array" class="pending">pending</div></li>
+            <li>checkVector<div id="checkVector" class="pending">pending</div></li>
+            <li>checkVectors<div id="checkVectors" class="pending">pending</div></li>
+            <li>checkMatrix<div id="checkMatrix" class="pending">pending</div></li>
+            <li>checkMatrices<div id="checkMatrices" class="pending">pending</div></li>
+            <li>checkMatrixVector<div id="checkMatrixVector" class="pending">pending</div></li>
+            <li>checkVectorMatrix<div id="checkVectorMatrix" class="pending">pending</div></li>
+            <li>checkMatrixMatrix<div id="checkMatrixMatrix" class="pending">pending</div></li>
+        </ul>
+
+  		<!-- Scripts to run test below (being loose with the indentation) -->
+  		<script src="../../dist/mathworkers.js"></script>
+  		<script src="unit_tester.js"></script>
+ 		<script>
+/*
+ * Serial tests
+ */
+var MWs = MathWorkers;
+var Vector = MWs.Vector;
+var Matrix = MWs.Matrix;
+var util = MWs.util;
+var UT = UnitTester;
+var serialTests = [];
+
+// Vector tests
+serialTests.push( function() {
+    var T = new UT.Tester("sum");
+    var v = Vector.fromArray([1.0, 2.0, -30.0]);
+    var sum = v.sum();
+    T.doubleEqual(-27.0, sum);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("product");
+    var v = Vector.fromArray([1.0, 2.0, -30.0]);
+    var prod = v.product();
+    T.doubleEqual(-60.0, prod);
+    T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("plus");
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.array[i] = i;
+		w.array[i] = i * 2.0;
+	}
+	var plus = v.plus(w);
+	var expected = Vector.fromArray([0.0, 3.0, 6.0]);
+	T.vectorEqual(expected, plus);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("minus");
+	var v = new MWs.Vector(3);
+	var w = new MWs.Vector(3);
+	for (var i = 0; i < 3; ++i) {
+		v.array[i] = (i+1) * 2.0;
+		w.array[i] = i+1;
+	}
+	var minus = v.minus(w);
+	var expected = Vector.fromArray([1.0, 2.0, 3.0]);
+	T.vectorEqual(expected, minus);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("times");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var w = Vector.fromArray([4.0, 8.0, -3.0]);
+	var times = v.times(w);
+	var expected = Vector.fromArray([4.0, 16.0, -9.0]);
+	T.vectorEqual(expected, times);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("divide");
+	var v = Vector.fromArray([1.0, 8.0, 3.0]);
+	var w = Vector.fromArray([4.0, 2.0, -3.0]);
+	var div = v.divide(w);
+	var expected = Vector.fromArray([0.25, 4.0, -1.0]);
+	T.vectorEqual(expected, div);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("scale");
+	var v = Vector.fromArray([0.25, 4.0, -30.0]);
+	var sc = v.scale(2.0);
+	var expected = Vector.fromArray([0.50, 8.0, -60.0]);
+	T.vectorEqual(expected, sc);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("apply");
+	var v = Vector.fromArray([1.0, 2.0, -3.0]);
+	var app = v.apply(Math.exp);
+	var expected = Vector.fromArray([Math.exp(1.0), Math.exp(2.0), Math.exp(-3.0)]);
+	T.vectorEqual(expected, app);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("dotVector");
+    var v = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
+    var w = Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0]);
+	var dot = v.dotVector(w);
+	T.doubleEqual(60.0, dot);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("vectorDotMatrix");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = v.dotMatrix(A);
+	T.vectorEqual(Vector.fromArray([30.0, 36.0, 42.0]), w);
+	T.passed();
+});
+
+// Matrix tests
+serialTests.push( function() {
+    var T = new UT.Tester("matrixZeroes");
+    T.matrixEqual(Matrix.fromArray([[0.0, 0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0, 0.0],
+                                    [0.0, 0.0, 0.0, 0.0]]), Matrix.zeroes(3, 4));
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("matrixIdentity");
+    T.matrixEqual(Matrix.fromArray([[1.0, 0.0, 0.0],
+                                    [0.0, 1.0, 0.0],
+                                    [0.0, 0.0, 1.0]]), Matrix.identity(3));
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("matrixCopyRow");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var vec = [0.0, 0.0, 0.0];
+    A.copyRow(1, vec);
+    T.doubleEqual(vec[0], 4.0);
+    T.doubleEqual(vec[1], 5.0);
+    T.doubleEqual(vec[2], 6.0);
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("matrixCopyColumn");
+    var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+    var vec = [0.0, 0.0, 0.0];
+    A.copyColumn(1, vec);
+    T.doubleEqual(vec[0], 2.0);
+    T.doubleEqual(vec[1], 5.0);
+    T.doubleEqual(vec[2], 8.0);
+    T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixPlus");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.plus(B);
+	T.matrixEqual(Matrix.fromArray([[4.0, 4.0, 4.0], [10.0, 10.0, 10.0], [16.0, 16.0, 16.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixMinus");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.minus(B);
+	T.matrixEqual(Matrix.fromArray([[-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0], [-2.0, 0.0, 2.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixTimes");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.times(B);
+	T.matrixEqual(Matrix.fromArray([[3.0, 4.0, 3.0], [24.0, 25.0, 24.0], [63.0, 64.0, 63.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDivide");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var B = Matrix.fromArray([[3.0, 2.0, 1.0], [6.0, 5.0, 4.0], [9.0, 8.0, 7.0]]);
+	var C = A.divide(B);
+	T.matrixEqual(Matrix.fromArray([[1.0/3.0, 1.0, 3.0], [4.0/6.0, 1.0, 6.0/4.0], [7.0/9.0, 1.0, 9.0/7.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixScale");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var C = A.scale(3.0);
+	T.matrixEqual(Matrix.fromArray([[3.0, 6.0, 9.0], [12.0, 15.0, 18.0], [21.0, 24.0, 27.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixApply");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var C = A.apply(Math.sqrt);
+	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)],
+									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)],
+									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), C);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotVector");
+	var v = Vector.fromArray([1.0, 2.0, 3.0]);
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
+	var w = A.dotVector(v);
+	T.vectorEqual(Vector.fromArray([14.0, 32.0, 50.0]), w);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixTransposeSquare");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0],
+		                      [4.0, 5.0, 6.0],
+		                      [7.0, 8.0, 9.0]]);
+	T.matrixEqual(Matrix.fromArray([[1.0, 4.0, 7.0],
+		                            [2.0, 5.0, 8.0],
+		                            [3.0, 6.0, 9.0]]), A.transpose());
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixTransposeRect");
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0, 4.0, 5.0],
+							  [6.0, 7.0, 8.0, 9.0, 10.0],
+							  [11.0, 12.0, 13.0, 14.0, 15.0]]);
+	T.matrixEqual(Matrix.fromArray([[1.0, 6.0, 11.0],
+									[2.0, 7.0, 12.0],
+									[3.0, 8.0, 13.0],
+									[4.0, 9.0, 14.0],
+									[5.0, 10.0, 15.0]]), A.transpose());
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotMatrix1");
+	var A = Matrix.fromArray([[1.0, 2.0],
+							  [2.0, 3.0]]);
+	var B = Matrix.fromArray([[-3.0, 2.0],
+							  [1.0, -2.0]]);
+	var AB = A.dotMatrix(B);
+    console.log(AB.toString());
+	T.matrixEqual(Matrix.fromArray([[-1.0, -2.0],
+									[-3.0, -2.0]]), AB);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotMatrix2");
+	var A = Matrix.fromArray([[1.0, 2.0],
+							  [2.0, 3.0]]);
+	var B = Matrix.fromArray([[-3.0, 2.0],
+							  [1.0, -2.0]]);
+	var BA = B.dotMatrix(A);
+	T.matrixEqual(Matrix.fromArray([[1.0, 0.0],
+									[-3.0, -4.0]]), BA);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotMatrix3");
+	var A = Matrix.fromArray([[1.0, 2.0],
+							  [2.0, 3.0]]);
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
+							  [0.0, 1.0, 1.0]]);
+	var AC = A.dotMatrix(C);
+	T.matrixEqual(Matrix.fromArray([[1.0, 2.0, 0.0],
+									[2.0, 3.0, -1.0]]), AC);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotMatrix4");
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
+							  [0.0, 1.0, 1.0]]);
+	var D = Matrix.fromArray([[3.0, 1.0],
+							  [-1.0, -2.0],
+							  [1.0, 1.0]]);
+	var CD = C.dotMatrix(D);
+	T.matrixEqual(Matrix.fromArray([[1.0, -1.0],
+									[0.0, -1.0]]), CD);
+	T.passed();
+});
+
+serialTests.push( function() {
+	var T = new UT.Tester("matrixDotMatrix5");
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
+							  [0.0, 1.0, 1.0]]);
+	var D = Matrix.fromArray([[3.0, 1.0],
+							  [-1.0, -2.0],
+							  [1.0, 1.0]]);
+	var DC = D.dotMatrix(C);
+	T.matrixEqual(Matrix.fromArray([[3.0, 1.0, -5.0],
+									[-1.0, -2.0, 0.0],
+									[1.0, 1.0, -1.0]]), DC);
+	T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkNullOrUndefined");
+    T.tests = [true, false, false];
+    try {
+        util.checkNullOrUndefined("banana");
+        util.checkNullOrUndefined(3.0);
+        util.checkNullOrUndefined(true);
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkNullOrUndefined(null);
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkNullOrUndefined(undefined);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkNumber");
+    T.tests = [true, false];
+    try {
+        util.checkNumber(400.0);
+        util.checkNumber(-7);
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkNumber("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkFunction");
+    T.tests = [true, false];
+    try {
+        util.checkFunction(function() {});
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkFunction("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkArray");
+    T.tests = [true, false];
+    try {
+        util.checkArray([1.0, 2.0, 3.0]);
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkArray("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkFloat64Array");
+    T.tests = [true, false, false];
+    try {
+        util.checkFloat64Array(new Float64Array(3));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkFloat64Array("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkFloat64Array([]);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVector");
+    T.tests = [true, false, false];
+    try {
+        util.checkVector(new Vector(3));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVector("banana");
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVector(null);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVectors");
+    T.tests = [true, false, false, false];
+    try {
+        util.checkVectors(new Vector(5), new Vector(5));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVectors(new Vector(10), new Vector(20));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVectors(null, new Vector(3));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkVectors(new Vector(3), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrix");
+    T.tests = [true, false, false];
+    try {
+        util.checkMatrix(new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrix(new Vector(10));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrix(null);
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrices");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkMatrices(new Matrix(5, 4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrices(new Vector(10), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrices(null, new Matrix(3, 2));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrices(new Matrix(2, 2), new Matrix(3, 2));
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrices(new Matrix(2, 2), new Matrix(2, 3));
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrixVector");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkMatrixVector(new Matrix(5, 4), new Vector(4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrixVector(new Vector(4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkMatrixVector(null, new Vector(4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrixVector(new Matrix(5, 4), new Vector(3));
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrixVector(new Matrix(2, 2), null);
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkVectorMatrix");
+    T.tests = [true, false, false, false, false];
+    try {
+        util.checkVectorMatrix(new Vector(5), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkVectorMatrix(new Vector(4), new Matrix(5, 4));
+    } catch (err) {
+        T.tests[1] = true;
+    }
+    try {
+        util.checkVectorMatrix(null, new Matrix(5, 4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkVectorMatrix(new Vector(5), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkVectorMatrix(new Matrix(2, 2), new Vector(2));
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+serialTests.push( function() {
+    var T = new UT.Tester("checkMatrixMatrix");
+    T.tests = [true, true, false, false, false];
+    try {
+        util.checkMatrixMatrix(new Matrix(5, 4), new Matrix(4, 3));
+    } catch (err) {
+        T.tests[0] = false;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(2, 2), new Matrix(2, 2));
+    } catch (err) {
+        T.tests[1] = false;
+    }
+    try {
+        util.checkMatrixMatrix(null, new Matrix(5, 4));
+    } catch (err) {
+        T.tests[2] = true;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(5, 4), null);
+    } catch (err) {
+        T.tests[3] = true;
+    }
+    try {
+        util.checkMatrixMatrix(new Matrix(2, 2), new Vector(2));
+    } catch (err) {
+        T.tests[4] = true;
+    }
+    T.passed();
+});
+
+
+serialTests.forEach( function(fn) {
+	fn.call(this);
+});
+		</script>
+  	</body>
+</html>

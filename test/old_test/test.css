@@ -1,0 +1,32 @@
+body {
+    padding-left: 20px;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    font-family: sans-serif;
+}
+
+ul, ol {
+    list-style-type: none;
+    margin: 0 auto;
+    padding: 0;
+}
+
+li {
+	width: 30%;
+}
+
+li div {
+	float: right;
+}
+
+.underline {
+	text-decoration: underline;
+}
+
+.passed {
+	color: #2ecc71;
+}
+
+.failed {
+	color: #e74c3c;
+}
