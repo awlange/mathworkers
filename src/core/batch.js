@@ -96,14 +96,15 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     MathWorkers.util.checkNullOrUndefined(tag);
 
     // First combo initializes M
+    var i, j;
     var M = [];
     var offset = 0;
     var mat = matrices[0];
     var coeff = coefficients[0];
     var lb = MathWorkers.util.loadBalance(matrices[0].nrows);
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
+    for (i = lb.ifrom; i < lb.ito; ++i) {
         M.push(new Float64Array(mat.ncols));
-        for (var j = 0; j < mat.ncols; ++j) {
+        for (j = 0; j < mat.ncols; ++j) {
             M[offset][j] = coeff * mat.array[i][j];
         }
         ++offset;
@@ -118,7 +119,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
         MathWorkers.util.checkMatrices(matrices[a-1], mat);
         for (i = lb.ifrom; i < lb.ito; ++i) {
             for (j = 0; j < mat.ncols; ++j) {
-                M[offset][j] += coeff * mat.array[i][j]
+                M[offset][j] += coeff * mat.array[i][j];
             }
             ++offset;
         }
@@ -148,16 +149,17 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     MathWorkers.util.checkMatrixVector(A, x);
     MathWorkers.util.checkNullOrUndefined(tag);
 
+    var i, j, tot;
     var lb = MathWorkers.util.loadBalance(A.nrows);
     var z = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     if (beta && y) {
         MathWorkers.util.checkNumber(beta);
         MathWorkers.util.checkVectors(x, y);
-        for (var i = lb.ifrom; i < lb.ito; ++i) {
-            var tot = 0.0;
-            for (var j = 0; j < this.ncols; ++j) {
-                tot += A.array[i][j] * v.array[j];
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot = 0.0;
+            for (j = 0; j < this.ncols; ++j) {
+                tot += A.array[i][j] * x.array[j];
             }
             z[offset++] = alpha * tot + beta * y[i];
         }
@@ -165,7 +167,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot = 0.0;
             for (j = 0; j < this.ncols; ++j) {
-                tot += A.array[i][j] * v.array[j];
+                tot += A.array[i][j] * x.array[j];
             }
             z[offset++] = alpha * tot;
         }
@@ -201,6 +203,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     var lb = MathWorkers.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
+    var i, j, k, tot;
 
     if (beta && C) {
         MathWorkers.util.checkNumber(beta);
@@ -209,11 +212,11 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
             throw new Error("Matrix dimensions not compatible for addition.");
         }
 
-        for (var i = lb.ifrom; i < lb.ito; ++i) {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
             D.push(new Float64Array(B.ncols));
-            for (var j = 0; j < B.ncols; ++j) {
-                var tot = 0.0;
-                for (var k = 0; k < A.ncols; ++k) {
+            for (j = 0; j < B.ncols; ++j) {
+                tot = 0.0;
+                for (k = 0; k < A.ncols; ++k) {
                     tot += A.array[i][k] * Bt.array[j][k];
                 }
                 D[offset][j] = alpha * tot + beta * C.array[i][j];

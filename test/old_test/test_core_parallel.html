@@ -8,7 +8,7 @@
 	<body>
   		<!-- Display results of tests -->
   		<h1>MathWorkers Multi-threaded Unit Tests</h1>
-  		
+
   		<h2>Communication tests</h2>
   		<ul>
    			<li>sendDataToCoordinator<div id="sendDataToCoordinator" class="pending">pending</div></li>
@@ -66,7 +66,7 @@
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
-  		<script src="../lib/mathworkers.js"></script>
+  		<script src="../../dist/mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
 		<script>
 /*
@@ -299,8 +299,8 @@ crd.on("matrixScale", function() {
 crd.on("matrixApply", function() {
 	var T = new UT.Tester("matrixApply");
 	var recv = crd.getBuffer();
-	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)], 
-									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)], 
+	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)],
+									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)],
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), recv);
 	T.passed();
 

@@ -1,5 +1,5 @@
 // TODO: node.js tests
-var MWs = require("../../lib/mathworkers.js");
+var MWs = require("../../dist/mathworkers.js");
 var Vector = MWs.Vector;
 var Matrix = MWs.Matrix;
 

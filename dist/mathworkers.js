@@ -25,15 +25,18 @@
  *  @author Adrian W. Lange
  */
 
+"use strict";
+
 (function() {
 var MathWorkers = (function() {
-"use strict";
 
 /**
  * The MathWorkers module
  * @exports MathWorkers
  */
 var MathWorkers = {};
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -114,6 +117,14 @@ MathWorkers.Global.setUnrollLoops = function(unroll) {
 global.createPool = function(nWorkersInput, workerScriptName) {
 
     var i, worker;
+
+    function createInitData(i) {
+        return {
+            handle: "_init", id: i, nWorkers: nWorkersInput,
+            logLevel: global.logLevel, unrollLoops: global.unrollLoops
+        };
+    }
+
     if (global.isNode) {
         // Node.js cluster workers
         global.nodeCluster = require("cluster");
@@ -139,16 +150,9 @@ global.createPool = function(nWorkersInput, workerScriptName) {
         }
     }
 
-    function createInitData(i) {
-        return {
-            handle: "_init", id: i, nWorkers: nWorkersInput,
-            logLevel: global.logLevel, unrollLoops: global.unrollLoops
-        }
-    }
-
-	this.getWorker = function(workerId) {
-		return this.workerPool[workerId];
-	};
+    this.getWorker = function(workerId) {
+        return this.workerPool[workerId];
+    };
 };
 
 global.isNode = false;
@@ -171,6 +175,8 @@ MathWorkers.Global.isMaster = function() {
 MathWorkers.Global.isWorker = function() {
     return global.isNode && global.nodeCluster && global.nodeCluster.isWorker;
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -188,7 +194,7 @@ MathWorkers.util = {};
  */
 MathWorkers.util.checkWebWorkerSupport = function() {
     if (typeof(Worker) === "undefined") {
-        throw Error("Web Worker support not available for MathWorkers.");
+        throw new Error("Web Worker support not available for MathWorkers.");
     }
 };
 
@@ -444,6 +450,8 @@ MathWorkers.util.str2ab = function(str) {
     }
     return buf;
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -480,6 +488,8 @@ comm.setOnMessage = function(onmessageHandler) {
         self.onmessage = onmessageHandler;
     }
 };
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -519,6 +529,8 @@ function EventEmitter() {
     };
 }
 
+
+
 // Copyright 2014 Adrian W. Lange
 
 /**
@@ -532,40 +544,40 @@ function EventEmitter() {
  * @memberof MathWorkers
  */
 MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
-	var that = this;
+    var that = this;
 
-	/**
-	 * Buffer for data received from worker pool
-	 *
-	 * @member {Object}
-	 * @private
-	 */
-	var objectBuffer = {};
+    /**
+     * Buffer for data received from worker pool
+     *
+     * @member {Object}
+     * @private
+     */
+    var objectBuffer = {};
 
-	/**
-	 * Message buffer for messages received from worker pool. Order of
-	 * messages in array corresponds to the MathWorker id.
-	 *
-	 * @member {Array}
-	 * @private
-	 */
-	var messageDataBuffer = [];
+    /**
+     * Message buffer for messages received from worker pool. Order of
+     * messages in array corresponds to the MathWorker id.
+     *
+     * @member {Array}
+     * @private
+     */
+    var messageDataBuffer = [];
 
-	/**
-	 * True when all spawned workers have reported that they are ready. False otherwise.
-	 *
-	 * @member {boolean}
-	 */
-	this.ready = false;
+    /**
+     * True when all spawned workers have reported that they are ready. False otherwise.
+     *
+     * @member {boolean}
+     */
+    this.ready = false;
 
-	/**
-	 * Once all workers in the pool report that they are ready, execute the callback.
-	 *
-	 * @param {function} callBack callback function to be executed
-	 */
-	this.onReady = function(callBack) {
-		that.on("_ready", callBack);
-	};
+    /**
+     * Once all workers in the pool report that they are ready, execute the callback.
+     *
+     * @param {function} callBack callback function to be executed
+     */
+    this.onReady = function(callBack) {
+        that.on("_ready", callBack);
+    };
 
     /**
      * Fetches the object buffer contents.
@@ -574,9 +586,9 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      *
      * @returns {Object}
      */
-	this.getBuffer = function() {
-		return objectBuffer;
-	};
+    this.getBuffer = function() {
+        return objectBuffer;
+    };
 
     /**
      * Fetches the message data list contents.
@@ -585,9 +597,9 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      *
      * @returns {Array}
      */
-	this.getMessageDataList = function() {
-		return messageDataBuffer;
-	};
+    this.getMessageDataList = function() {
+        return messageDataBuffer;
+    };
 
     /**
      * Cause an event registered by the MathWorker pool to execute.
@@ -595,336 +607,330 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
      * @param {!string} tag the unique label for the event being triggered
      * @param {Array} [args] an array of arguments to be passed to the callback to be executed
      */
-	this.trigger = function(tag, args) {
-		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			comm.postMessageToWorker(wk, {handle: "_trigger", tag: tag, args: args});
-		}
-	};
-
-	/**
-	 * Broadcasts data to all workers
-	 *
-	 * @param {Object} data JSON-serializable data to be sent
-	 * @param {!string} tag message tag
-	 */
-	this.sendDataToWorkers = function(data, tag) {
-		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			comm.postMessageToWorker(wk, {handle: "_broadcastData", tag: tag, data: data});
-		}
-	};
-
-	/**
-	 * Broadcast a Vector to all workers
-	 *
-	 * @param {!MathWorkers.Vector} vec Vector to be sent
-	 * @param {!string} tag message tag
-	 */
-	this.sendVectorToWorkers = function(vec, tag) {
-		// Must make a copy of the vector for each worker for transferable object message passing
-		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			var buf;
-			if (global.isNode) {
-				// Convert ArrayBuffer to string
-				buf = MathWorkers.util.ab2str(vec.array.buffer);
-			} else {
-				var v = new Float64Array(vec.array);
-				buf = v.buffer;
-			}
-			comm.postMessageToWorker(wk, {handle: "_broadcastVector", tag: tag,	vec: buf}, [buf]);
-		}
-	};
-
-	/**
-	 * Broadcast a Matrix to all workers
-	 *
-	 * @param {!MathWorkers.Matrix} mat Matrix to be sent
-	 * @param {!string} tag message tag
-	 */
-	this.sendMatrixToWorkers = function(mat, tag) {
-		// Must make a copy of each matrix row for each worker for transferable object message passing
-		for (var wk = 0; wk < global.nWorkers; ++wk) {
-			var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
-			var matBufferList = [];
-			var i, row;
-			if (global.isNode) {
-				for (i = 0; i < mat.nrows; ++i) {
-					// Convert ArrayBuffer to string
-					matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
-				}
-			} else {
-				for (i = 0; i < mat.nrows; ++i) {
-					row = new Float64Array(mat.array[i]);
-					matObject[i] = row.buffer;
-					matBufferList.push(row.buffer);
-				}
-			}
-			comm.postMessageToWorker(wk, matObject, matBufferList);
-		}
-	};
-
-
-	/**
-	 * Disconnect the coordinator from node.js cluster workers
-	 */
-	this.disconnect = function() {
-		if (global.isNode && global.nodeCluster.isMaster) {
-			global.nodeCluster.disconnect();
-		}
-	};
-
-	/**
-	 * Create the worker pool, which starts the workers
-	 */
-	global.createPool(nWorkersInput, workerScriptName);
+    this.trigger = function(tag, args) {
+        for (var wk = 0; wk < global.nWorkers; ++wk) {
+            comm.postMessageToWorker(wk, {handle: "_trigger", tag: tag, args: args});
+        }
+    };
 
     /**
-	 * The onmessage router for all workers.
+     * Broadcasts data to all workers
+     *
+     * @param {Object} data JSON-serializable data to be sent
+     * @param {!string} tag message tag
+     */
+    this.sendDataToWorkers = function(data, tag) {
+        for (var wk = 0; wk < global.nWorkers; ++wk) {
+            comm.postMessageToWorker(wk, {handle: "_broadcastData", tag: tag, data: data});
+        }
+    };
+
+    /**
+     * Broadcast a Vector to all workers
+     *
+     * @param {!MathWorkers.Vector} vec Vector to be sent
+     * @param {!string} tag message tag
+     */
+    this.sendVectorToWorkers = function(vec, tag) {
+        // Must make a copy of the vector for each worker for transferable object message passing
+        for (var wk = 0; wk < global.nWorkers; ++wk) {
+            var buf;
+            if (global.isNode) {
+                // Convert ArrayBuffer to string
+                buf = MathWorkers.util.ab2str(vec.array.buffer);
+            } else {
+                var v = new Float64Array(vec.array);
+                buf = v.buffer;
+            }
+            comm.postMessageToWorker(wk, {handle: "_broadcastVector", tag: tag,	vec: buf}, [buf]);
+        }
+    };
+
+    /**
+     * Broadcast a Matrix to all workers
+     *
+     * @param {!MathWorkers.Matrix} mat Matrix to be sent
+     * @param {!string} tag message tag
+     */
+    this.sendMatrixToWorkers = function(mat, tag) {
+        // Must make a copy of each matrix row for each worker for transferable object message passing
+        for (var wk = 0; wk < global.nWorkers; ++wk) {
+            var matObject = {handle: "_broadcastMatrix", tag: tag, nrows: mat.nrows};
+            var matBufferList = [];
+            var i, row;
+            if (global.isNode) {
+                for (i = 0; i < mat.nrows; ++i) {
+                    // Convert ArrayBuffer to string
+                    matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
+                }
+            } else {
+                for (i = 0; i < mat.nrows; ++i) {
+                    row = new Float64Array(mat.array[i]);
+                    matObject[i] = row.buffer;
+                    matBufferList.push(row.buffer);
+                }
+            }
+            comm.postMessageToWorker(wk, matObject, matBufferList);
+        }
+    };
+
+    /**
+     * Disconnect the coordinator from node.js cluster workers
+     */
+    this.disconnect = function() {
+        if (global.isNode && global.nodeCluster.isMaster) {
+            global.nodeCluster.disconnect();
+        }
+    };
+
+    /**
+     * Create the worker pool, which starts the workers
+     */
+    global.createPool(nWorkersInput, workerScriptName);
+
+    /**
+     * The onmessage router for all workers.
      * Routes the event appropriately based on the message handle.
      *
      * @param event {Object} web worker event from message passing
      * @private
      */
- 	var onmessageHandler = function(event) {
- 		var data = event.data || event;
- 		switch (data.handle) {
- 			case "_workerReady":
- 				handleWorkerReady();
- 				break;
- 			case "_sendData":
- 				handleSendData(data);
- 				break;
- 			case "_vectorSendToCoordinator":
- 				handleVectorSendToCoordinator(data);
- 				break;
- 			case "_gatherVector":
- 				handleGatherVector(data);
- 				break;
- 			case "_matrixSendToCoordinator":
- 				handleMatrixSendToCoordinator(data);
- 				break;
- 			 case "_gatherMatrixRows":
- 				handleGatherMatrixRows(data);
- 				break;
+    var onmessageHandler = function(event) {
+        var data = event.data || event;
+        switch (data.handle) {
+            case "_workerReady":
+                handleWorkerReady();
+                break;
+            case "_sendData":
+                handleSendData(data);
+                break;
+            case "_vectorSendToCoordinator":
+                handleVectorSendToCoordinator(data);
+                break;
+            case "_gatherVector":
+                handleGatherVector(data);
+                break;
+            case "_matrixSendToCoordinator":
+                handleMatrixSendToCoordinator(data);
+                break;
+            case "_gatherMatrixRows":
+                handleGatherMatrixRows(data);
+                break;
             case "_gatherMatrixColumns":
                 handleGatherMatrixColumns(data);
                 break;
-  			case "_vectorSum":
- 				handleVectorSum(data);
- 				break;
+            case "_vectorSum":
+                handleVectorSum(data);
+                break;
             case "_vectorProduct":
                 handleVectorProduct(data);
                 break;
- 			default:
- 				console.error("Invalid Coordinator handle: " + data);
- 		}
- 	};
+            default:
+                console.error("Invalid Coordinator handle: " + data);
+        }
+    };
 
- 	// Register the above onmessageHandler for each worker in the pool
- 	// Also, initialize the message data buffer with empty objects
- 	for (var wk = 0; wk < global.nWorkers; ++wk) {
-		if (global.isNode) {
-			// Node.js cluster workers
-			// TODO: not so sure about this...
-			if (global.nodeCluster.isWorker) {
-				return;
-			}
-			global.getWorker(wk).on("message", onmessageHandler);
-		} else {
-			// HTML5 Web Workers
-			global.getWorker(wk).onmessage = onmessageHandler;
-		}
- 		messageDataBuffer.push({});
- 	}
+    // Register the above onmessageHandler for each worker in the pool
+    // Also, initialize the message data buffer with empty objects
+    for (var wk = 0; wk < global.nWorkers; ++wk) {
+        if (global.isNode) {
+            // Node.js cluster workers
+            if (global.nodeCluster.isWorker) {
+                return;
+            }
+            global.getWorker(wk).on("message", onmessageHandler);
+        } else {
+            // HTML5 Web Workers
+            global.getWorker(wk).onmessage = onmessageHandler;
+        }
+        messageDataBuffer.push({});
+    }
 
- 	// Reduction function variables
- 	var nWorkersReported = 0;
+    // Reduction function variables
+    var nWorkersReported = 0;
 
-	/**
-	 * Accumulate the number of reported workers. Once all workers have reported,
-	 * emit the special "_ready" event to cause onReady() to execute.
-	 *
-	 * @private
-	 */
- 	var handleWorkerReady = function() {
- 		nWorkersReported += 1;
- 		if (nWorkersReported == global.nWorkers) {
- 			that.ready = true;
- 			that.emit("_ready");
- 			// reset for next message
-			nWorkersReported = 0;	
- 		}
- 	};
+    /**
+     * Accumulate the number of reported workers. Once all workers have reported,
+     * emit the special "_ready" event to cause onReady() to execute.
+     *
+     * @private
+     */
+    var handleWorkerReady = function() {
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+            that.ready = true;
+            that.emit("_ready");
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
 
-	/**
-	 * Accumulate messages from workers into the messageDataBuffer array.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
- 	var handleSendData = function(data) {
- 		messageDataBuffer[data.id] = data.data;
- 		nWorkersReported += 1;
- 		if (nWorkersReported == global.nWorkers) {
- 			that.emit(data.tag);
- 			// reset for next message
-			nWorkersReported = 0;	
- 		}
- 	};
+    /**
+     * Accumulate messages from workers into the messageDataBuffer array.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleSendData = function(data) {
+        messageDataBuffer[data.id] = data.data;
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+            that.emit(data.tag);
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
 
-	/**
-	 * Copies Vector sent from a worker into a Vector stored
-	 * temporarily in the Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
-	var handleVectorSendToCoordinator = function(data) {
-		objectBuffer = new MathWorkers.Vector();
-		var buf = data.vectorBuffer;
-		if (global.isNode) {
-			// Convert string into ArrayBuffer
-			buf = MathWorkers.util.str2ab(buf);
-		}
-		objectBuffer.setVector(new Float64Array(buf));
-		that.emit(data.tag);
-	};
+    /**
+     * Copies Vector sent from a worker into a Vector stored
+     * temporarily in the Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleVectorSendToCoordinator = function(data) {
+        objectBuffer = new MathWorkers.Vector();
+        var buf = data.vectorBuffer;
+        if (global.isNode) {
+            // Convert string into ArrayBuffer
+            buf = MathWorkers.util.str2ab(buf);
+        }
+        objectBuffer.setVector(new Float64Array(buf));
+        that.emit(data.tag);
+    };
 
-	/**
-	 * Copies Matrix sent from a worker into a Matrix stored
-	 * temporarily in the Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
-	var handleMatrixSendToCoordinator = function(data) {
-        var tmp = [];
-		var i;
-		if (global.isNode) {
-			for (i = 0; i < data.nrows; ++i) {
-				// Convert string into ArrayBuffer
-				tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
-			}
-		} else {
-			for (i = 0; i < data.nrows; ++i) {
-				tmp.push(new Float64Array(data[i]));
-			}
-		}
-		objectBuffer = new MathWorkers.Matrix();
-		objectBuffer.setMatrix(tmp);
-		that.emit(data.tag);
-	};
+    /**
+     * Copies Matrix sent from a worker into a Matrix stored
+     * temporarily in the Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleMatrixSendToCoordinator = function(data) {
+        var i, tmp = [];
+        if (global.isNode) {
+            for (i = 0; i < data.nrows; ++i) {
+                // Convert string into ArrayBuffer
+                tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
+            }
+        } else {
+            for (i = 0; i < data.nrows; ++i) {
+                tmp.push(new Float64Array(data[i]));
+            }
+        }
+        objectBuffer = new MathWorkers.Matrix();
+        objectBuffer.setMatrix(tmp);
+        that.emit(data.tag);
+    };
 
-	/**
-	 * Gather Vector parts from workers into a new Vector stored in the
-	 * Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
-	var handleGatherVector = function(data) {
-		// Gather the vector parts from each worker
-        if (nWorkersReported == 0) {
+    /**
+     * Gather Vector parts from workers into a new Vector stored in the
+     * Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleGatherVector = function(data) {
+        // Gather the vector parts from each worker
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Vector(data.len);
         }
-		var buf = global.isNode ? MathWorkers.util.str2ab(data.vectorPart) : data.vectorPart;
+        var buf = global.isNode ? MathWorkers.util.str2ab(data.vectorPart) : data.vectorPart;
         var tmpArray = new Float64Array(buf);
         var offset = data.offset;
         for (var i = 0; i < tmpArray.length; ++i) {
             objectBuffer.array[offset + i] = tmpArray[i];
         }
 
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			if (data.rebroadcast) {
-				that.sendVectorToWorkers(objectBuffer, data.tag);
-			} else {
-				// emit
-				that.emit(data.tag);
-			}
-			// reset
-			nWorkersReported = 0;
-		}
-	};
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+            if (data.rebroadcast) {
+                that.sendVectorToWorkers(objectBuffer, data.tag);
+            } else {
+                that.emit(data.tag);
+            }
+            // reset
+            nWorkersReported = 0;
+        }
+    };
 
-	/**
-	 * Gather Matrix rows from workers into a new Matrix stored in the
-	 * Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
-	var handleGatherMatrixRows = function(data) {
-		// Gather the matrix rows from each worker
-        var offset = data.offset;
-        if (nWorkersReported == 0) {
+    /**
+     * Gather Matrix rows from workers into a new Matrix stored in the
+     * Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
+    var handleGatherMatrixRows = function(data) {
+        // Gather the matrix rows from each worker
+        var i, offset = data.offset;
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
-		var i;
-		if (global.isNode) {
-			for (i = 0; i < data.nrowsPart; ++i) {
-				objectBuffer.array[offset + i] = new Float64Array(MathWorkers.util.str2ab(data[i]));
-			}
-		} else {
-			for (i = 0; i < data.nrowsPart; ++i) {
-				objectBuffer.array[offset + i] = new Float64Array(data[i]);
-			}
-		}
+        if (global.isNode) {
+            for (i = 0; i < data.nrowsPart; ++i) {
+                objectBuffer.array[offset + i] = new Float64Array(MathWorkers.util.str2ab(data[i]));
+            }
+        } else {
+            for (i = 0; i < data.nrowsPart; ++i) {
+                objectBuffer.array[offset + i] = new Float64Array(data[i]);
+            }
+        }
 
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			// build the full vector and save to buffer
-			if (data.rebroadcast) {
-				that.sendMatrixToWorkers(objectBuffer, data.tag);
-			} else {
-				// emit
-				that.emit(data.tag);
-			}
-			//reset
-			nWorkersReported = 0;
-		}
-	};
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+          // build the full vector and save to buffer
+          if (data.rebroadcast) {
+              that.sendMatrixToWorkers(objectBuffer, data.tag);
+          } else {
+              that.emit(data.tag);
+          }
+          //reset
+          nWorkersReported = 0;
+        }
+    };
 
-	/**
-	 * Gather Matrix columns from workers into a new Matrix stored in the
-	 * Coordinator objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object} message data
-	 * @private
-	 */
+    /**
+     * Gather Matrix columns from workers into a new Matrix stored in the
+     * Coordinator objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object} message data
+     * @private
+     */
     var handleGatherMatrixColumns = function(data) {
         // Gather the matrix columns from each worker
         var i, k;
-        if (nWorkersReported == 0) {
+        if (nWorkersReported === 0) {
             objectBuffer = new MathWorkers.Matrix(data.nrows, data.ncols);
         }
 
         // array in data is transposed
         var tmpArray;
         var offsetk;
-		if (global.isNode) {
-			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
-				tmpArray = new Float64Array(MathWorkers.util.str2ab(data[k]));
-				for (i = 0; i < tmpArray.length; ++i) {
-					objectBuffer.array[i][offsetk] = tmpArray[i];
-				}
-			}
-		} else {
-			for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
-				tmpArray = new Float64Array(data[k]);
-				for (i = 0; i < tmpArray.length; ++i) {
-					objectBuffer.array[i][offsetk] = tmpArray[i];
-				}
-			}
-		}
+        if (global.isNode) {
+            for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+              tmpArray = new Float64Array(MathWorkers.util.str2ab(data[k]));
+              for (i = 0; i < tmpArray.length; ++i) {
+                  objectBuffer.array[i][offsetk] = tmpArray[i];
+              }
+            }
+        } else {
+            for (k = 0, offsetk = data.offset; k < data.nrowsPart; ++k, ++offsetk) {
+                tmpArray = new Float64Array(data[k]);
+                for (i = 0; i < tmpArray.length; ++i) {
+                    objectBuffer.array[i][offsetk] = tmpArray[i];
+                }
+            }
+        }
 
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             if (data.rebroadcast) {
                 that.sendMatrixToWorkers(objectBuffer, data.tag);
             } else {
@@ -936,21 +942,21 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
-	/**
-	 * Sum reduction for a Vector. Stores the full sum in the objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object}
-	 * @private
-	 */
+    /**
+     * Sum reduction for a Vector. Stores the full sum in the objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object}
+     * @private
+     */
     var handleVectorSum = function(data) {
-        if (nWorkersReported == 0) {
+        if (nWorkersReported === 0) {
             objectBuffer = data.tot;
         } else {
             objectBuffer += data.tot;
         }
         nWorkersReported += 1;
-        if (nWorkersReported == global.nWorkers) {
+        if (nWorkersReported === global.nWorkers) {
             if (data.rebroadcast) {
                 // rebroadcast the result back to the workers
                 that.sendDataToWorkers(objectBuffer, data.tag);
@@ -963,34 +969,36 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
         }
     };
 
-	/**
-	 * Product reduction for a Vector. Stores the full product in the objectBuffer.
-	 * Emits the message tag event.
-	 *
-	 * @param data {!Object}
-	 * @private
-	 */
-	var handleVectorProduct = function(data) {
-        if (nWorkersReported == 0) {
+    /**
+     * Product reduction for a Vector. Stores the full product in the objectBuffer.
+     * Emits the message tag event.
+     *
+     * @param data {!Object}
+     * @private
+     */
+    var handleVectorProduct = function(data) {
+        if (nWorkersReported === 0) {
             objectBuffer = data.tot;
         } else {
             objectBuffer *= data.tot;
         }
-		nWorkersReported += 1;
-		if (nWorkersReported == global.nWorkers) {
-			if (data.rebroadcast) {
-				// rebroadcast the result back to the workers
-				that.sendDataToWorkers(objectBuffer, data.tag);
-			} else {
-				// save result to buffer and emit to the browser-side coordinator
-				that.emit(data.tag);
-			}
-			// reset for next message
-			nWorkersReported = 0;
-		}
-	};
+        nWorkersReported += 1;
+        if (nWorkersReported === global.nWorkers) {
+            if (data.rebroadcast) {
+                // rebroadcast the result back to the workers
+                that.sendDataToWorkers(objectBuffer, data.tag);
+            } else {
+                // save result to buffer and emit to the browser-side coordinator
+                that.emit(data.tag);
+            }
+            // reset for next message
+            nWorkersReported = 0;
+        }
+    };
 };
 MathWorkers.Coordinator.prototype = new EventEmitter();
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -1004,244 +1012,241 @@ MathWorkers.Coordinator.prototype = new EventEmitter();
  */
 MathWorkers.MathWorker = function() {
 
-	/**
-	 * Buffer for data received from the coordinator
-	 *
-	 * @member {Object}
-	 * @private
-	 */
- 	var objectBuffer = {};
+    /**
+     * Buffer for data received from the coordinator
+     *
+     * @member {Object}
+     * @private
+     */
+    var objectBuffer = {};
 
-	/**
-	 * An object mapping an event tag key to a registered callback value
-	 *
-	 * @member {Object}
-	 * @private
-	 */
- 	var triggers = {};
+    /**
+     * An object mapping an event tag key to a registered callback value
+     *
+     * @member {Object}
+     * @private
+     */
+    var triggers = {};
 
-	/**
-	 * Retrieve the id number of the MathWorker
-	 *
-	 * @returns {number} the id of the MathWorker
-	 */
- 	this.getId = function() {
- 		return global.myWorkerId;
- 	};
-
-	/**
-	 * Retrieve the size (number of workers) in the worker pool
-	 *
-	 * @returns {number} the size of the worker pool
-	 */
- 	this.getNumWorkers = function() {
- 		return global.nWorkers;
- 	};
-
-	/**
-	 * Fetches the object buffer contents.
-	 * After a message from the coordinator is received, the object
-	 * buffer is typically populated with data.
-	 *
-	 * @returns {Object}
-	 */
-	this.getBuffer = function() {
-		return objectBuffer;
-	};
-
-	/**
-	 * Register an event with a callback to be executed when the coordinator triggers the event
-	 *
-	 * @param {!string} tag the unique label for the event being registered
-	 * @param {function} callback the callback function to be registered
-	 */
-	this.on = function(tag, callback) {
-		if (global.logLevel > 2) {
-			console.log("registering trigger: " + tag);
-		}
-		triggers[tag] = [callback];
-	};
-
-	/**
-	 * Send data to the coordinator
-	 *
-	 * @param {Object} data JSON-serializable data to be sent to coordinator
-	 * @param {!string} tag message tag
-	 */
- 	this.sendDataToCoordinator = function(data, tag) {
- 		comm.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
- 	};
-
-	/**
-	 * Send a Vector to the coordinator
-	 *
-	 * @param {MathWorkers.Vector} vec the Vector to be sent
-	 * @param {!string} tag message tag
-	 */
-    this.sendVectorToCoordinator = function(vec, tag) {
-        // only id 0 does the sending actually
-        if (global.myWorkerId == 0) {
-			var buf = vec.array.buffer;
-			if (global.isNode) {
-				// Convert ArrayBuffer to a string for communication
-				buf = MathWorkers.util.ab2str(buf);
-			}
-			comm.postMessage({
-				handle: "_vectorSendToCoordinator", tag: tag,
-				vectorBuffer: buf
-			}, [buf]);
-        }
+    /**
+     * Retrieve the id number of the MathWorker
+     *
+     * @returns {number} the id of the MathWorker
+     */
+    this.getId = function() {
+        return global.myWorkerId;
     };
 
-	/**
-	 * Send a Matrix to the coordinator
-	 *
-	 * @param {MathWorkers.Matrix} mat the Matrix to be sent
-	 * @param {!string} tag message tag
-	 */
-    this.sendMatrixToCoordinator = function(mat, tag) {
-        // only id 0 does the sending actually
-        if (global.myWorkerId == 0) {
-            var matObject = {handle: "_matrixSendToCoordinator", tag: tag, nrows: mat.nrows};
-            var matBufferList = [];
-			var i;
-			if (global.isNode) {
-				for (i = 0; i < mat.nrows; ++i) {
-					// Convert ArrayBuffer to a string
-					matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
-				}
-			} else {
-				for (i = 0; i < mat.nrows; ++i) {
-					matObject[i] = mat.array[i].buffer;
-					matBufferList.push(mat.array[i].buffer);
-				}
-			}
-			comm.postMessage(matObject, matBufferList);
-        }
+    /**
+     * Retrieve the size (number of workers) in the worker pool
+     *
+     * @returns {number} the size of the worker pool
+     */
+    this.getNumWorkers = function() {
+        return global.nWorkers;
     };
 
-	/**
-	 * onmessage event router.
-	 * Route the event appropriately based on the event data.
-	 *
-	 * @param {Object} event web worker event object
-	 * @private
-	 */
-	comm.setOnMessage( function(event) {
-		var data = event.data || event;
-		switch (data.handle) {
-			case "_init":
-				handleInit(data);
-				break;
-			case "_trigger":
-				handleTrigger(data);
-				break;
-			case "_broadcastData":
-				handleBroadcastData(data);
-				break;
-			case "_broadcastVector":
-				handleBroadcastVector(data);
-				break;
-			case "_broadcastMatrix":
-				handleBroadcastMatrix(data);
-				break;
- 			default:
- 				console.error("Invalid MathWorker handle: " + data.handle);
- 		}
- 	});
+    /**
+     * Fetches the object buffer contents.
+     * After a message from the coordinator is received, the object
+     * buffer is typically populated with data.
+     *
+     * @returns {Object}
+     */
+    this.getBuffer = function() {
+        return objectBuffer;
+    };
 
-	/**
-	 * MathWorker initialization. This message is received upon the coordinator creating this worker for
-	 * the worker pool in MathWorkers.global.createPool().
-	 * Sets various internal variables for this worker, and then sends a ready message to the coordinator.
-	 *
-	 * @param {Object} data message data
-	 * @private
-	 */
- 	var handleInit = function(data) {
+    /**
+     * Register an event with a callback to be executed when the coordinator triggers the event
+     *
+     * @param {!string} tag the unique label for the event being registered
+     * @param {function} callback the callback function to be registered
+     */
+    this.on = function(tag, callback) {
+        if (global.logLevel > 2) {
+            console.log("registering trigger: " + tag);
+        }
+        triggers[tag] = [callback];
+    };
+
+    /**
+     * Send data to the coordinator
+     *
+     * @param {Object} data JSON-serializable data to be sent to coordinator
+     * @param {!string} tag message tag
+     */
+    this.sendDataToCoordinator = function(data, tag) {
+        comm.postMessage({handle: "_sendData", id: global.myWorkerId, tag: tag, data: data});
+    };
+
+    /**
+     * Send a Vector to the coordinator
+     *
+     * @param {MathWorkers.Vector} vec the Vector to be sent
+     * @param {!string} tag message tag
+     */
+      this.sendVectorToCoordinator = function(vec, tag) {
+          // only id 0 does the sending actually
+          if (global.myWorkerId === 0) {
+              var buf = vec.array.buffer;
+              if (global.isNode) {
+                  // Convert ArrayBuffer to a string for communication
+                  buf = MathWorkers.util.ab2str(buf);
+              }
+              comm.postMessage({
+                  handle: "_vectorSendToCoordinator", tag: tag,
+                  vectorBuffer: buf
+              }, [buf]);
+          }
+      };
+
+    /**
+     * Send a Matrix to the coordinator
+     *
+     * @param {MathWorkers.Matrix} mat the Matrix to be sent
+     * @param {!string} tag message tag
+     */
+      this.sendMatrixToCoordinator = function(mat, tag) {
+          // only id 0 does the sending actually
+          if (global.myWorkerId === 0) {
+              var matObject = {handle: "_matrixSendToCoordinator", tag: tag, nrows: mat.nrows};
+              var i, matBufferList = [];
+              if (global.isNode) {
+                  for (i = 0; i < mat.nrows; ++i) {
+                      // Convert ArrayBuffer to a string
+                      matObject[i] = MathWorkers.util.ab2str(mat.array[i].buffer);
+                  }
+              } else {
+                  for (i = 0; i < mat.nrows; ++i) {
+                      matObject[i] = mat.array[i].buffer;
+                      matBufferList.push(mat.array[i].buffer);
+                  }
+              }
+              comm.postMessage(matObject, matBufferList);
+          }
+      };
+
+    /**
+     * onmessage event router.
+     * Route the event appropriately based on the event data.
+     *
+     * @param {Object} event web worker event object
+     * @private
+     */
+    comm.setOnMessage( function(event) {
+        var data = event.data || event;
+        switch (data.handle) {
+            case "_init":
+                handleInit(data);
+                break;
+            case "_trigger":
+                handleTrigger(data);
+                break;
+            case "_broadcastData":
+                handleBroadcastData(data);
+                break;
+            case "_broadcastVector":
+                handleBroadcastVector(data);
+                break;
+            case "_broadcastMatrix":
+                handleBroadcastMatrix(data);
+                break;
+            default:
+                console.error("Invalid MathWorker handle: " + data.handle);
+        }
+    });
+
+    /**
+     * MathWorker initialization. This message is received upon the coordinator creating this worker for
+     * the worker pool in MathWorkers.global.createPool().
+     * Sets various internal variables for this worker, and then sends a ready message to the coordinator.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleInit = function(data) {
         global.myWorkerId = data.id;
         global.nWorkers = data.nWorkers;
         global.unrollLoops = data.unrollLoops;
         global.logLevel = data.logLevel;
- 		if (global.logLevel > 2) {
-            console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
+        if (global.logLevel > 2) {
+                console.log("Initialized MathWorker: " + global.myWorkerId + " of " + global.nWorkers + " workers.");
+            }
+        comm.postMessage({handle: "_workerReady"});
+    };
+
+    /**
+     * When the coordinator issues a trigger message, execute the registered callback corresponding to the message tag.
+     *
+     * @param {Object} data message data
+     * @param {Object} [obj] optional object to pass as an argument to the callback
+     * @private
+     */
+    var handleTrigger = function(data, obj) {
+        if (triggers[data.tag]) {
+            triggers[data.tag] = triggers[data.tag] || [];
+            var args = data.data || obj || [];
+            triggers[data.tag].forEach( function(fn) {
+                fn.call(this, args);
+            });
+        } else {
+            console.error("Unregistered trigger tag: " + data.tag);
         }
-		comm.postMessage({handle: "_workerReady"});
- 	};
+    };
 
-	/**
-	 * When the coordinator issues a trigger message, execute the registered callback corresponding to the message tag.
-	 *
-	 * @param {Object} data message data
-	 * @param {Object} [obj] optional object to pass as an argument to the callback
-	 * @private
-	 */
- 	var handleTrigger = function(data, obj) {
-		if (triggers[data.tag]) {
-			triggers[data.tag] = triggers[data.tag] || [];
-			var args = data.data || obj || [];
-			triggers[data.tag].forEach( function(fn) {
-				fn.call(this, args);
-			});
-		} else {
-			console.error("Unregistered trigger tag: " + data.tag);
-		}
- 	};
+    /**
+     * Place broadcast data from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleBroadcastData = function(data) {
+        objectBuffer = data.data;
+        handleTrigger(data);
+    };
 
-	/**
-	 * Place broadcast data from coordinator into the objectBuffer.
-	 * Then, trigger the corresponding event.
-	 *
-	 * @param {Object} data message data
-	 * @private
-	 */
- 	var handleBroadcastData = function(data) {
- 		objectBuffer = data.data;
- 		handleTrigger(data);
- 	};
+    /**
+     * Place broadcast Vector from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleBroadcastVector = function(data) {
+        var buf = data.vec;
+        if (global.isNode) {
+            // Convert string to ArrayBuffer
+            buf = MathWorkers.util.str2ab(buf);
+        }
+        objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
+        handleTrigger(data, objectBuffer);
+    };
 
-
-	/**
-	 * Place broadcast Vector from coordinator into the objectBuffer.
-	 * Then, trigger the corresponding event.
-	 *
-	 * @param {Object} data message data
-	 * @private
-	 */
- 	var handleBroadcastVector = function(data) {
-		var buf = data.vec;
-		if (global.isNode) {
-			// Convert string to ArrayBuffer
-			buf = MathWorkers.util.str2ab(buf);
-		}
- 		objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
- 		handleTrigger(data, objectBuffer);
- 	};
-
-	/**
-	 * Place broadcast Matrix from coordinator into the objectBuffer.
-	 * Then, trigger the corresponding event.
-	 *
-	 * @param {Object} data message data
-	 * @private
-	 */
- 	var handleBroadcastMatrix = function(data) {
- 		var tmp = [];
-		var i;
-		if (global.isNode) {
-			for (i = 0; i < data.nrows; ++i) {
-				// Convert string to ArrayBuffer
-				tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
-			}
-		} else {
-			for (i = 0; i < data.nrows; ++i) {
-				tmp.push(new Float64Array(data[i]));
-			}
-		}
-		objectBuffer = new MathWorkers.Matrix();
-		objectBuffer.setMatrix(tmp);
- 		handleTrigger(data, objectBuffer);
- 	};
+    /**
+     * Place broadcast Matrix from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleBroadcastMatrix = function(data) {
+        var i, tmp = [];
+        if (global.isNode) {
+            for (i = 0; i < data.nrows; ++i) {
+                // Convert string to ArrayBuffer
+                tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
+            }
+        } else {
+            for (i = 0; i < data.nrows; ++i) {
+                tmp.push(new Float64Array(data[i]));
+            }
+        }
+        objectBuffer = new MathWorkers.Matrix();
+        objectBuffer.setMatrix(tmp);
+        handleTrigger(data, objectBuffer);
+    };
 };
 MathWorkers.MathWorker.prototype = new EventEmitter();
 
@@ -1264,8 +1269,8 @@ MathWorkers.MathWorker.prototype = new EventEmitter();
  */
 MathWorkers.MathWorker.gatherVector = function(vec, totalLength, offset, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-	var buf = global.isNode ? MathWorkers.util.ab2str(vec.buffer) : vec.buffer;
-	comm.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
+    var buf = global.isNode ? MathWorkers.util.ab2str(vec.buffer) : vec.buffer;
+    comm.postMessage({handle: "_gatherVector", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         len: totalLength, offset: offset, vectorPart: buf}, [buf]);
 };
 
@@ -1285,19 +1290,18 @@ MathWorkers.MathWorker.gatherMatrixRows = function(mat, totalRows, offset, tag, 
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixRows", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: mat[0].length, nrowsPart: mat.length, offset: offset};
-    var matBufferList = [];
-	var i;
-	if (global.isNode) {
-		for (i = 0; i < mat.length; ++i) {
-			matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
-		}
-	} else {
-		for (i = 0; i < mat.length; ++i) {
-			matObject[i] = mat[i].buffer;
-			matBufferList.push(mat[i].buffer);
-		}
-	}
-	comm.postMessage(matObject, matBufferList);
+    var i, matBufferList = [];
+    if (global.isNode) {
+        for (i = 0; i < mat.length; ++i) {
+            matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
+        }
+    } else {
+        for (i = 0; i < mat.length; ++i) {
+            matObject[i] = mat[i].buffer;
+            matBufferList.push(mat[i].buffer);
+        }
+    }
+    comm.postMessage(matObject, matBufferList);
 };
 
 /**
@@ -1317,19 +1321,18 @@ MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols,
     rebroadcast = rebroadcast || false;
     var matObject = {handle: "_gatherMatrixColumns", tag: tag, id: global.myWorkerId, rebroadcast: rebroadcast,
         nrows: totalRows, ncols: totalCols, nrowsPart: mat.length, offset: offset};
-    var matBufferList = [];
-	var i;
-	if (global.isNode) {
-		for (i = 0; i < mat.length; ++i) {
-			matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
-		}
-	} else {
-		for (i = 0; i < mat.length; ++i) {
-			matObject[i] = mat[i].buffer;
-			matBufferList.push(mat[i].buffer);
-		}
-	}
-	comm.postMessage(matObject, matBufferList);
+    var i, matBufferList = [];
+    if (global.isNode) {
+        for (i = 0; i < mat.length; ++i) {
+            matObject[i] = MathWorkers.util.ab2str(mat[i].buffer);
+        }
+    } else {
+        for (i = 0; i < mat.length; ++i) {
+            matObject[i] = mat[i].buffer;
+            matBufferList.push(mat[i].buffer);
+        }
+    }
+    comm.postMessage(matObject, matBufferList);
 };
 
 /**
@@ -1344,7 +1347,7 @@ MathWorkers.MathWorker.gatherMatrixColumns = function(mat, totalRows, totalCols,
  */
 MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-	comm.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
+	  comm.postMessage({handle: "_vectorSum", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
 
 
@@ -1360,8 +1363,9 @@ MathWorkers.MathWorker.reduceVectorSum = function(tot, tag, rebroadcast) {
  */
 MathWorkers.MathWorker.reduceVectorProduct = function(tot, tag, rebroadcast) {
     rebroadcast = rebroadcast || false;
-	comm.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
+	  comm.postMessage({handle: "_vectorProduct", tag: tag, rebroadcast: rebroadcast, tot: tot});
 };
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -1722,10 +1726,10 @@ MathWorkers.Vector.prototype.dotVector = function(w) {
     if (global.unrollLoops) {
         var ni3 = ni - 3;
         for (i = 0; i < ni3; i += 4) {
-            tot += this.array[i] * w.array[i]
-                + this.array[i+1] * w.array[i+1]
-                + this.array[i+2] * w.array[i+2]
-                + this.array[i+3] * w.array[i+3];
+            tot += this.array[i] * w.array[i] +
+                this.array[i+1] * w.array[i+1] +
+                this.array[i+2] * w.array[i+2] +
+                this.array[i+3] * w.array[i+3];
         }
         for (; i < ni; ++i) {
             tot += this.array[i] * w.array[i];
@@ -1758,10 +1762,10 @@ MathWorkers.Vector.prototype.dotMatrix = function(A) {
         for (i = 0; i < ni; ++i) {
             tot = 0.0;
             for (j = 0; j < nj3; j += 4) {
-                tot += this.array[j] * A.array[j][i]
-                    + this.array[j+1] * A.array[j+1][i]
-                    + this.array[j+2] * A.array[j+2][i]
-                    + this.array[j+3] * A.array[j+3][i];
+                tot += this.array[j] * A.array[j][i] +
+                    this.array[j+1] * A.array[j+1][i] +
+                    this.array[j+2] * A.array[j+2][i] +
+                    this.array[j+3] * A.array[j+3][i];
             }
             for (; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];
@@ -1779,6 +1783,8 @@ MathWorkers.Vector.prototype.dotMatrix = function(A) {
     }
     return w;
 };
+
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -2066,10 +2072,10 @@ MathWorkers.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
     if (global.unrollLoops) {
         var ni3 = lb.ito - 3;
         for (i = lb.ifrom; i < ni3; i += 4) {
-            tot += this.array[i] * w.array[i]
-                + this.array[i+1] * w.array[i+1]
-                + this.array[i+2] * w.array[i+2]
-                + this.array[i+3] * w.array[i+3];
+            tot += this.array[i] * w.array[i] +
+                this.array[i+1] * w.array[i+1] +
+                this.array[i+2] * w.array[i+2] +
+                this.array[i+3] * w.array[i+3];
         }
         for (; i < lb.ito; ++i) {
             tot += this.array[i] * w.array[i];
@@ -2095,7 +2101,7 @@ MathWorkers.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
 MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     MathWorkers.util.checkVectorMatrix(this, A);
     MathWorkers.util.checkNullOrUndefined(tag);
-    var i, j;
+    var i, j, tot;
     var nj = this.length;
     var lb = MathWorkers.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
@@ -2105,10 +2111,10 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot = 0.0;
             for (j = 0; j < nj3; j += 4) {
-                tot += this.array[j] * A.array[j][i]
-                    + this.array[j+1] * A.array[j+1][i]
-                    + this.array[j+2] * A.array[j+2][i]
-                    + this.array[j+3] * A.array[j+3][i];
+                tot += this.array[j] * A.array[j][i] +
+                    this.array[j+1] * A.array[j+1][i] +
+                    this.array[j+2] * A.array[j+2][i] +
+                    this.array[j+3] * A.array[j+3][i];
             }
             for (; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];
@@ -2117,7 +2123,7 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
         }
     } else {
         for (i = lb.ifrom; i < lb.ito; ++i) {
-            var tot = 0.0;
+            tot = 0.0;
             for (j = 0; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];
             }
@@ -2126,6 +2132,8 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     }
     MathWorkers.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -2625,10 +2633,10 @@ MathWorkers.Matrix.prototype.dotVector = function(v) {
             tot = 0.0;
             ai = this.array[i];
             for (j = 0; j < nj3; j += 4) {
-                tot += ai[j] * v.array[j]
-                    + ai[j+1] * v.array[j+1]
-                    + ai[j+2] * v.array[j+2]
-                    + ai[j+3] * v.array[j+3];
+                tot += ai[j] * v.array[j] +
+                    ai[j+1] * v.array[j+1] +
+                    ai[j+2] * v.array[j+2] +
+                    ai[j+3] * v.array[j+3];
             }
             for (; j < nj; ++j) {
                 tot += ai[j] * v.array[j];
@@ -2674,10 +2682,10 @@ MathWorkers.Matrix.prototype.dotMatrix = function(B) {
                 tot = 0.0;
                 ai = this.array[i];
                 for (j = 0; j < nj3; j += 4) {
-                    tot += ai[j] * Bk[j]
-                        + ai[j+1] * Bk[j+1]
-                        + ai[j+2] * Bk[j+2]
-                        + ai[j+3] * Bk[j+3];
+                    tot += ai[j] * Bk[j] +
+                        ai[j+1] * Bk[j+1] +
+                        ai[j+2] * Bk[j+2] +
+                        ai[j+3] * Bk[j+3];
                 }
                 for (; j < nj; ++j) {
                     tot += ai[j] * Bk[j];
@@ -2700,6 +2708,8 @@ MathWorkers.Matrix.prototype.dotMatrix = function(B) {
     }
     return C;
 };
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -3022,10 +3032,10 @@ MathWorkers.Matrix.prototype.workerDotVector = function(v, tag, rebroadcast) {
             ai = this.array[i];
             tot = 0.0;
             for (j = 0; j < nj3; j += 4) {
-                tot += ai[j] * v.array[j]
-                    + ai[j+1] * v.array[j+1]
-                    + ai[j+2] * v.array[j+2]
-                    + ai[j+3] * v.array[j+3];
+                tot += ai[j] * v.array[j] +
+                    ai[j+1] * v.array[j+1] +
+                    ai[j+2] * v.array[j+2] +
+                    ai[j+3] * v.array[j+3];
             }
             for (; j < nj; ++j) {
                 tot += ai[j] * v.array[j];
@@ -3079,10 +3089,10 @@ MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
                 tot = 0.0;
                 ai = this.array[i];
                 for (j = 0; j < nj3; j += 4) {
-                    tot += ai[j] * Bk[j]
-                        + ai[j+1] * Bk[j+1]
-                        + ai[j+2] * Bk[j+2]
-                        + ai[j+3] * Bk[j+3];
+                    tot += ai[j] * Bk[j] +
+                        ai[j+1] * Bk[j+1] +
+                        ai[j+2] * Bk[j+2] +
+                        ai[j+3] * Bk[j+3];
                 }
                 for (; j < nj; ++j) {
                     tot += ai[j] * Bk[j];
@@ -3106,6 +3116,8 @@ MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
 
     MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
+
+
 
 // Copyright 2014 Adrian W. Lange
 
@@ -3205,14 +3217,15 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     MathWorkers.util.checkNullOrUndefined(tag);
 
     // First combo initializes M
+    var i, j;
     var M = [];
     var offset = 0;
     var mat = matrices[0];
     var coeff = coefficients[0];
     var lb = MathWorkers.util.loadBalance(matrices[0].nrows);
-    for (var i = lb.ifrom; i < lb.ito; ++i) {
+    for (i = lb.ifrom; i < lb.ito; ++i) {
         M.push(new Float64Array(mat.ncols));
-        for (var j = 0; j < mat.ncols; ++j) {
+        for (j = 0; j < mat.ncols; ++j) {
             M[offset][j] = coeff * mat.array[i][j];
         }
         ++offset;
@@ -3227,7 +3240,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
         MathWorkers.util.checkMatrices(matrices[a-1], mat);
         for (i = lb.ifrom; i < lb.ito; ++i) {
             for (j = 0; j < mat.ncols; ++j) {
-                M[offset][j] += coeff * mat.array[i][j]
+                M[offset][j] += coeff * mat.array[i][j];
             }
             ++offset;
         }
@@ -3257,16 +3270,17 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     MathWorkers.util.checkMatrixVector(A, x);
     MathWorkers.util.checkNullOrUndefined(tag);
 
+    var i, j, tot;
     var lb = MathWorkers.util.loadBalance(A.nrows);
     var z = new Float64Array(lb.ito - lb.ifrom);
     var offset = 0;
     if (beta && y) {
         MathWorkers.util.checkNumber(beta);
         MathWorkers.util.checkVectors(x, y);
-        for (var i = lb.ifrom; i < lb.ito; ++i) {
-            var tot = 0.0;
-            for (var j = 0; j < this.ncols; ++j) {
-                tot += A.array[i][j] * v.array[j];
+        for (i = lb.ifrom; i < lb.ito; ++i) {
+            tot = 0.0;
+            for (j = 0; j < this.ncols; ++j) {
+                tot += A.array[i][j] * x.array[j];
             }
             z[offset++] = alpha * tot + beta * y[i];
         }
@@ -3274,7 +3288,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot = 0.0;
             for (j = 0; j < this.ncols; ++j) {
-                tot += A.array[i][j] * v.array[j];
+                tot += A.array[i][j] * x.array[j];
             }
             z[offset++] = alpha * tot;
         }
@@ -3310,6 +3324,7 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
     var lb = MathWorkers.util.loadBalance(A.nrows);
     var D = [];
     var offset = 0;
+    var i, j, k, tot;
 
     if (beta && C) {
         MathWorkers.util.checkNumber(beta);
@@ -3318,11 +3333,11 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
             throw new Error("Matrix dimensions not compatible for addition.");
         }
 
-        for (var i = lb.ifrom; i < lb.ito; ++i) {
+        for (i = lb.ifrom; i < lb.ito; ++i) {
             D.push(new Float64Array(B.ncols));
-            for (var j = 0; j < B.ncols; ++j) {
-                var tot = 0.0;
-                for (var k = 0; k < A.ncols; ++k) {
+            for (j = 0; j < B.ncols; ++j) {
+                tot = 0.0;
+                for (k = 0; k < A.ncols; ++k) {
                     tot += A.array[i][k] * Bt.array[j][k];
                 }
                 D[offset][j] = alpha * tot + beta * C.array[i][j];
@@ -3350,6 +3365,8 @@ MathWorkers.Batch.workerMatrixLinearCombination = function(matrices, coefficient
 
     MathWorkers.MathWorker.gatherMatrixRows(D, A.nrows, lb.ifrom, tag, rebroadcast);
 };
+
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -3391,6 +3408,15 @@ MathWorkers.Stats = {};
  * @memberof MathWorkers.Stats
  */
 MathWorkers.Stats.summary = function (data) {
+
+    function getMedian(nfrom, nto) {
+        var m = nto - nfrom + 1;
+        var half = (m / 2) | 0;
+        var odd = (m % 2);
+        var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half - 1] + arr[nfrom + half]);
+        return {median: median, half: half, odd: odd};
+    }
+
     MathWorkers.util.checkNullOrUndefined(data);
     // Copy the data to a local array so that we can sort without affecting data
     var i;
@@ -3434,7 +3460,7 @@ MathWorkers.Stats.summary = function (data) {
     if (n >= 3) {
         // Sort for quartiles
         arr.sort(function (a, b) {
-            return a - b
+            return a - b;
         });
 
         var x, y;
@@ -3451,14 +3477,6 @@ MathWorkers.Stats.summary = function (data) {
         }
     }
 
-    function getMedian(nfrom, nto) {
-        var m = nto - nfrom + 1;
-        var half = (m / 2) | 0;
-        var odd = (m % 2);
-        var median = odd ? arr[nfrom + half] : 0.5 * (arr[nfrom + half - 1] + arr[nfrom + half]);
-        return {median: median, half: half, odd: odd};
-    }
-
     return {
         n: arr.length,
         mean: mean,
@@ -3471,6 +3489,8 @@ MathWorkers.Stats.summary = function (data) {
         quartile75: q75
     };
 };
+
+
 
 
 return MathWorkers;

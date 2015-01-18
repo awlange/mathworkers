@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<title>MathWorkers Performance Runs</title>
 		<link href="./performance.css" rel="stylesheet" type="text/css"/>
-  		<script src="../lib/mathworkers.js"></script>
+  		<script src="../dist/mathworkers.js"></script>
 	</head>
 	<body>
   		<!-- Display results of tests -->
@@ -71,7 +71,7 @@
 		<script>
 var run_1 = document.getElementById('run_1');
 run_1.addEventListener('click', function() {
-	
+
 	var n = 1000;
     var v = MathWorkers.Vector.randomVector(n);
     var w = MathWorkers.Vector.randomVector(n);
@@ -83,7 +83,7 @@ run_1.addEventListener('click', function() {
 		times.push(window.performance.now() - start);
 	}
 	showStats(MWs.Stats.summary(times), "stats_1");
-	
+
 });
 		</script>
 
@@ -96,7 +96,7 @@ run_1.addEventListener('click', function() {
 		<script>
 var run_2 = document.getElementById('run_2');
 run_2.addEventListener('click', function() {
-	
+
 	var n = 2000;
 	var v = MathWorkers.Vector.randomVector(n);
 	var A = MathWorkers.Matrix.randomMatrix(n, n);
@@ -108,7 +108,7 @@ run_2.addEventListener('click', function() {
 		times.push(window.performance.now() - start);
 	}
 	showStats(MWs.Stats.summary(times), "stats_2");
-	
+
 });
 		</script>
 
@@ -121,7 +121,7 @@ run_2.addEventListener('click', function() {
 		<script>
 var run_3 = document.getElementById('run_3');
 run_3.addEventListener('click', function() {
-	
+
 	var n = 400;
 	var A = MathWorkers.Matrix.randomMatrix(n, n);
 	var B = MathWorkers.Matrix.randomMatrix(n, n);
@@ -133,7 +133,7 @@ run_3.addEventListener('click', function() {
 		times.push(window.performance.now() - start);
 	}
 	showStats(MWs.Stats.summary(times), "stats_3");
-	
+
 });
 		</script>
   	</body>

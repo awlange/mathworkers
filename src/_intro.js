@@ -25,9 +25,10 @@
  *  @author Adrian W. Lange
  */
 
+"use strict";
+
 (function() {
 var MathWorkers = (function() {
-"use strict";
 
 /**
  * The MathWorkers module

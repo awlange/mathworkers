@@ -283,10 +283,10 @@ MathWorkers.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
     if (global.unrollLoops) {
         var ni3 = lb.ito - 3;
         for (i = lb.ifrom; i < ni3; i += 4) {
-            tot += this.array[i] * w.array[i]
-                + this.array[i+1] * w.array[i+1]
-                + this.array[i+2] * w.array[i+2]
-                + this.array[i+3] * w.array[i+3];
+            tot += this.array[i] * w.array[i] +
+                this.array[i+1] * w.array[i+1] +
+                this.array[i+2] * w.array[i+2] +
+                this.array[i+3] * w.array[i+3];
         }
         for (; i < lb.ito; ++i) {
             tot += this.array[i] * w.array[i];
@@ -312,7 +312,7 @@ MathWorkers.Vector.prototype.workerDotVector = function(w, tag, rebroadcast) {
 MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     MathWorkers.util.checkVectorMatrix(this, A);
     MathWorkers.util.checkNullOrUndefined(tag);
-    var i, j;
+    var i, j, tot;
     var nj = this.length;
     var lb = MathWorkers.util.loadBalance(A.ncols);
     var w = new Float64Array(lb.ito - lb.ifrom);
@@ -322,10 +322,10 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
         for (i = lb.ifrom; i < lb.ito; ++i) {
             tot = 0.0;
             for (j = 0; j < nj3; j += 4) {
-                tot += this.array[j] * A.array[j][i]
-                    + this.array[j+1] * A.array[j+1][i]
-                    + this.array[j+2] * A.array[j+2][i]
-                    + this.array[j+3] * A.array[j+3][i];
+                tot += this.array[j] * A.array[j][i] +
+                    this.array[j+1] * A.array[j+1][i] +
+                    this.array[j+2] * A.array[j+2][i] +
+                    this.array[j+3] * A.array[j+3][i];
             }
             for (; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];
@@ -334,7 +334,7 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
         }
     } else {
         for (i = lb.ifrom; i < lb.ito; ++i) {
-            var tot = 0.0;
+            tot = 0.0;
             for (j = 0; j < nj; ++j) {
                 tot += this.array[j] * A.array[j][i];
             }

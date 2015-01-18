@@ -2,7 +2,7 @@
 * Serial node tests
 */
 
-var MWs = require("../../lib/mathworkers.js");
+var MWs = require("../../../dist/mathworkers.js");
 var UT = require("../unit_tester.js");
 
 var Vector = MWs.Vector;

@@ -8,7 +8,7 @@
 	<body>
   		<!-- Display results of tests -->
   		<h1>MathWorkers Serial Unit Tests</h1>
-  		
+
   		<h2>Vector tests</h2>
   		<ul>
             <li>sum<div id="sum" class="pending">pending</div></li>
@@ -62,7 +62,7 @@
         </ul>
 
   		<!-- Scripts to run test below (being loose with the indentation) -->
-  		<script src="../lib/mathworkers.js"></script>
+  		<script src="../../dist/mathworkers.js"></script>
   		<script src="unit_tester.js"></script>
  		<script>
 /*
@@ -263,8 +263,8 @@ serialTests.push( function() {
 	var T = new UT.Tester("matrixApply");
 	var A = Matrix.fromArray([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]);
 	var C = A.apply(Math.sqrt);
-	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)], 
-									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)], 
+	T.matrixEqual(Matrix.fromArray([[1.0, Math.sqrt(2.0), Math.sqrt(3.0)],
+									[2.0, Math.sqrt(5.0), Math.sqrt(6.0)],
 									[Math.sqrt(7.0), Math.sqrt(8.0), 3.0]]), C);
 	T.passed();
 });
@@ -280,18 +280,18 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixTransposeSquare");
-	var A = Matrix.fromArray([[1.0, 2.0, 3.0], 
-		                      [4.0, 5.0, 6.0], 
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0],
+		                      [4.0, 5.0, 6.0],
 		                      [7.0, 8.0, 9.0]]);
-	T.matrixEqual(Matrix.fromArray([[1.0, 4.0, 7.0], 
-		                            [2.0, 5.0, 8.0], 
+	T.matrixEqual(Matrix.fromArray([[1.0, 4.0, 7.0],
+		                            [2.0, 5.0, 8.0],
 		                            [3.0, 6.0, 9.0]]), A.transpose());
 	T.passed();
 });
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixTransposeRect");
-	var A = Matrix.fromArray([[1.0, 2.0, 3.0, 4.0, 5.0], 
+	var A = Matrix.fromArray([[1.0, 2.0, 3.0, 4.0, 5.0],
 							  [6.0, 7.0, 8.0, 9.0, 10.0],
 							  [11.0, 12.0, 13.0, 14.0, 15.0]]);
 	T.matrixEqual(Matrix.fromArray([[1.0, 6.0, 11.0],
@@ -304,7 +304,7 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixDotMatrix1");
-	var A = Matrix.fromArray([[1.0, 2.0], 
+	var A = Matrix.fromArray([[1.0, 2.0],
 							  [2.0, 3.0]]);
 	var B = Matrix.fromArray([[-3.0, 2.0],
 							  [1.0, -2.0]]);
@@ -317,7 +317,7 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixDotMatrix2");
-	var A = Matrix.fromArray([[1.0, 2.0], 
+	var A = Matrix.fromArray([[1.0, 2.0],
 							  [2.0, 3.0]]);
 	var B = Matrix.fromArray([[-3.0, 2.0],
 							  [1.0, -2.0]]);
@@ -329,9 +329,9 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixDotMatrix3");
-	var A = Matrix.fromArray([[1.0, 2.0], 
+	var A = Matrix.fromArray([[1.0, 2.0],
 							  [2.0, 3.0]]);
-	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
 							  [0.0, 1.0, 1.0]]);
 	var AC = A.dotMatrix(C);
 	T.matrixEqual(Matrix.fromArray([[1.0, 2.0, 0.0],
@@ -341,7 +341,7 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixDotMatrix4");
-	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
 							  [0.0, 1.0, 1.0]]);
 	var D = Matrix.fromArray([[3.0, 1.0],
 							  [-1.0, -2.0],
@@ -354,7 +354,7 @@ serialTests.push( function() {
 
 serialTests.push( function() {
 	var T = new UT.Tester("matrixDotMatrix5");
-	var C = Matrix.fromArray([[1.0, 0.0, -2.0], 
+	var C = Matrix.fromArray([[1.0, 0.0, -2.0],
 							  [0.0, 1.0, 1.0]]);
 	var D = Matrix.fromArray([[3.0, 1.0],
 							  [-1.0, -2.0],
