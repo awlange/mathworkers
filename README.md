@@ -41,10 +41,10 @@ Or grab the [source](https://github.com/awlange/mathworkers/dist/mathworkers.js)
 Basic serial usage for computing the dot product of two Vectors:
 
 ```JavaScript
-    var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
-    var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
-    var dot = v.dotVector(w);
-    console.log(dot);
+var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
+var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
+var dot = v.dotVector(w);
+console.log(dot);
 ```
 
 ### Parallel HTML5 Web Workers
@@ -55,34 +55,34 @@ the code for the workers and the code for the coordinator. (For more details, vi
 Coordinator code for launching 2 workers:
 
 ```JavaScript
-    // Initialize a Coordinator with 2 workers
-    var coord = new MathWorkers.Coordinator(2, "work.js");
+// Initialize a Coordinator with 2 workers
+var coord = new MathWorkers.Coordinator(2, "work.js");
 
-    // Begin the computation once the workers are ready
-    coord.onReady(function() {
-	coord.trigger("compute");
-    });
+// Begin the computation once the workers are ready
+coord.onReady(function() {
+    coord.trigger("compute");
+});
 
-    // Obtain the resulting dot product
-    coord.on("dot", function() {
-	var dot = crd.getBuffer();
-        console.log(dot);
-    });
+// Obtain the resulting dot product
+coord.on("dot", function() {
+    var dot = crd.getBuffer();
+    console.log(dot);
+});
 ```
 
 Worker code, "work.js", which is executed by both workers in parallel:
 
 ```JavaScript
-    // Load MathWorkersJS for this worker
-    importScripts("mathworkers.js");
-    var worker = new MathWorkers.MathWorker();
+// Load MathWorkersJS for this worker
+importScripts("mathworkers.js");
+var worker = new MathWorkers.MathWorker();
 
-    // On the Coordinator trigger, compute the dot product in parallel
-    worker.on("compute", function() {
-        var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
-        var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
-	v.workerDotVector(w, "dot");
-    });
+// On the Coordinator trigger, compute the dot product in parallel
+worker.on("compute", function() {
+    var v = MathWorkers.Vector.fromArray([1, 2, 3, 4]);
+    var w = MathWorkers.Vector.fromArray([5, 6, 7, 8]);
+    v.workerDotVector(w, "dot");
+});
 ```
 
 ### Parallel Node.js cluster:
@@ -94,43 +94,43 @@ the master thread from the worker threads.
 Coordinator code for launching 2 workers:
 
 ```JavaScript
-    // Load MathWorkersJS and turn on Node.js mode
-    var MathWorkers = require("mathworkers.js");
-    MathWorkers.Global.setNode(true);
+// Load MathWorkersJS and turn on Node.js mode
+var MathWorkers = require("mathworkers.js");
+MathWorkers.Global.setNode(true);
 
-    // Initialize a Coordinator with 2 workers
-    var coord = new MathWorkers.Coordinator(2, "work.js");
+// Initialize a Coordinator with 2 workers
+var coord = new MathWorkers.Coordinator(2, "work.js");
 
-    // Branch the master thread
-    if (MathWorkers.Global.isMaster()) {
-        coord.onReady(function() {
-            coord.trigger("run");
-        });
-
-        coord.on("done", function() {
-            var dot = coord.getBuffer();
-            console.log(dot);
-
-            // Disconnect from the workers to terminate the program
-            coord.disconnect();
-        });
-    }
+// Branch the master thread
+if (MathWorkers.Global.isMaster()) {
+   coord.onReady(function() {
+       coord.trigger("run");
+   });
+ 
+   coord.on("done", function() {
+       var dot = coord.getBuffer();
+       console.log(dot);
+ 
+       // Disconnect from the workers to terminate the program
+       coord.disconnect();
+   });
+}
 ```
 
 Worker code, "work.js", which is executed by both workers in parallel:
 
 ```JavaScript
-    // Load MathWorkersJS for this worker and turn on Node.js mode
-    var MathWorkers = require("mathworkers.js");
-    MathWorkers.Global.setNode(true);
+// Load MathWorkersJS for this worker and turn on Node.js mode
+var MathWorkers = require("mathworkers.js");
+MathWorkers.Global.setNode(true);
 
-    var worker = new MathWorkers.MathWorker();
+var worker = new MathWorkers.MathWorker();
 
-    worker.on("run", function() {
-        var v = Vector.randomVector(1024);
-        var w = Vector.randomVector(1024);
-        v.workerDotVector(w, "done");
-    });
+worker.on("run", function() {
+    var v = Vector.randomVector(1024);
+    var w = Vector.randomVector(1024);
+    v.workerDotVector(w, "done");
+});
 ```
 
 For advanced usage, see the documentation.
