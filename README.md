@@ -4,7 +4,7 @@ A parallel JavaScript math and statistics library built around HTML5 Web Workers
 
 ## About
 
-A JavaScript library by Adrian W. Lange.
+A JavaScript library by [Adrian W. Lange](http://adrianlange.com/).
 
 MathWorkersJS can speed up the performance of JavaScript computations on computers with multi-core processors by distributing computational load among
 a pool of workers which execute in parallel.
@@ -28,6 +28,10 @@ Visit the [project homepage](http://www.mathworkersjs.org/)
 
 ## Installation
 
+Using npm:
+
+    npm install mathworkers
+    
 Using Bower:
 
     bower install mathworkers
@@ -35,6 +39,11 @@ Using Bower:
 Or grab the [source](https://github.com/awlange/mathworkers/dist/mathworkers.js) ([minified](https://github.com/awlange/mathworkers/dist/mathworkers.min.js)).
 
 ## Usage
+
+### Getting Started
+
+To help with getting started, some basic boilerplate code for a MathWorkersJS app is provided in the
+"boilerplate" directory for both HTML and Node.js.
 
 ### Basic Serial
 
