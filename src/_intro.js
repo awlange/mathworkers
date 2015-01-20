@@ -20,7 +20,7 @@
  *  limitations under the License.
  *
  *  @file MathWorkers.js library
- *  @version 1.2.0
+ *  @version 1.2.1
  *  @copyright Adrian W. Lange
  *  @author Adrian W. Lange
  */
@@ -43,5 +43,5 @@ var MathWorkers = {};
 var global = {};
 
 // For documentation and such. Make sure to update on releases.
-global.version = "1.2.0";
+global.version = "1.2.1";
 
