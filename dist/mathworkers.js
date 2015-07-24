@@ -207,8 +207,8 @@ MathWorkers.util.checkWebWorkerSupport = function() {
  * @ignore
  * @returns {object} container for range index from (inclusive) and index to (non-inclusive)
  */
-MathWorkers.util.loadBalance = function(n) {
-    var id = global.myWorkerId;
+MathWorkers.util.loadBalance = function(n, id) {
+  id = id || global.myWorkerId;
 	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
 
@@ -685,6 +685,30 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
     };
 
     /**
+     * Scatter a Vector into separate pieces to all workers
+     *
+     * @param {!MathWorkers.Vector} vec Vector to be scattered
+     * @param {!string} tag message tag
+     */
+    this.scatterVectorToWorkers = function(vec, tag) {
+      // Split the vector into equalish (load balanced) chunks and send out
+      for (var wk = 0; wk < global.nWorkers; ++wk) {
+        var lb = MathWorkers.util.loadBalance(vec.length, wk);
+
+        var buf;
+        var subv = new Float64Array(vec.array.subarray(lb.ifrom, lb.ito));
+
+        if (global.isNode) {
+          // Convert ArrayBuffer to string
+          buf = MathWorkers.util.ab2str(subv.buffer);
+        } else {
+          buf = subv.buffer;
+        }
+        comm.postMessageToWorker(wk, {handle: "_scatterVector", tag: tag,	vec: buf}, [buf]);
+      }
+    };
+
+    /**
      * Create the worker pool, which starts the workers
      */
     global.createPool(nWorkersInput, workerScriptName);
@@ -1153,6 +1177,9 @@ MathWorkers.MathWorker = function() {
             case "_broadcastMatrix":
                 handleBroadcastMatrix(data);
                 break;
+            case "_scatterVector":
+                handleScatterVector(data);
+                break;
             default:
                 console.error("Invalid MathWorker handle: " + data.handle);
         }
@@ -1247,6 +1274,23 @@ MathWorkers.MathWorker = function() {
         objectBuffer = new MathWorkers.Matrix();
         objectBuffer.setMatrix(tmp);
         handleTrigger(data, objectBuffer);
+    };
+
+    /**
+     * Place scattered Vector from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleScatterVector = function(data) {
+      var buf = data.vec;
+      if (global.isNode) {
+        // Convert string to ArrayBuffer
+        buf = MathWorkers.util.str2ab(buf);
+      }
+      objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
+      handleTrigger(data, objectBuffer);
     };
 };
 MathWorkers.MathWorker.prototype = new EventEmitter();
@@ -2134,6 +2178,25 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     MathWorkers.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Compute the dot product of this scattered Vector with another scattered Vector in parallel.
+ *
+ * @param {!MathWorkers.Vector} w the other scattered Vector to be dotted with this scattered Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MathWorkers.Vector
+ */
+MathWorkers.Vector.prototype.workerScatterDotVector = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var i;
+    var tot = 0.0;
+    for (i = 0; i < this.length; ++i) {
+      tot += this.array[i] * w.array[i];
+    }
+    console.log(tot);
+    MathWorkers.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};
 
 
 // Copyright 2014 Adrian W. Lange
@@ -3491,6 +3554,118 @@ MathWorkers.Stats.summary = function (data) {
     };
 };
 
+
+
+// Copyright 2014 Adrian W. Lange
+
+/**
+ * Interface to MathWorkers for easier programming
+ *
+ * @namespace MathWorkers.Interface
+ */
+MathWorkers.Interface = new EventEmitter();
+
+MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
+
+  // Object reference
+  var that = this;
+
+  // Temporary storage of Vectors and Matrixes
+  this.v = null;
+  this.w = null;
+  this.u = null;
+  this.A = null;
+  this.B = null;
+  this.C = null;
+
+  // Start the coordinator
+  nWorkers = nWorkers || 1;
+  pathToMathWorkers = pathToMathWorkers || "./mathworkers.js";
+  this.coordinator = new MathWorkers.Coordinator(nWorkers, pathToMathWorkers);
+  this.worker = null;
+
+  if (MathWorkers.Global.isMaster()) {
+    // If this is the master thread, then execute the callback with the first tag
+    this.coordinator.onReady(function() {
+      that.emit(firstTag);
+    });
+  } else if (MathWorkers.Global.isWorker()) {
+    // If this is a worker thread, then create a worker
+    this.worker = new MathWorkers.MathWorker();
+  }
+
+  // Coordinator events
+  if (MathWorkers.Global.isMaster()) {
+
+  }
+
+  // Worker events
+  if (MathWorkers.Global.isWorker()) {
+
+    this.worker.on("_sendVectorToWorkers_v", function() {
+      that.v = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_sendVectorToWorkers_v");
+    });
+
+    this.worker.on("_sendVectorToWorkers_w", function() {
+      that.w = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_sendVectorToWorkers_w");  // TODO: trigger
+    });
+
+    this.worker.on("_sendMatrixToWorkers_A", function() {
+      that.A = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_A");
+    });
+
+    this.worker.on("_sendMatrixToWorkers_B", function() {
+      that.B = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_B");
+    });
+
+    this.worker.on("_vDotw", function() {
+      that.v.workerDotVector(that.w, "_done_vDotw");
+    });
+
+    this.worker.on("_ADotv", function() {
+      that.A.workerDotVector(that.v, "_done_ADotv");
+    });
+  }
+
+};
+
+MathWorkers.Interface.disconnect = function() {
+  this.coordinator.disconnect();
+};
+
+MathWorkers.Interface.vectorDotVector = function(v, w, tag) {
+  var that = this;
+  // TODO: Could be sent asynchronously?
+  // TODO: Distributed vector
+  this.coordinator.sendVectorToWorkers(w, "_sendVectorToWorkers_w");
+  this.coordinator.on("_done_sendVectorToWorkers_w", function() {
+    that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
+  });
+  this.coordinator.on("_done_sendVectorToWorkers_v", function() {
+    that.coordinator.trigger("_vDotw");
+  });
+  this.coordinator.on("_done_vDotw", function() {
+    that.emit(tag, that.coordinator.getBuffer());
+  });
+};
+
+MathWorkers.Interface.matrixDotVector = function(A, v, tag) {
+  var that = this;
+  this.coordinator.sendMatrixToWorkers(A, "_sendMatrixToWorkers_A");
+  this.coordinator.on("_done_sendMatrixToWorkers_A", function() {
+    that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
+  });
+  this.coordinator.on("_done_sendVectorToWorkers_v", function() {
+    that.coordinator.trigger("_ADotv");
+  });
+  this.coordinator.on("_done_ADotv", function() {
+    that.emit(tag, that.coordinator.getBuffer());
+  });
+};
 
 
 

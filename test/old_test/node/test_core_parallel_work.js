@@ -278,3 +278,22 @@ MW.on("run_matrixVectorPlus2", function() {
     var alpha = 0.45;
     Batch.workerMatrixVectorPlus(alpha, A, x, "matrixVectorPlus2");
 });
+
+MW.on("run_scatterVectorToWorkers", function() {
+    MW.sendDataToCoordinator(MW.getBuffer().toString(), "scatterVectorToWorkers");
+});
+
+var v, w;
+MW.on("run_scatterV", function() {
+  v = MW.getBuffer();
+  MW.sendDataToCoordinator({}, "scatterV");
+});
+
+MW.on("run_scatterW", function() {
+  w = MW.getBuffer();
+  MW.sendDataToCoordinator({}, "scatterW");
+});
+
+MW.on("run_scatterVectorDotVector", function() {
+  v.workerScatterDotVector(w, "scatterVectorDotVector");
+});

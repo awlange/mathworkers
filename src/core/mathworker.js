@@ -150,6 +150,9 @@ MathWorkers.MathWorker = function() {
             case "_broadcastMatrix":
                 handleBroadcastMatrix(data);
                 break;
+            case "_scatterVector":
+                handleScatterVector(data);
+                break;
             default:
                 console.error("Invalid MathWorker handle: " + data.handle);
         }
@@ -244,6 +247,23 @@ MathWorkers.MathWorker = function() {
         objectBuffer = new MathWorkers.Matrix();
         objectBuffer.setMatrix(tmp);
         handleTrigger(data, objectBuffer);
+    };
+
+    /**
+     * Place scattered Vector from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleScatterVector = function(data) {
+      var buf = data.vec;
+      if (global.isNode) {
+        // Convert string to ArrayBuffer
+        buf = MathWorkers.util.str2ab(buf);
+      }
+      objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
+      handleTrigger(data, objectBuffer);
     };
 };
 MathWorkers.MathWorker.prototype = new EventEmitter();

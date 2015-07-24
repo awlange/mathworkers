@@ -151,6 +151,30 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
     };
 
     /**
+     * Scatter a Vector into separate pieces to all workers
+     *
+     * @param {!MathWorkers.Vector} vec Vector to be scattered
+     * @param {!string} tag message tag
+     */
+    this.scatterVectorToWorkers = function(vec, tag) {
+      // Split the vector into equalish (load balanced) chunks and send out
+      for (var wk = 0; wk < global.nWorkers; ++wk) {
+        var lb = MathWorkers.util.loadBalance(vec.length, wk);
+
+        var buf;
+        var subv = new Float64Array(vec.array.subarray(lb.ifrom, lb.ito));
+
+        if (global.isNode) {
+          // Convert ArrayBuffer to string
+          buf = MathWorkers.util.ab2str(subv.buffer);
+        } else {
+          buf = subv.buffer;
+        }
+        comm.postMessageToWorker(wk, {handle: "_scatterVector", tag: tag,	vec: buf}, [buf]);
+      }
+    };
+
+    /**
      * Create the worker pool, which starts the workers
      */
     global.createPool(nWorkersInput, workerScriptName);

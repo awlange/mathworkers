@@ -344,3 +344,22 @@ MathWorkers.Vector.prototype.workerDotMatrix = function(A, tag, rebroadcast) {
     MathWorkers.MathWorker.gatherVector(w, this.length, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Compute the dot product of this scattered Vector with another scattered Vector in parallel.
+ *
+ * @param {!MathWorkers.Vector} w the other scattered Vector to be dotted with this scattered Vector
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MathWorkers.Vector
+ */
+MathWorkers.Vector.prototype.workerScatterDotVector = function(w, tag, rebroadcast) {
+    MathWorkers.util.checkVectors(this, w);
+    MathWorkers.util.checkNullOrUndefined(tag);
+    var i;
+    var tot = 0.0;
+    for (i = 0; i < this.length; ++i) {
+      tot += this.array[i] * w.array[i];
+    }
+    console.log(tot);
+    MathWorkers.MathWorker.reduceVectorSum(tot, tag, rebroadcast);
+};

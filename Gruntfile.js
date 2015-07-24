@@ -23,6 +23,7 @@ module.exports = function(grunt) {
           'src/core/matrix_worker.js',
           'src/core/batch.js',
           'src/statistics/basic_statistics.js',
+          'src/interface/interface.js',
           'src/_outro.js'
         ],
         dest: 'dist/<%= pkg.name.replace(".js", "") %>.js'

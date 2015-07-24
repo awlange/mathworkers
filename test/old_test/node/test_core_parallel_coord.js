@@ -446,8 +446,38 @@ var run = function(MWs, crd) {
         T.passed();
         updatePasses(T);
 
-        // Last test
-        finished();
+        var vec = Vector.fromArray([0.0, 1.0, 2.0, 3.0, 4.0]);
+        crd.scatterVectorToWorkers(vec, "run_scatterVectorToWorkers");
+    });
+
+    crd.on("scatterVectorToWorkers", function() {
+      var T = new UT.Tester("scatterVectorToWorkers");
+      var messageList = crd.getMessageDataList();
+      T.equal(Vector.fromArray([0.0, 1.0, 2.0]).toString(), messageList[0]);
+      T.equal(Vector.fromArray([3.0, 4.0]).toString(), messageList[1]);
+      T.passed();
+      updatePasses(T);
+
+      crd.scatterVectorToWorkers(Vector.fromArray([0.0, 2.0, 4.0, 6.0, 8.0]), "run_scatterV");
+    });
+
+    crd.on("scatterV", function() {
+      crd.scatterVectorToWorkers(Vector.fromArray([1.0, 1.0, 1.0, 1.0, 1.0]), "run_scatterW");
+    });
+
+    crd.on("scatterW", function() {
+      crd.trigger("run_scatterVectorDotVector");
+    });
+
+    crd.on("scatterVectorDotVector", function() {
+      var T = new UT.Tester("scatterVectorDotVector");
+      var recv = crd.getBuffer();
+      T.doubleEqual(20.0, recv);
+      T.passed();
+      updatePasses(T);
+
+      // Last test
+      finished();
     });
 
     function finished() {

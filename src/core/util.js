@@ -27,8 +27,8 @@ MathWorkers.util.checkWebWorkerSupport = function() {
  * @ignore
  * @returns {object} container for range index from (inclusive) and index to (non-inclusive)
  */
-MathWorkers.util.loadBalance = function(n) {
-    var id = global.myWorkerId;
+MathWorkers.util.loadBalance = function(n, id) {
+  id = id || global.myWorkerId;
 	var div = (n / global.nWorkers)|0;
 	var rem = n % global.nWorkers;
 
