@@ -54,6 +54,16 @@ MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
       that.worker.sendDataToCoordinator({}, "_done_sendVectorToWorkers_w");  // TODO: trigger
     });
 
+    this.worker.on("_scatterVectorToWorkers_v", function() {
+      that.v = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterVectorToWorkers_v");
+    });
+
+    this.worker.on("_scatterVectorToWorkers_w", function() {
+      that.w = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterVectorToWorkers_w");  // TODO: trigger
+    });
+
     this.worker.on("_sendMatrixToWorkers_A", function() {
       that.A = that.worker.getBuffer();
       that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_A");
@@ -64,12 +74,30 @@ MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
       that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_B");
     });
 
+    this.worker.on("_scatterMatrixToWorkers_A", function() {
+      that.A = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterMatrixToWorkers_A");
+    });
+
+    this.worker.on("_scatterMatrixToWorkers_B", function() {
+      that.B = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterMatrixToWorkers_B");
+    });
+
     this.worker.on("_vDotw", function() {
       that.v.workerDotVector(that.w, "_done_vDotw");
     });
 
     this.worker.on("_ADotv", function() {
       that.A.workerDotVector(that.v, "_done_ADotv");
+    });
+
+    this.worker.on("_scattervDotw", function() {
+      that.v.workerDotVector(that.w, "_done_scattervDotw");
+    });
+
+    this.worker.on("_scatterADotv", function() {
+      that.A.workerScatterDotVector(that.v, "_done_scatterADotv");
     });
   }
 
@@ -83,28 +111,28 @@ MathWorkers.Interface.vectorDotVector = function(v, w, tag) {
   var that = this;
   // TODO: Could be sent asynchronously?
   // TODO: Distributed vector
-  this.coordinator.sendVectorToWorkers(w, "_sendVectorToWorkers_w");
+  this.coordinator.scatterVectorToWorkers(w, "_scatterVectorToWorkers_w");
   this.coordinator.on("_done_sendVectorToWorkers_w", function() {
-    that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
+    that.coordinator.scatterVectorToWorkers(v, "_scatterVectorToWorkers_v");
   });
-  this.coordinator.on("_done_sendVectorToWorkers_v", function() {
-    that.coordinator.trigger("_vDotw");
+  this.coordinator.on("_done_scatterVectorToWorkers_v", function() {
+    that.coordinator.trigger("_scattervDotw");
   });
-  this.coordinator.on("_done_vDotw", function() {
+  this.coordinator.on("_done_scattervDotw", function() {
     that.emit(tag, that.coordinator.getBuffer());
   });
 };
 
 MathWorkers.Interface.matrixDotVector = function(A, v, tag) {
   var that = this;
-  this.coordinator.sendMatrixToWorkers(A, "_sendMatrixToWorkers_A");
-  this.coordinator.on("_done_sendMatrixToWorkers_A", function() {
+  this.coordinator.scatterMatrixToWorkers(A, "_scatterMatrixToWorkers_A");
+  this.coordinator.on("_done_scatterMatrixToWorkers_A", function() {
     that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
   });
   this.coordinator.on("_done_sendVectorToWorkers_v", function() {
-    that.coordinator.trigger("_ADotv");
+    that.coordinator.trigger("_scatterADotv");
   });
-  this.coordinator.on("_done_ADotv", function() {
+  this.coordinator.on("_done_scatterADotv", function() {
     that.emit(tag, that.coordinator.getBuffer());
   });
 };

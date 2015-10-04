@@ -404,3 +404,51 @@ MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Compute the scatter matrix-vector product of this scattered Matrix with a Vector in parallel.
+ * It is assumed that this Vector is transposed such that it is a column vector.
+ * The ordering is such that this Matrix is A and the Vector is v: A.v
+ *
+ * Matrix A is scattered by rows. The result will be a scattered vector, which will then be gathered by the coordinator.
+ *
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MathWorkers.Matrix
+ */
+MathWorkers.Matrix.prototype.workerScatterDotVector = function(v, tag, rebroadcast) {
+  MathWorkers.util.checkMatrixVector(this, v);
+  MathWorkers.util.checkNullOrUndefined(tag);
+  var w = new Float64Array(this.nrows);
+  var i, j, tot, ai;
+  var nj = this.ncols;
+  var offset = 0;
+  if (global.unrollLoops) {
+    var nj3 = nj - 3;
+    for (i = 0; i < this.nrows; ++i) {
+      ai = this.array[i];
+      tot = 0.0;
+      for (j = 0; j < nj3; j += 4) {
+        tot += ai[j] * v.array[j] +
+          ai[j+1] * v.array[j+1] +
+          ai[j+2] * v.array[j+2] +
+          ai[j+3] * v.array[j+3];
+      }
+      for (; j < nj; ++j) {
+        tot += ai[j] * v.array[j];
+      }
+      w[offset++] = tot;
+    }
+  } else {
+    for (i = 0; i < this.nrows; ++i) {
+      ai = this.array[i];
+      tot = 0.0;
+      for (j = 0; j < nj; ++j) {
+        tot += ai[j] * v.array[j];
+      }
+      w[offset++] = tot;
+    }
+  }
+  MathWorkers.MathWorker.gatherVector(w, v.length, this.scatterOffset, tag, rebroadcast);
+};
+

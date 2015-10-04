@@ -676,15 +676,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
     };
 
     /**
-     * Disconnect the coordinator from node.js cluster workers
-     */
-    this.disconnect = function() {
-        if (global.isNode && global.nodeCluster.isMaster) {
-            global.nodeCluster.disconnect();
-        }
-    };
-
-    /**
      * Scatter a Vector into separate pieces to all workers
      *
      * @param {!MathWorkers.Vector} vec Vector to be scattered
@@ -694,10 +685,8 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
       // Split the vector into equalish (load balanced) chunks and send out
       for (var wk = 0; wk < global.nWorkers; ++wk) {
         var lb = MathWorkers.util.loadBalance(vec.length, wk);
-
-        var buf;
         var subv = new Float64Array(vec.array.subarray(lb.ifrom, lb.ito));
-
+        var buf;
         if (global.isNode) {
           // Convert ArrayBuffer to string
           buf = MathWorkers.util.ab2str(subv.buffer);
@@ -705,6 +694,45 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
           buf = subv.buffer;
         }
         comm.postMessageToWorker(wk, {handle: "_scatterVector", tag: tag,	vec: buf}, [buf]);
+      }
+    };
+
+    /**
+     * Scatter a Matrix by rows to all workers
+     *
+     * @param {!MathWorkers.Matrix} mat Matrix to be scattered
+     * @param {!string} tag message tag
+     */
+    this.scatterMatrixToWorkers = function(mat, tag) {
+      // Must make a copy of each matrix row for each worker for transferable object message passing
+      for (var wk = 0; wk < global.nWorkers; ++wk) {
+        var lb = MathWorkers.util.loadBalance(mat.nrows, wk);
+        var matObject = {handle: "_scatterMatrix", tag: tag, nrows: lb.ito - lb.ifrom, offset: lb.ifrom};
+        var matBufferList = [];
+
+        var i, row;
+        if (global.isNode) {
+          for (i = lb.ifrom; i < lb.ito; ++i) {
+            // Convert ArrayBuffer to string
+            matObject[i - lb.ifrom] = MathWorkers.util.ab2str(mat.array[i].buffer);
+          }
+        } else {
+          for (i = lb.ifrom; i < lb.ito; ++i) {
+            row = new Float64Array(mat.array[i]);
+            matObject[i - lb.ifrom] = row.buffer;
+            matBufferList.push(row.buffer);
+          }
+        }
+        comm.postMessageToWorker(wk, matObject, matBufferList);
+      }
+    };
+
+    /**
+     * Disconnect the coordinator from node.js cluster workers
+     */
+    this.disconnect = function() {
+      if (global.isNode && global.nodeCluster.isMaster) {
+        global.nodeCluster.disconnect();
       }
     };
 
@@ -1180,6 +1208,9 @@ MathWorkers.MathWorker = function() {
             case "_scatterVector":
                 handleScatterVector(data);
                 break;
+            case "_scatterMatrix":
+                handleScatterMatrix(data);
+                break;
             default:
                 console.error("Invalid MathWorker handle: " + data.handle);
         }
@@ -1290,6 +1321,31 @@ MathWorkers.MathWorker = function() {
         buf = MathWorkers.util.str2ab(buf);
       }
       objectBuffer = MathWorkers.Vector.fromArray(new Float64Array(buf));
+      handleTrigger(data, objectBuffer);
+    };
+
+    /**
+     * Place scattered Matrix from coordinator into the objectBuffer.
+     * Then, trigger the corresponding event.
+     *
+     * @param {Object} data message data
+     * @private
+     */
+    var handleScatterMatrix = function(data) {
+      var i, tmp = [];
+      if (global.isNode) {
+        for (i = 0; i < data.nrows; ++i) {
+          // Convert string to ArrayBuffer
+          tmp.push(new Float64Array(MathWorkers.util.str2ab(data[i])));
+        }
+      } else {
+        for (i = 0; i < data.nrows; ++i) {
+          tmp.push(new Float64Array(data[i]));
+        }
+      }
+      objectBuffer = new MathWorkers.Matrix();
+      objectBuffer.setMatrix(tmp);
+      objectBuffer.scatterOffset = data.offset;
       handleTrigger(data, objectBuffer);
     };
 };
@@ -2236,6 +2292,13 @@ MathWorkers.Matrix = function(nrows, ncols) {
      */
     this.ncols = ncols || 0;
 
+    /**
+     * For scattered Matrixes, this is the row index offset of the original matrix
+     *
+     * @type {number}
+     */
+    this.scatterOffset = 0;
+
     if (nrows > 0 && ncols > 0) {
         this.array = new Array(nrows);
         for (var r = 0; r < nrows; ++r) {
@@ -3181,6 +3244,54 @@ MathWorkers.Matrix.prototype.workerDotMatrix = function(B, tag, rebroadcast) {
     MathWorkers.MathWorker.gatherMatrixColumns(C, this.nrows, B.ncols, lb.ifrom, tag, rebroadcast);
 };
 
+/**
+ * Compute the scatter matrix-vector product of this scattered Matrix with a Vector in parallel.
+ * It is assumed that this Vector is transposed such that it is a column vector.
+ * The ordering is such that this Matrix is A and the Vector is v: A.v
+ *
+ * Matrix A is scattered by rows. The result will be a scattered vector, which will then be gathered by the coordinator.
+ *
+ * @param {!MathWorkers.Vector} v the Vector to be multiplied with
+ * @param {!string} tag message tag
+ * @param {boolean} [rebroadcast] If true, the coordinator broadcasts the result back to the workers.
+ * @memberof MathWorkers.Matrix
+ */
+MathWorkers.Matrix.prototype.workerScatterDotVector = function(v, tag, rebroadcast) {
+  MathWorkers.util.checkMatrixVector(this, v);
+  MathWorkers.util.checkNullOrUndefined(tag);
+  var w = new Float64Array(this.nrows);
+  var i, j, tot, ai;
+  var nj = this.ncols;
+  var offset = 0;
+  if (global.unrollLoops) {
+    var nj3 = nj - 3;
+    for (i = 0; i < this.nrows; ++i) {
+      ai = this.array[i];
+      tot = 0.0;
+      for (j = 0; j < nj3; j += 4) {
+        tot += ai[j] * v.array[j] +
+          ai[j+1] * v.array[j+1] +
+          ai[j+2] * v.array[j+2] +
+          ai[j+3] * v.array[j+3];
+      }
+      for (; j < nj; ++j) {
+        tot += ai[j] * v.array[j];
+      }
+      w[offset++] = tot;
+    }
+  } else {
+    for (i = 0; i < this.nrows; ++i) {
+      ai = this.array[i];
+      tot = 0.0;
+      for (j = 0; j < nj; ++j) {
+        tot += ai[j] * v.array[j];
+      }
+      w[offset++] = tot;
+    }
+  }
+  MathWorkers.MathWorker.gatherVector(w, v.length, this.scatterOffset, tag, rebroadcast);
+};
+
 
 
 // Copyright 2014 Adrian W. Lange
@@ -3567,6 +3678,8 @@ MathWorkers.Interface = new EventEmitter();
 
 MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
 
+  console.log(pathToMathWorkers);
+
   // Object reference
   var that = this;
 
@@ -3612,6 +3725,16 @@ MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
       that.worker.sendDataToCoordinator({}, "_done_sendVectorToWorkers_w");  // TODO: trigger
     });
 
+    this.worker.on("_scatterVectorToWorkers_v", function() {
+      that.v = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterVectorToWorkers_v");
+    });
+
+    this.worker.on("_scatterVectorToWorkers_w", function() {
+      that.w = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterVectorToWorkers_w");  // TODO: trigger
+    });
+
     this.worker.on("_sendMatrixToWorkers_A", function() {
       that.A = that.worker.getBuffer();
       that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_A");
@@ -3622,12 +3745,30 @@ MathWorkers.Interface.run = function(firstTag, nWorkers, pathToMathWorkers) {
       that.worker.sendDataToCoordinator({}, "_done_sendMatrixToWorkers_B");
     });
 
+    this.worker.on("_scatterMatrixToWorkers_A", function() {
+      that.A = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterMatrixToWorkers_A");
+    });
+
+    this.worker.on("_scatterMatrixToWorkers_B", function() {
+      that.B = that.worker.getBuffer();
+      that.worker.sendDataToCoordinator({}, "_done_scatterMatrixToWorkers_B");
+    });
+
     this.worker.on("_vDotw", function() {
       that.v.workerDotVector(that.w, "_done_vDotw");
     });
 
     this.worker.on("_ADotv", function() {
       that.A.workerDotVector(that.v, "_done_ADotv");
+    });
+
+    this.worker.on("_scattervDotw", function() {
+      that.v.workerDotVector(that.w, "_done_scattervDotw");
+    });
+
+    this.worker.on("_scatterADotv", function() {
+      that.A.workerScatterDotVector(that.v, "_done_scatterADotv");
     });
   }
 
@@ -3641,28 +3782,28 @@ MathWorkers.Interface.vectorDotVector = function(v, w, tag) {
   var that = this;
   // TODO: Could be sent asynchronously?
   // TODO: Distributed vector
-  this.coordinator.sendVectorToWorkers(w, "_sendVectorToWorkers_w");
+  this.coordinator.scatterVectorToWorkers(w, "_scatterVectorToWorkers_w");
   this.coordinator.on("_done_sendVectorToWorkers_w", function() {
-    that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
+    that.coordinator.scatterVectorToWorkers(v, "_scatterVectorToWorkers_v");
   });
-  this.coordinator.on("_done_sendVectorToWorkers_v", function() {
-    that.coordinator.trigger("_vDotw");
+  this.coordinator.on("_done_scatterVectorToWorkers_v", function() {
+    that.coordinator.trigger("_scattervDotw");
   });
-  this.coordinator.on("_done_vDotw", function() {
+  this.coordinator.on("_done_scattervDotw", function() {
     that.emit(tag, that.coordinator.getBuffer());
   });
 };
 
 MathWorkers.Interface.matrixDotVector = function(A, v, tag) {
   var that = this;
-  this.coordinator.sendMatrixToWorkers(A, "_sendMatrixToWorkers_A");
-  this.coordinator.on("_done_sendMatrixToWorkers_A", function() {
+  this.coordinator.scatterMatrixToWorkers(A, "_scatterMatrixToWorkers_A");
+  this.coordinator.on("_done_scatterMatrixToWorkers_A", function() {
     that.coordinator.sendVectorToWorkers(v, "_sendVectorToWorkers_v");
   });
   this.coordinator.on("_done_sendVectorToWorkers_v", function() {
-    that.coordinator.trigger("_ADotv");
+    that.coordinator.trigger("_scatterADotv");
   });
-  this.coordinator.on("_done_ADotv", function() {
+  this.coordinator.on("_done_scatterADotv", function() {
     that.emit(tag, that.coordinator.getBuffer());
   });
 };

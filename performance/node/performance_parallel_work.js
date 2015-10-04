@@ -10,7 +10,7 @@ var Matrix = MathWorkers.Matrix;
 var v, w, x;
 var A, B;
 var N = 10000000;
-var M = 400;
+var M = 8000;
 
 worker.on("set", function() {
     v = Vector.randomVector(N);
@@ -30,6 +30,10 @@ worker.on("run_vectorDot", function() {
 
 worker.on("run_vectorMatrixProduct", function() {
     x.workerDotMatrix(A, "vectorMatrixProduct");
+});
+
+worker.on("run_matrixVectorProduct", function() {
+  A.workerDotVector(x, "matrixVectorProduct");
 });
 
 worker.on("run_matrixMatrixProduct", function() {

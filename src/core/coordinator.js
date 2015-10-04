@@ -142,15 +142,6 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
     };
 
     /**
-     * Disconnect the coordinator from node.js cluster workers
-     */
-    this.disconnect = function() {
-        if (global.isNode && global.nodeCluster.isMaster) {
-            global.nodeCluster.disconnect();
-        }
-    };
-
-    /**
      * Scatter a Vector into separate pieces to all workers
      *
      * @param {!MathWorkers.Vector} vec Vector to be scattered
@@ -160,10 +151,8 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
       // Split the vector into equalish (load balanced) chunks and send out
       for (var wk = 0; wk < global.nWorkers; ++wk) {
         var lb = MathWorkers.util.loadBalance(vec.length, wk);
-
-        var buf;
         var subv = new Float64Array(vec.array.subarray(lb.ifrom, lb.ito));
-
+        var buf;
         if (global.isNode) {
           // Convert ArrayBuffer to string
           buf = MathWorkers.util.ab2str(subv.buffer);
@@ -171,6 +160,45 @@ MathWorkers.Coordinator = function(nWorkersInput, workerScriptName) {
           buf = subv.buffer;
         }
         comm.postMessageToWorker(wk, {handle: "_scatterVector", tag: tag,	vec: buf}, [buf]);
+      }
+    };
+
+    /**
+     * Scatter a Matrix by rows to all workers
+     *
+     * @param {!MathWorkers.Matrix} mat Matrix to be scattered
+     * @param {!string} tag message tag
+     */
+    this.scatterMatrixToWorkers = function(mat, tag) {
+      // Must make a copy of each matrix row for each worker for transferable object message passing
+      for (var wk = 0; wk < global.nWorkers; ++wk) {
+        var lb = MathWorkers.util.loadBalance(mat.nrows, wk);
+        var matObject = {handle: "_scatterMatrix", tag: tag, nrows: lb.ito - lb.ifrom, offset: lb.ifrom};
+        var matBufferList = [];
+
+        var i, row;
+        if (global.isNode) {
+          for (i = lb.ifrom; i < lb.ito; ++i) {
+            // Convert ArrayBuffer to string
+            matObject[i - lb.ifrom] = MathWorkers.util.ab2str(mat.array[i].buffer);
+          }
+        } else {
+          for (i = lb.ifrom; i < lb.ito; ++i) {
+            row = new Float64Array(mat.array[i]);
+            matObject[i - lb.ifrom] = row.buffer;
+            matBufferList.push(row.buffer);
+          }
+        }
+        comm.postMessageToWorker(wk, matObject, matBufferList);
+      }
+    };
+
+    /**
+     * Disconnect the coordinator from node.js cluster workers
+     */
+    this.disconnect = function() {
+      if (global.isNode && global.nodeCluster.isMaster) {
+        global.nodeCluster.disconnect();
       }
     };
 

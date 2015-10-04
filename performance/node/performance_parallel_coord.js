@@ -40,8 +40,9 @@ var run = function(MathWorkers, coord) {
     }
 
     // The events to run
+    createEventListener("bar", "run_matrixVectorProduct", "matrixVectorProduct");
     //createEventListener("bar", "run_matrixMatrixProduct", "matrixMatrixProduct");
-    createEventListener("bar", "run_vectorDot", "vectorDot");
+    //createEventListener("bar", "run_vectorDot", "vectorDot");
 
 
 };

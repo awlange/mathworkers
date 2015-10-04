@@ -35,6 +35,13 @@ MathWorkers.Matrix = function(nrows, ncols) {
      */
     this.ncols = ncols || 0;
 
+    /**
+     * For scattered Matrixes, this is the row index offset of the original matrix
+     *
+     * @type {number}
+     */
+    this.scatterOffset = 0;
+
     if (nrows > 0 && ncols > 0) {
         this.array = new Array(nrows);
         for (var r = 0; r < nrows; ++r) {
