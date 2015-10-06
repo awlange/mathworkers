@@ -28,7 +28,6 @@
     var objectBuffer = {};
 
     var onmessageHandler = function(event) {
-        console.log(event);
         var data = event.data || event;
         switch (data.handle) {
             case "_sendCoordinatorData":
@@ -45,7 +44,7 @@
 
     Coordinator.prototype.disconnect = function() {
         for (var i = 0; i < that.nWorkers; i++) {
-            this.workerPool[i].disconnect();
+            MathWorkers.comm.disconnect(that.workerPool[i]);
         }
     };
 

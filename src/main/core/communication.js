@@ -24,6 +24,14 @@
         }
     };
 
+    Communication.prototype.disconnect = function(worker) {
+        if (that.isNode) {
+            worker.disconnect();
+        } else {
+            worker.terminate();
+        }
+    };
+
     MathWorkers.Communication = Communication;
 
 }());

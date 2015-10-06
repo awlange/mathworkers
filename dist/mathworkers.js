@@ -35,6 +35,14 @@ var MathWorkers = {};
         }
     };
 
+    Communication.prototype.disconnect = function(worker) {
+        if (that.isNode) {
+            worker.disconnect();
+        } else {
+            worker.terminate();
+        }
+    };
+
     MathWorkers.Communication = Communication;
 
 }());
@@ -73,7 +81,6 @@ MathWorkers.comm = new MathWorkers.Communication();
     var objectBuffer = {};
 
     var onmessageHandler = function(event) {
-        console.log(event);
         var data = event.data || event;
         switch (data.handle) {
             case "_sendCoordinatorData":
@@ -90,7 +97,7 @@ MathWorkers.comm = new MathWorkers.Communication();
 
     Coordinator.prototype.disconnect = function() {
         for (var i = 0; i < that.nWorkers; i++) {
-            this.workerPool[i].disconnect();
+            MathWorkers.comm.disconnect(that.workerPool[i]);
         }
     };
 
