@@ -12,29 +12,49 @@ var MathWorker = {};
 
 (function(){
 
-    MathWorker.Communication = function() {
+    var that;
 
-        this.postMessageToCoordinator = function(data, buffer) {
+    var Communication = function(isNode) {
+        that = this;
+
+        this.isNode = isNode || false;
+    };
+
+    Communication.prototype.postMessageToCoordinator = function(data, buffer) {
+        if (that.isNode) {
+            console.log("mmhmm: " + data);
+            process.send(data);
+            console.log("schmeh");
+        } else {
             self.postMessage(data, buffer);
-        };
+        }
+    };
 
-        this.setOnMessage = function(handler) {
+    Communication.prototype.setOnMessage = function(handler) {
+        if (that.isNode) {
+            process.on("message", handler);
+        } else {
             self.onmessage = handler;
         }
     };
 
-    MathWorker.comm = new MathWorker.Communication();
+    MathWorker.Communication = Communication;
 
 }());
+
+MathWorker.comm = new MathWorker.Communication();
 
 
 (function(){
 
     var that;
 
-    var Worker = function(id) {
+    var Worker = function(id, isNode) {
         that = this;
         this.id = id || 0;
+
+        // Set isNode
+        MathWorker.comm.isNode = isNode || false;
 
         // Set message handler
         MathWorker.comm.setOnMessage(onmessageHandler);
@@ -57,6 +77,7 @@ var MathWorker = {};
     Worker.handleInit = function(data) {
         that.id = data.id;
         console.log(that.id);
+        MathWorker.comm.postMessageToCoordinator({handle: "_sendCoordinatorData", id: that.id, isNode: that.isNode});
     };
 
     Worker.handleSendWorkerData = function(data) {
@@ -69,18 +90,8 @@ var MathWorker = {};
 }());
 
 
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    // Exporting for node.js
-    module.exports = MathWorker;
-} else if (typeof window !== 'undefined') {
-    // Exporting for browser
-    window.MathWorker = MathWorker;
-} else {
-    // Exporting for web worker
-    self.MathWorker = MathWorker;
-}
+    var isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
+    console.log(isNode);
+    return new MathWorker.Worker(0, isNode);
 
 })();
-
-
-var worker = new MathWorker.Worker();

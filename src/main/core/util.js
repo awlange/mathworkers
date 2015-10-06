@@ -2,6 +2,8 @@
 
     var Utility = function() {};
 
-    MathWorkers.util = new Utility();
+    MathWorkers.Utility = Utility;
 
 }());
+
+MathWorkers.util = new MathWorkers.Utility();

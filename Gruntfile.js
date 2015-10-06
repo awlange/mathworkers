@@ -22,8 +22,7 @@ module.exports = function(grunt) {
                     'src/worker/intro.js',
                     'src/worker/core/communication.js',
                     'src/worker/core/mathworker.js',
-                    'src/worker/outro.js',
-                    'src/worker/worker_init.js'
+                    'src/worker/outro.js'
                 ],
                 dest: 'dist/<%= pkg.name.replace(".js", "") %>.worker.js'
             }

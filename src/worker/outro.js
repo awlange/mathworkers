@@ -1,12 +1,5 @@
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    // Exporting for node.js
-    module.exports = MathWorker;
-} else if (typeof window !== 'undefined') {
-    // Exporting for browser
-    window.MathWorker = MathWorker;
-} else {
-    // Exporting for web worker
-    self.MathWorker = MathWorker;
-}
+    var isNode = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
+    console.log(isNode);
+    return new MathWorker.Worker(0, isNode);
 
 })();

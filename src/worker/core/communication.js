@@ -1,15 +1,33 @@
 (function(){
 
-    var Communication = function() {};
+    var that;
 
-    Communication.postMessageToCoordinator = function(data, buffer) {
-        self.postMessage(data, buffer);
+    var Communication = function(isNode) {
+        that = this;
+
+        this.isNode = isNode || false;
     };
 
-    Communication.setOnMessage = function(handler) {
-        self.onmessage = handler;
+    Communication.prototype.postMessageToCoordinator = function(data, buffer) {
+        if (that.isNode) {
+            console.log("mmhmm: " + data);
+            process.send(data);
+            console.log("schmeh");
+        } else {
+            self.postMessage(data, buffer);
+        }
     };
 
-    MathWorker.comm = new Communication();
+    Communication.prototype.setOnMessage = function(handler) {
+        if (that.isNode) {
+            process.on("message", handler);
+        } else {
+            self.onmessage = handler;
+        }
+    };
+
+    MathWorker.Communication = Communication;
 
 }());
+
+MathWorker.comm = new MathWorker.Communication();
