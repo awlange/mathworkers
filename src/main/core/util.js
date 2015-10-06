@@ -1,0 +1,2 @@
+MathWorkers.util = {};
+

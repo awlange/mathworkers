@@ -1,76 +1,77 @@
 module.exports = function(grunt) {
 
-  grunt.initConfig({
+    grunt.initConfig({
 
-    pkg: grunt.file.readJSON('package.json'),
+        pkg: grunt.file.readJSON('package.json'),
 
-    concat: {
-      options: {
-        separator: "\n\n"
-      },
-      dist: {
-        src: [
-          'src/_intro.js',
-          'src/core/global.js',
-          'src/core/util.js',
-          'src/core/communication.js',
-          'src/core/event_emitter.js',
-          'src/core/coordinator.js',
-          'src/core/mathworker.js',
-          'src/core/vector.js',
-          'src/core/vector_worker.js',
-          'src/core/matrix.js',
-          'src/core/matrix_worker.js',
-          'src/core/batch.js',
-          'src/statistics/basic_statistics.js',
-          'src/interface/interface.js',
-          'src/_outro.js'
-        ],
-        dest: 'dist/<%= pkg.name.replace(".js", "") %>.js'
-      }
-    },
-
-    uglify: {
-      options: {
-        banner: '/*! <%= pkg.name.replace(".js", "") %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
-      },
-      dist: {
-        files: {
-          'dist/<%= pkg.name.replace(".js", "") %>.min.js': ['<%= concat.dist.dest %>']
-        }
-      }
-    },
-
-    qunit: {
-      files: ['test/*.html']
-    },
-
-    jshint: {
-      files: ['dist/mathworkers.js'],
-      options: {
-        globals: {
-          console: true,
-          module: true,
-          document: true
+        concat: {
+            options: {
+                separator: "\n\n"
+            },
+            main: {
+                src: [
+                    'src/main/intro.js',
+                    'src/main/core/communication.js',
+                    'src/main/core/coordinator.js',
+                    'src/main/outro.js'
+                ],
+                dest: 'dist/<%= pkg.name.replace(".js", "") %>.js'
+            },
+            worker: {
+                src: [
+                    'src/worker/intro.js',
+                    'src/worker/core/communication.js',
+                    'src/worker/core/mathworker.js',
+                    'src/worker/outro.js',
+                    'src/worker/worker_init.js'
+                ],
+                dest: 'dist/<%= pkg.name.replace(".js", "") %>.worker.js'
+            }
         },
-        jshintrc: '.jshintrc'
-      }
-    },
 
-    watch: {
-      files: ['<%= jshint.files %>'],
-      tasks: ['concat', 'jshint', 'qunit']
-    }
+        //uglify: {
+        //  options: {
+        //    banner: '/*! <%= pkg.name.replace(".js", "") %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+        //  },
+        //  dist: {
+        //    files: {
+        //      'dist/<%= pkg.name.replace(".js", "") %>.min.js': ['<%= concat.dist.dest %>']
+        //    }
+        //  }
+        //},
+        //
+        //qunit: {
+        //  files: ['test/*.html']
+        //},
 
-  });
+        jshint: {
+            files: ['dist/mathworkers.js'],
+            options: {
+                globals: {
+                    console: true,
+                    module: true,
+                    document: true
+                },
+                jshintrc: '.jshintrc'
+            }
+        },
 
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-qunit');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-concat');
+        watch: {
+            files: ['<%= jshint.files %>'],
+            //tasks: ['concat', 'jshint', 'qunit']
+            tasks: ['concat', 'jshint']
+        }
 
-  grunt.registerTask('test', ['jshint', 'qunit']);
-  grunt.registerTask('default', ['concat', 'jshint', 'qunit', 'uglify']);
+    });
+
+    //grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    //grunt.loadNpmTasks('grunt-contrib-qunit');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+
+    //grunt.registerTask('test', ['jshint', 'qunit']);
+    //grunt.registerTask('default', ['concat', 'jshint', 'qunit', 'uglify']);
+    grunt.registerTask('default', ['concat']);
 
 };

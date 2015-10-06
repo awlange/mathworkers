@@ -1,33 +1,3 @@
-(function() {
-"use strict";
-
-/**
- * The MathWorkers namespace that everything hangs off of
- *
- * @namespace MathWorkers
- */
-var MathWorkers = {};
-
-
-(function(){
-
-    MathWorkers.Communication = function() {
-
-        this.postMessageToWorker = function(worker, data, buffer) {
-            worker.postMessage(data, buffer);
-        };
-
-        this.setOnMessage = function(worker, handler) {
-            worker.onmessage = handler;
-        }
-    };
-
-    MathWorkers.comm = new MathWorkers.Communication();
-
-}());
-
-
-
 (function(){
 
     var that;
@@ -67,17 +37,3 @@ var MathWorkers = {};
     MathWorkers.Coordinator = Coordinator;
 
 }());
-
-
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    // Exporting for node.js
-    module.exports = MathWorkers;
-} else if (typeof window !== 'undefined') {
-    // Exporting for browser
-    window.MathWorkers = MathWorkers;
-} else {
-    // Exporting for web worker
-    self.MathWorkers = MathWorkers;
-}
-
-})();
