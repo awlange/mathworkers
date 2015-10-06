@@ -1,16 +1,15 @@
 (function(){
 
-    MathWorker.Communication = function() {
+    var Communication = function() {};
 
-        this.postMessageToCoordinator = function(data, buffer) {
-            self.postMessage(data, buffer);
-        };
-
-        this.setOnMessage = function(handler) {
-            self.onmessage = handler;
-        }
+    Communication.postMessageToCoordinator = function(data, buffer) {
+        self.postMessage(data, buffer);
     };
 
-    MathWorker.comm = new MathWorker.Communication();
+    Communication.setOnMessage = function(handler) {
+        self.onmessage = handler;
+    };
+
+    MathWorker.comm = new Communication();
 
 }());
