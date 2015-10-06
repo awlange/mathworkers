@@ -46,6 +46,8 @@
         for (var i = 0; i < that.nWorkers; i++) {
             MathWorkers.comm.disconnect(that.workerPool[i]);
         }
+        that.nWorkers = 0;
+        that.workerPool = [];
     };
 
     MathWorkers.Coordinator = Coordinator;

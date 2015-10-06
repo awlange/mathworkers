@@ -3,18 +3,6 @@
     var Utility = function() {};
 
     /**
-     * Verify that the environment executing this code has Web Worker support
-     *
-     * @ignore
-     * @throws {Error}
-     */
-    Utility.prototype.checkWebWorkerSupport = function() {
-        if (typeof(Worker) === "undefined") {
-            throw new Error("Web Worker support not available for MathWorkers.");
-        }
-    };
-
-    /**
      * Load balancing function.
      * Divides n up evenly among the specified number of workers.
      * Any remainder is distributed such that no worker has more than 1 extra piece in its range.
@@ -40,8 +28,8 @@
         return {ifrom: ifrom, ito: ito};
     };
 
-    MathWorkers.Utility = Utility;
+    MathWorker.Utility = Utility;
 
 }());
 
-MathWorkers.util = new MathWorkers.Utility();
+MathWorker.util = new MathWorker.Utility();
