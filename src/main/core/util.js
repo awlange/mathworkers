@@ -40,6 +40,20 @@
         return {ifrom: ifrom, ito: ito};
     };
 
+    /**
+     * Create a new typed array of given size and data type
+     */
+    Utility.prototype.newTypedArray = function(length, datatype) {
+        switch (datatype) {
+            case MathWorkers.Datatype.Float32:
+                return new Float32Array(length);
+            case MathWorkers.Datatype.Float64:
+                return new Float64Array(length);
+            default:
+                return null;
+        }
+    };
+
     MathWorkers.Utility = Utility;
 
 }());

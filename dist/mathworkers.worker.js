@@ -66,21 +66,22 @@ MathWorker.comm = new MathWorker.Communication();
         var data = event.data || event;
         switch (data.handle) {
             case "_init":
-                return Worker.handleInit(data);
+                return handleInit(data);
             case "_sendWorkerData":
-                return Worker.handleSendWorkerData(data);
+                return handleSendWorkerData(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
     };
 
-    Worker.handleInit = function(data) {
+    var handleInit = function(data) {
         that.id = data.id;
         console.log(that.id);
-        MathWorker.comm.postMessageToCoordinator({handle: "_sendCoordinatorData", id: that.id, isNode: that.isNode});
+        MathWorker.comm.postMessageToCoordinator({handle: "_sendCoordinatorData",
+            id: that.id, isNode: that.isNode});
     };
 
-    Worker.handleSendWorkerData = function(data) {
+    var handleSendWorkerData = function(data) {
         objectBuffer = data;
         console.log(data);
     };

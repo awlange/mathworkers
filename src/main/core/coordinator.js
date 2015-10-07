@@ -31,13 +31,13 @@
         var data = event.data || event;
         switch (data.handle) {
             case "_sendCoordinatorData":
-                return Coordinator.handleSendCoordinatorData(data);
+                return handleSendCoordinatorData(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
     };
 
-    Coordinator.handleSendCoordinatorData = function(data) {
+    var handleSendCoordinatorData = function(data) {
         objectBuffer = data;
         console.log("Coordinator got data: " + data.id);
     };

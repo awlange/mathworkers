@@ -11,6 +11,8 @@ module.exports = function(grunt) {
             main: {
                 src: [
                     'src/main/intro.js',
+                    'src/main/core/datatype.js',
+                    'src/main/core/util.js',
                     'src/main/core/communication.js',
                     'src/main/core/coordinator.js',
                     'src/main/outro.js'
