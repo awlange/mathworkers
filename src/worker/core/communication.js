@@ -1,26 +1,23 @@
 (function(){
 
+    MathWorker.comm = new function() {
+        this.isNode = false;
 
-    MathWorker.comm = {
-        isNode: false
-    };
+        this.postMessageToCoordinator = function (data, buffer) {
+            if (MathWorker.comm.isNode) {
+                process.send(data);
+            } else {
+                self.postMessage(data, buffer);
+            }
+        };
 
-    MathWorker.comm.postMessageToCoordinator = function(data, buffer) {
-        if (MathWorker.comm.isNode) {
-            console.log("mmhmm: " + data);
-            process.send(data);
-            console.log("schmeh");
-        } else {
-            self.postMessage(data, buffer);
-        }
-    };
-
-    MathWorker.comm.setOnMessage = function(handler) {
-        if (MathWorker.comm.isNode) {
-            process.on("message", handler);
-        } else {
-            self.onmessage = handler;
-        }
+        this.setOnMessage = function (handler) {
+            if (MathWorker.comm.isNode) {
+                process.on("message", handler);
+            } else {
+                self.onmessage = handler;
+            }
+        };
     };
 
 }());
