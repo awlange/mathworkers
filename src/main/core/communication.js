@@ -1,40 +1,31 @@
 (function(){
 
-    var that;
-
-    var Communication = function(isNode) {
-        that = this;
-
-        this.isNode = isNode || false;
+    MathWorkers.comm = {
+        isNode: false
     };
 
-    Communication.prototype.postMessageToWorker = function(worker, data, buffer) {
-        if (that.isNode) {
+    MathWorkers.comm.postMessageToWorker = function(worker, data, buffer) {
+        if (MathWorkers.comm.isNode) {
             worker.send(data);
         } else {
             worker.postMessage(data, buffer);
         }
     };
 
-    Communication.prototype.setOnMessage = function(worker, handler) {
-        if (that.isNode) {
+    MathWorkers.comm.setOnMessage = function(worker, handler) {
+        if (MathWorkers.comm.isNode) {
             worker.on("message", handler);
         } else {
             worker.onmessage = handler;
         }
     };
 
-    Communication.prototype.disconnect = function(worker) {
-        if (that.isNode) {
+    MathWorkers.comm.disconnect = function(worker) {
+        if (MathWorkers.comm.isNode) {
             worker.disconnect();
         } else {
             worker.terminate();
         }
     };
 
-    MathWorkers.Communication = Communication;
-
 }());
-
-MathWorkers.comm = new MathWorkers.Communication();
-

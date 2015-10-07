@@ -2,7 +2,7 @@
 
     var that;
 
-    var Coordinator = function(nWorkersInput, workerFilePath, isNode) {
+    MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         that = this;
 
         this.nWorkers = nWorkersInput;
@@ -23,7 +23,24 @@
             MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
             this.workerPool.push(worker);
         }
+
+        this.disconnect = function() {
+            for (var i = 0; i < that.nWorkers; i++) {
+                MathWorkers.comm.disconnect(that.workerPool[i]);
+            }
+            that.nWorkers = 0;
+            that.workerPool = [];
+        };
+
+        this.broadcastMessage = function(message) {
+            for (var i = 0; i < that.workerPool.length; i++) {
+                MathWorkers.comm.postMessageToWorker(that.workerPool[i], {handle: "_broadcastMessage", message: message});
+            }
+        };
     };
+
+    // Set event emitter inheritance
+    MathWorkers.Coordinator.prototype = new MathWorkers.EventEmitter();
 
     var objectBuffer = {};
 
@@ -41,15 +58,5 @@
         objectBuffer = data;
         console.log("Coordinator got data: " + data.id);
     };
-
-    Coordinator.prototype.disconnect = function() {
-        for (var i = 0; i < that.nWorkers; i++) {
-            MathWorkers.comm.disconnect(that.workerPool[i]);
-        }
-        that.nWorkers = 0;
-        that.workerPool = [];
-    };
-
-    MathWorkers.Coordinator = Coordinator;
 
 }());

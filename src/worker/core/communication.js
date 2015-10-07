@@ -1,15 +1,12 @@
 (function(){
 
-    var that;
 
-    var Communication = function(isNode) {
-        that = this;
-
-        this.isNode = isNode || false;
+    MathWorker.comm = {
+        isNode: false
     };
 
-    Communication.prototype.postMessageToCoordinator = function(data, buffer) {
-        if (that.isNode) {
+    MathWorker.comm.postMessageToCoordinator = function(data, buffer) {
+        if (MathWorker.comm.isNode) {
             console.log("mmhmm: " + data);
             process.send(data);
             console.log("schmeh");
@@ -18,16 +15,12 @@
         }
     };
 
-    Communication.prototype.setOnMessage = function(handler) {
-        if (that.isNode) {
+    MathWorker.comm.setOnMessage = function(handler) {
+        if (MathWorker.comm.isNode) {
             process.on("message", handler);
         } else {
             self.onmessage = handler;
         }
     };
 
-    MathWorker.Communication = Communication;
-
 }());
-
-MathWorker.comm = new MathWorker.Communication();

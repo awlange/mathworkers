@@ -12,9 +12,12 @@ module.exports = function(grunt) {
                 src: [
                     'src/main/intro.js',
                     'src/main/core/datatype.js',
+                    'src/main/core/event_emitter.js',
                     'src/main/core/util.js',
                     'src/main/core/communication.js',
                     'src/main/core/coordinator.js',
+                    'src/main/matrix/vector.js',
+                    'src/main/core/interface.js',
                     'src/main/outro.js'
                 ],
                 dest: 'dist/<%= pkg.name.replace(".js", "") %>.js'

@@ -2,7 +2,7 @@
 
     var that;
 
-    var Worker = function(id, isNode) {
+    MathWorker.Worker = function(id, isNode) {
         that = this;
         this.id = id || 0;
 
@@ -22,6 +22,8 @@
                 return handleInit(data);
             case "_sendWorkerData":
                 return handleSendWorkerData(data);
+            case "_broadcastMessage":
+                return handleBroadcastMessage(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -39,6 +41,8 @@
         console.log(data);
     };
 
-    MathWorker.Worker = Worker;
+    var handleBroadcastMessage = function(data) {
+        console.log(that.id + ": " + data.message);
+    };
 
 }());

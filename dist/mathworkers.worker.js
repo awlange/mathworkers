@@ -12,16 +12,13 @@ var MathWorker = {};
 
 (function(){
 
-    var that;
 
-    var Communication = function(isNode) {
-        that = this;
-
-        this.isNode = isNode || false;
+    MathWorker.comm = {
+        isNode: false
     };
 
-    Communication.prototype.postMessageToCoordinator = function(data, buffer) {
-        if (that.isNode) {
+    MathWorker.comm.postMessageToCoordinator = function(data, buffer) {
+        if (MathWorker.comm.isNode) {
             console.log("mmhmm: " + data);
             process.send(data);
             console.log("schmeh");
@@ -30,26 +27,22 @@ var MathWorker = {};
         }
     };
 
-    Communication.prototype.setOnMessage = function(handler) {
-        if (that.isNode) {
+    MathWorker.comm.setOnMessage = function(handler) {
+        if (MathWorker.comm.isNode) {
             process.on("message", handler);
         } else {
             self.onmessage = handler;
         }
     };
 
-    MathWorker.Communication = Communication;
-
 }());
-
-MathWorker.comm = new MathWorker.Communication();
 
 
 (function(){
 
     var that;
 
-    var Worker = function(id, isNode) {
+    MathWorker.Worker = function(id, isNode) {
         that = this;
         this.id = id || 0;
 
@@ -69,6 +62,8 @@ MathWorker.comm = new MathWorker.Communication();
                 return handleInit(data);
             case "_sendWorkerData":
                 return handleSendWorkerData(data);
+            case "_broadcastMessage":
+                return handleBroadcastMessage(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -86,7 +81,9 @@ MathWorker.comm = new MathWorker.Communication();
         console.log(data);
     };
 
-    MathWorker.Worker = Worker;
+    var handleBroadcastMessage = function(data) {
+        console.log(that.id + ": " + data.message);
+    };
 
 }());
 

@@ -1,6 +1,6 @@
 (function(){
 
-    var Utility = function() {};
+    MathWorkers.util = function() {};
 
     /**
      * Verify that the environment executing this code has Web Worker support
@@ -8,7 +8,7 @@
      * @ignore
      * @throws {Error}
      */
-    Utility.prototype.checkWebWorkerSupport = function() {
+    MathWorkers.util.checkWebWorkerSupport = function() {
         if (typeof(Worker) === "undefined") {
             throw new Error("Web Worker support not available for MathWorkers.");
         }
@@ -22,7 +22,7 @@
      * @ignore
      * @returns {object} container for range index from (inclusive) and index to (non-inclusive) for the given id
      */
-    Utility.prototype.loadBalance = function(n, nWorkers, id) {
+    MathWorkers.util.loadBalance = function(n, nWorkers, id) {
         id = id || 0;
         var div = (n / nWorkers)|0;
         var rem = n % nWorkers;
@@ -43,7 +43,7 @@
     /**
      * Create a new typed array of given size and data type
      */
-    Utility.prototype.newTypedArray = function(length, datatype) {
+    MathWorkers.util.newTypedArray = function(length, datatype) {
         switch (datatype) {
             case MathWorkers.Datatype.Float32:
                 return new Float32Array(length);
@@ -54,8 +54,4 @@
         }
     };
 
-    MathWorkers.Utility = Utility;
-
 }());
-
-MathWorkers.util = new MathWorkers.Utility();
