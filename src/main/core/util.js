@@ -1,6 +1,6 @@
 (function(){
 
-    MathWorkers.util = function() {
+    MathWorkers.util = new function() {
 
         /**
          * Verify that the environment executing this code has Web Worker support

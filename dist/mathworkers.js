@@ -13,8 +13,8 @@ var MathWorkers = {};
 
     // Enum-like object of the allowed data types for MathWorkers
     MathWorkers.Datatype = Object.freeze({
-        "Float32": {},
-        "Float64": {}
+        Float32: "Float32",
+        Float64: "Float64"
     });
 
 }());
@@ -63,7 +63,7 @@ var MathWorkers = {};
 
 (function(){
 
-    MathWorkers.util = function() {
+    MathWorkers.util = new function() {
 
         /**
          * Verify that the environment executing this code has Web Worker support
@@ -216,7 +216,7 @@ var MathWorkers = {};
 
 (function(){
 
-    var Vector = function(length, datatype) {
+    MathWorkers.Vector = function(length, datatype) {
         this.datatype = datatype || MathWorkers.Datatype.Float32;
         this.length = length || 0;
         this.array = null;
@@ -225,15 +225,21 @@ var MathWorkers = {};
         }
     };
 
-    Vector.prototype.random = function(length, datatype) {
-        var vec = new Vector(length, datatype);
-        for (var i = 0; i < size; ++i) {
+    MathWorkers.Vector.random = function(length, datatype) {
+        // TODO: fill with different random things depending on datatype
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
             vec.array[i] = Math.random();
         }
         return vec;
     };
 
-    MathWorkers.Vector = Vector;
+    MathWorkers.Vector.prototype.map = function(func) {
+        for (var i = 0; i < this.length; i++) {
+            this.array[i] = func(this.array[i]);
+        }
+        return this;
+    }
 
 }());
 
