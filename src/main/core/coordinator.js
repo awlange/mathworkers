@@ -1,10 +1,6 @@
 (function(){
 
-    var that;
-
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
-        that = this;
-
         this.nWorkers = nWorkersInput;
         this.workerPool = [];
 
@@ -25,17 +21,17 @@
         }
 
         this.disconnect = function() {
-            for (var i = 0; i < that.nWorkers; i++) {
-                MathWorkers.comm.disconnect(that.workerPool[i]);
-            }
-            that.nWorkers = 0;
-            that.workerPool = [];
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.disconnect(worker);
+            });
+            this.nWorkers = 0;
+            this.workerPool = [];
         };
 
         this.broadcastMessage = function(message) {
-            for (var i = 0; i < that.workerPool.length; i++) {
-                MathWorkers.comm.postMessageToWorker(that.workerPool[i], {handle: "_broadcastMessage", message: message});
-            }
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage", message: message});
+            });
         };
     };
 
