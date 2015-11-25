@@ -1,4 +1,4 @@
-(function(){
+(function() {
 
     MathWorkers.Vector = function(length, datatype) {
         this.datatype = datatype || MathWorkers.Datatype.Float32;

@@ -33,6 +33,27 @@
                 MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage", message: message});
             });
         };
+
+        /**
+         * Scatter a Vector into separate pieces to all workers
+         *
+         * @param {!MathWorkers.Vector} vec Vector to be scattered
+         * @param {!string} tag message tag
+         */
+        this.scatterVectorToWorkers = function(vec, tag) {
+            // Split the vector into equal-ish (load balanced) chunks and send out
+            this.workerPool.forEach(function(worker, i) {
+                var lb = MathWorkers.util.loadBalance(vec.length, i);
+                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito));
+                var buf = subv.buffer;
+                MathWorkers.comm.postMessageToWorker(worker, {
+                    handle: "_scatterVector",
+                    tag: tag,
+                    datatype: vec.datatype,
+                    vec: buf
+                }, [buf]);
+            });
+        };
     };
 
     // Set event emitter inheritance

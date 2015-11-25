@@ -9,7 +9,7 @@
 var MathWorkers = {};
 
 
-(function(){
+(function() {
 
     // Enum-like object of the allowed data types for MathWorkers
     MathWorkers.Datatype = Object.freeze({
@@ -38,8 +38,7 @@ var MathWorkers = {};
          * @param {!string} name the event name
          * @param {function} callback the callback to be executed when the event is emitted
          */
-        this.on = function (name, callback) {
-            MathWorkers.util.checkFunction(callback);
+        this.on = function(name, callback) {
             events[name] = [callback];
         };
 
@@ -49,7 +48,7 @@ var MathWorkers = {};
          * @param {!string} name the event name
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
-        this.emit = function (name, args) {
+        this.emit = function(name, args) {
             events[name] = events[name] || [];
             args = args || [];
             events[name].forEach(function (fn) {
@@ -61,7 +60,7 @@ var MathWorkers = {};
 
 
 
-(function(){
+(function() {
 
     MathWorkers.util = new function() {
 
@@ -85,7 +84,7 @@ var MathWorkers = {};
          * @ignore
          * @returns {object} container for range index from (inclusive) and index to (non-inclusive) for the given id
          */
-        this.loadBalance = function (n, nWorkers, id) {
+        this.loadBalance = function(n, nWorkers, id) {
             id = id || 0;
             var div = (n / nWorkers) | 0;
             var rem = n % nWorkers;
@@ -106,12 +105,26 @@ var MathWorkers = {};
         /**
          * Create a new typed array of given size and data type
          */
-        this.newTypedArray = function (length, datatype) {
+        this.newTypedArray = function(length, datatype) {
             switch (datatype) {
                 case MathWorkers.Datatype.Float32:
                     return new Float32Array(length);
                 case MathWorkers.Datatype.Float64:
                     return new Float64Array(length);
+                default:
+                    return null;
+            }
+        };
+
+        /**
+         * Create a copy of a provided typed array
+         */
+        this.copyTypedArray = function(arr, datatype) {
+            switch (datatype) {
+                case MathWorkers.Datatype.Float32:
+                    return new Float32Array(arr);
+                case MathWorkers.Datatype.Float64:
+                    return new Float64Array(arr);
                 default:
                     return null;
             }
@@ -127,7 +140,7 @@ var MathWorkers = {};
         this.isNode = false;
 
         this.postMessageToWorker = function(worker, data, buffer) {
-            if (MathWorkers.comm.isNode) {
+            if (this.isNode) {
                 worker.send(data);
             } else {
                 worker.postMessage(data, buffer);
@@ -135,7 +148,7 @@ var MathWorkers = {};
         };
 
         this.setOnMessage = function(worker, handler) {
-            if (MathWorkers.comm.isNode) {
+            if (this.isNode) {
                 worker.on("message", handler);
             } else {
                 worker.onmessage = handler;
@@ -143,7 +156,7 @@ var MathWorkers = {};
         };
 
         this.disconnect = function(worker) {
-            if (MathWorkers.comm.isNode) {
+            if (this.isNode) {
                 worker.disconnect();
             } else {
                 worker.terminate();
@@ -189,6 +202,27 @@ var MathWorkers = {};
                 MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage", message: message});
             });
         };
+
+        /**
+         * Scatter a Vector into separate pieces to all workers
+         *
+         * @param {!MathWorkers.Vector} vec Vector to be scattered
+         * @param {!string} tag message tag
+         */
+        this.scatterVectorToWorkers = function(vec, tag) {
+            // Split the vector into equal-ish (load balanced) chunks and send out
+            this.workerPool.forEach(function(worker, i) {
+                var lb = MathWorkers.util.loadBalance(vec.length, i);
+                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito));
+                var buf = subv.buffer;
+                MathWorkers.comm.postMessageToWorker(worker, {
+                    handle: "_scatterVector",
+                    tag: tag,
+                    datatype: vec.datatype,
+                    vec: buf
+                }, [buf]);
+            });
+        };
     };
 
     // Set event emitter inheritance
@@ -214,7 +248,7 @@ var MathWorkers = {};
 }());
 
 
-(function(){
+(function() {
 
     MathWorkers.Vector = function(length, datatype) {
         this.datatype = datatype || MathWorkers.Datatype.Float32;

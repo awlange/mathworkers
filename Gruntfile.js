@@ -11,9 +11,9 @@ module.exports = function(grunt) {
             main: {
                 src: [
                     'src/main/intro.js',
-                    'src/main/core/datatype.js',
-                    'src/main/core/event_emitter.js',
-                    'src/main/core/util.js',
+                    'src/common/core/datatype.js',
+                    'src/common/core/event_emitter.js',
+                    'src/common/core/util.js',
                     'src/main/core/communication.js',
                     'src/main/core/coordinator.js',
                     'src/main/matrix/vector.js',
@@ -25,6 +25,9 @@ module.exports = function(grunt) {
             worker: {
                 src: [
                     'src/worker/intro.js',
+                    'src/common/core/datatype.js',
+                    'src/common/core/event_emitter.js',
+                    'src/common/core/util.js',
                     'src/worker/core/communication.js',
                     'src/worker/core/mathworker.js',
                     'src/worker/outro.js'

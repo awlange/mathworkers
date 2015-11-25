@@ -1,4 +1,4 @@
-(function(){
+(function() {
 
     MathWorkers.util = new function() {
 
@@ -22,7 +22,7 @@
          * @ignore
          * @returns {object} container for range index from (inclusive) and index to (non-inclusive) for the given id
          */
-        this.loadBalance = function (n, nWorkers, id) {
+        this.loadBalance = function(n, nWorkers, id) {
             id = id || 0;
             var div = (n / nWorkers) | 0;
             var rem = n % nWorkers;
@@ -43,12 +43,26 @@
         /**
          * Create a new typed array of given size and data type
          */
-        this.newTypedArray = function (length, datatype) {
+        this.newTypedArray = function(length, datatype) {
             switch (datatype) {
                 case MathWorkers.Datatype.Float32:
                     return new Float32Array(length);
                 case MathWorkers.Datatype.Float64:
                     return new Float64Array(length);
+                default:
+                    return null;
+            }
+        };
+
+        /**
+         * Create a copy of a provided typed array
+         */
+        this.copyTypedArray = function(arr, datatype) {
+            switch (datatype) {
+                case MathWorkers.Datatype.Float32:
+                    return new Float32Array(arr);
+                case MathWorkers.Datatype.Float64:
+                    return new Float64Array(arr);
                 default:
                     return null;
             }

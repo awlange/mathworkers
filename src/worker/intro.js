@@ -2,9 +2,9 @@
 "use strict";
 
 /**
- * The MathWorker namespace that everything hangs off of
+ * The MathWorkers namespace that everything hangs off of
  *
- * @namespace MathWorker
+ * @namespace MathWorkers
  */
-var MathWorker = {};
+var MathWorkers = {};
 

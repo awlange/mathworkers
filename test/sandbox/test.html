@@ -8,7 +8,11 @@
         <script src="../../dist/mathworkers.js"></script>
 
         <script>
-            var coord = new MathWorkers.Coordinator(2, "../../dist/mathworkers.worker.js");
+            var mwi = new MathWorkers.Interface(2, "../../dist/mathworkers.worker.js");
+
+            mwi.broadcastMessage("hey there");
+
+            var v = new MathWorkers.Vector.random(8);
         </script>
     </body>
 </html>

@@ -16,8 +16,7 @@
          * @param {!string} name the event name
          * @param {function} callback the callback to be executed when the event is emitted
          */
-        this.on = function (name, callback) {
-            MathWorkers.util.checkFunction(callback);
+        this.on = function(name, callback) {
             events[name] = [callback];
         };
 
@@ -27,7 +26,7 @@
          * @param {!string} name the event name
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
-        this.emit = function (name, args) {
+        this.emit = function(name, args) {
             events[name] = events[name] || [];
             args = args || [];
             events[name].forEach(function (fn) {
