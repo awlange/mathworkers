@@ -17,6 +17,7 @@ module.exports = function(grunt) {
                     'src/main/core/communication.js',
                     'src/main/core/coordinator.js',
                     'src/main/matrix/vector.js',
+                    'src/main/matrix/distributed_vector.js',
                     'src/main/core/interface.js',
                     'src/main/outro.js'
                 ],

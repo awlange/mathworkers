@@ -9,6 +9,22 @@
         }
     };
 
+    MathWorkers.Vector.zeros = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 0.0;
+        }
+        return vec;
+    };
+
+    MathWorkers.Vector.ones = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 1.0;
+        }
+        return vec;
+    };
+
     MathWorkers.Vector.random = function(length, datatype) {
         // TODO: fill with different random things depending on datatype
         var vec = new MathWorkers.Vector(length, datatype);

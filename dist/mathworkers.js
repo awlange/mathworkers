@@ -172,6 +172,7 @@ var MathWorkers = {};
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
         this.workerPool = [];
+        var that = this;
 
         // Set isNode
         MathWorkers.comm.isNode = isNode || false;
@@ -212,8 +213,8 @@ var MathWorkers = {};
         this.scatterVectorToWorkers = function(vec, tag) {
             // Split the vector into equal-ish (load balanced) chunks and send out
             this.workerPool.forEach(function(worker, i) {
-                var lb = MathWorkers.util.loadBalance(vec.length, i);
-                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito));
+                var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
+                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito), vec.datatype);
                 var buf = subv.buffer;
                 MathWorkers.comm.postMessageToWorker(worker, {
                     handle: "_scatterVector",
@@ -259,6 +260,22 @@ var MathWorkers = {};
         }
     };
 
+    MathWorkers.Vector.zeros = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 0.0;
+        }
+        return vec;
+    };
+
+    MathWorkers.Vector.ones = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 1.0;
+        }
+        return vec;
+    };
+
     MathWorkers.Vector.random = function(length, datatype) {
         // TODO: fill with different random things depending on datatype
         var vec = new MathWorkers.Vector(length, datatype);
@@ -278,6 +295,29 @@ var MathWorkers = {};
 }());
 
 
+/**
+ * Interface to Vector that is distributed across workers
+ */
+(function() {
+
+    /**
+     * Given a Vector, distribute over workers
+     *
+     * @param coordinator
+     * @param vector
+     * @constructor
+     */
+    MathWorkers.DistributedVector = function(coordinator, vector) {
+        this.datatype = vector.datatype || MathWorkers.Datatype.Float32;
+        this.length = vector.length || 0;
+
+        coordinator.scatterVectorToWorkers(vector, "_scatterVector");
+    };
+
+
+}());
+
+
 (function() {
 
     MathWorkers.Interface = function(nWorkersInput, workerFilePath, isNode) {
@@ -287,12 +327,14 @@ var MathWorkers = {};
         // Send a message to the worker pool
         this.broadcastMessage = function(message, callback) {
             coordinator.broadcastMessage(message);
-
             if (typeof callback === "function") {
                 callback();
             }
         };
 
+        this.newDistributedVector = function(vector) {
+            return new MathWorkers.DistributedVector(coordinator, vector);
+        }
     };
 
 }());

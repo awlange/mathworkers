@@ -1,6 +1,6 @@
 {
   "name": "mathworkers",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "main": "dist/mathworkers.min.js",
   "description": "A parallel JavaScript math and statistics library built around HTML5 Web Workers and Node.js cluster.",
   "repository": {

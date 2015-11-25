@@ -3,6 +3,7 @@
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
         this.workerPool = [];
+        var that = this;
 
         // Set isNode
         MathWorkers.comm.isNode = isNode || false;
@@ -43,8 +44,8 @@
         this.scatterVectorToWorkers = function(vec, tag) {
             // Split the vector into equal-ish (load balanced) chunks and send out
             this.workerPool.forEach(function(worker, i) {
-                var lb = MathWorkers.util.loadBalance(vec.length, i);
-                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito));
+                var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
+                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito), vec.datatype);
                 var buf = subv.buffer;
                 MathWorkers.comm.postMessageToWorker(worker, {
                     handle: "_scatterVector",
