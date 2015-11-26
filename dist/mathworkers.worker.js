@@ -181,7 +181,15 @@ var MathWorkers = {};
 
         // Set message handler
         MathWorkers.comm.setOnMessage(onmessageHandler);
+
+        /**
+         * A map of name to distributed object to be used in calculations
+         */
+        this.distributedObjectMap = {};
     };
+
+    // Set event emitter inheritance
+    MathWorkers.Worker.prototype = new MathWorkers.EventEmitter();
 
     var objectBuffer = {};
 
@@ -226,6 +234,11 @@ var MathWorkers = {};
         }
     };
 
+    // Acknowledge something has happened to the Coordinator
+    var handshake = function(tag) {
+        MathWorkers.comm.postMessageToCoordinator({handle: "_handshake", id: that.id, tag: tag});
+    };
+
     var handleSendWorkerData = function(data) {
         objectBuffer = data;
         console.log(data);
@@ -236,8 +249,8 @@ var MathWorkers = {};
     };
 
     var handleScatterVector = function(data) {
-        objectBuffer = MathWorkers.util.copyTypedArray(data.vec, data.datatype);
-        handleTrigger(data, objectBuffer);
+        that.distributedObjectMap[data.key] = MathWorkers.util.copyTypedArray(data.vec, data.datatype);
+        handshake(data.tag);
     };
 
 }());

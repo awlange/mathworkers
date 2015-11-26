@@ -1,9 +1,13 @@
 (function(){
 
+    var that;
+    var objectBuffer = {};
+    var workersReportedList = [];
+
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
         this.workerPool = [];
-        var that = this;
+        that = this;
 
         // Set isNode
         MathWorkers.comm.isNode = isNode || false;
@@ -20,6 +24,9 @@
             MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
             this.workerPool.push(worker);
         }
+
+        // Create empty report list
+        emptyWorkersReportedList();
 
         this.disconnect = function() {
             this.workerPool.forEach(function(worker) {
@@ -39,9 +46,10 @@
          * Scatter a Vector into separate pieces to all workers
          *
          * @param {!MathWorkers.Vector} vec Vector to be scattered
+         * @param {!string} key to vector in object map
          * @param {!string} tag message tag
          */
-        this.scatterVectorToWorkers = function(vec, tag) {
+        this.scatterVectorToWorkers = function(vec, key, tag) {
             // Split the vector into equal-ish (load balanced) chunks and send out
             this.workerPool.forEach(function(worker, i) {
                 var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
@@ -49,6 +57,7 @@
                 var buf = subv.buffer;
                 MathWorkers.comm.postMessageToWorker(worker, {
                     handle: "_scatterVector",
+                    key: key,
                     tag: tag,
                     datatype: vec.datatype,
                     vec: buf
@@ -60,13 +69,28 @@
     // Set event emitter inheritance
     MathWorkers.Coordinator.prototype = new MathWorkers.EventEmitter();
 
-    var objectBuffer = {};
+    var emptyWorkersReportedList = function() {
+        for (var i = 0; i < that.nWorkers; i++) {
+            workersReportedList[i] = 0;
+        }
+    };
+
+    var allWorkersReported = function() {
+        for (var i = 0; i < that.nWorkers; i++) {
+            if (workersReportedList[i] == 0) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     var onmessageHandler = function(event) {
         var data = event.data || event;
         switch (data.handle) {
             case "_sendCoordinatorData":
                 return handleSendCoordinatorData(data);
+            case "_handshake":
+                return handleHandshake(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -76,5 +100,13 @@
         objectBuffer = data;
         console.log("Coordinator got data: " + data.id);
     };
+
+    var handleHandshake = function(data) {
+        workersReportedList[data.id] = 1;
+        if (allWorkersReported()) {
+            emptyWorkersReportedList();
+            that.emit(data.tag);
+        }
+    }
 
 }());

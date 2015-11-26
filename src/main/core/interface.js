@@ -12,8 +12,8 @@
             }
         };
 
-        this.newDistributedVector = function(vector) {
-            return new MathWorkers.DistributedVector(coordinator, vector);
+        this.newDistributedVector = function(vector, key) {
+            return new MathWorkers.DistributedVector(coordinator, vector, key);
         }
     };
 
