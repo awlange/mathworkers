@@ -2,6 +2,8 @@
 
 A parallel JavaScript math and statistics library built around HTML5 Web Workers and Node.js cluster.
 
+Note: A new version of MathWorkersJS is currently under development on the v2 branch.
+
 ## About
 
 A JavaScript library by [Adrian W. Lange](http://adrianlange.com/).
