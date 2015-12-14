@@ -18,6 +18,7 @@
          */
         this.on = function(name, callback) {
             events[name] = [callback];
+            return this;
         };
 
         /**
@@ -32,6 +33,7 @@
             events[name].forEach(function (fn) {
                 fn.call(this, args);
             });
+            return this;
         };
     }
 }());

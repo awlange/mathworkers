@@ -14,8 +14,7 @@
             dv.on("1", function() {
                 console.log(dv.length);
                 dv.gather("2");
-            });
-            dv.on("2", function() {
+            }).on("2", function() {
                 var g = dv.getGatheredVector();
                 console.log(g);
             });

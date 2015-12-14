@@ -40,6 +40,7 @@ var MathWorkers = {};
          */
         this.on = function(name, callback) {
             events[name] = [callback];
+            return this;
         };
 
         /**
@@ -54,6 +55,7 @@ var MathWorkers = {};
             events[name].forEach(function (fn) {
                 fn.call(this, args);
             });
+            return this;
         };
     }
 }());
@@ -314,6 +316,7 @@ var MathWorkers = {};
         this.gatherVectorFromWorkers = function(key, tag) {
             // Set empty workers reported for tag
             workersReported[tag] = emptyWorkersReportedList();
+            reductionBuffer = [];
 
             // Trigger each worker to send its vector
             this.workerPool.forEach(function(worker) {
@@ -386,7 +389,7 @@ var MathWorkers = {};
         reductionBuffer[data.id] = MathWorkers.util.copyTypedArray(data.vectorBuffer, data.datatype);
         workersReported[data.tag][data.id] = 1;
         if (allWorkersReported(workersReported[data.tag])) {
-            // Collect all arrays in buffer into one
+            // Collect all arrays in buffer into one, stored in
             var totalLength = 0;
             var offsets = [0];
             for (var w = 0; w < that.nWorkers; w++) {

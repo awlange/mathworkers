@@ -41,6 +41,7 @@ var MathWorkers = {};
          */
         this.on = function(name, callback) {
             events[name] = [callback];
+            return this;
         };
 
         /**
@@ -55,6 +56,7 @@ var MathWorkers = {};
             events[name].forEach(function (fn) {
                 fn.call(this, args);
             });
+            return this;
         };
     }
 }());
