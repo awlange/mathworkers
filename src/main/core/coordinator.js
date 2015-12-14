@@ -3,6 +3,7 @@
     var that;
     var objectBuffer = {};
     var workersReported = {};
+    var reductionBuffer = [];
 
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
@@ -24,6 +25,10 @@
             MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
             this.workerPool.push(worker);
         }
+
+        this.getObjectBuffer = function() {
+            return objectBuffer;
+        };
 
         this.disconnect = function() {
             this.workerPool.forEach(function(worker) {
@@ -77,6 +82,26 @@
             });
         };
 
+        /**
+         * Trigger workers to send their parts of the distributed vector to the coordinator
+         *
+         * @param key
+         * @param tag
+         */
+        this.gatherVectorFromWorkers = function(key, tag) {
+            // Set empty workers reported for tag
+            workersReported[tag] = emptyWorkersReportedList();
+
+            // Trigger each worker to send its vector
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {
+                    handle: "_gatherVector",
+                    key: key,
+                    tag: tag
+                });
+            });
+        };
+
 
     };
 
@@ -100,6 +125,14 @@
         return true;
     };
 
+    var numWorkersReported = function(workersReportedList) {
+        var total = 0;
+        for (var i = 0; i < that.nWorkers; i++) {
+            total += workersReportedList[i];
+        }
+        return total;
+    };
+
     var onmessageHandler = function(event) {
         var data = event.data || event;
         switch (data.handle) {
@@ -107,6 +140,8 @@
                 return handleSendCoordinatorData(data);
             case "_handshake":
                 return handleHandshake(data);
+            case "_sendVectorToCoordinator":
+                return handleGatherVector(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -122,6 +157,29 @@
         if (allWorkersReported(workersReported[data.tag])) {
             that.emit(data.tag);
         }
-    }
+    };
+
+    var handleGatherVector = function(data) {
+        reductionBuffer[data.id] = MathWorkers.util.copyTypedArray(data.vectorBuffer, data.datatype);
+        workersReported[data.tag][data.id] = 1;
+        if (allWorkersReported(workersReported[data.tag])) {
+            // Collect all arrays in buffer into one
+            var totalLength = 0;
+            var offsets = [0];
+            for (var w = 0; w < that.nWorkers; w++) {
+                offsets.push(reductionBuffer[w].length);
+                totalLength += reductionBuffer[w].length;
+            }
+            objectBuffer = new MathWorkers.Vector(totalLength, data.datatype);
+            for (w = 0; w < that.nWorkers; w++) {
+                var workerArray = reductionBuffer[w];
+                var offset = offsets[w];
+                for (var i = 0; i < workerArray.length; i++) {
+                    objectBuffer.array[offset + i] = workerArray[i];
+                }
+            }
+            that.emit(data.tag);
+        }
+    };
 
 }());

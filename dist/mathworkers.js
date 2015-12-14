@@ -146,9 +146,10 @@ var MathWorkers = {};
     };
 
     MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmpArray = MathWorkers.util.copyTypedArray(array, datatype)
         var tmp = new MathWorkers.Vector(0, datatype);
-        tmp.length = array.length;
-        tmp.array = array;
+        tmp.length = tmpArray.length;
+        tmp.array = tmpArray;
         return tmp;
     };
 
@@ -225,6 +226,7 @@ var MathWorkers = {};
     var that;
     var objectBuffer = {};
     var workersReported = {};
+    var reductionBuffer = [];
 
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
@@ -246,6 +248,10 @@ var MathWorkers = {};
             MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
             this.workerPool.push(worker);
         }
+
+        this.getObjectBuffer = function() {
+            return objectBuffer;
+        };
 
         this.disconnect = function() {
             this.workerPool.forEach(function(worker) {
@@ -299,6 +305,26 @@ var MathWorkers = {};
             });
         };
 
+        /**
+         * Trigger workers to send their parts of the distributed vector to the coordinator
+         *
+         * @param key
+         * @param tag
+         */
+        this.gatherVectorFromWorkers = function(key, tag) {
+            // Set empty workers reported for tag
+            workersReported[tag] = emptyWorkersReportedList();
+
+            // Trigger each worker to send its vector
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {
+                    handle: "_gatherVector",
+                    key: key,
+                    tag: tag
+                });
+            });
+        };
+
 
     };
 
@@ -322,6 +348,14 @@ var MathWorkers = {};
         return true;
     };
 
+    var numWorkersReported = function(workersReportedList) {
+        var total = 0;
+        for (var i = 0; i < that.nWorkers; i++) {
+            total += workersReportedList[i];
+        }
+        return total;
+    };
+
     var onmessageHandler = function(event) {
         var data = event.data || event;
         switch (data.handle) {
@@ -329,6 +363,8 @@ var MathWorkers = {};
                 return handleSendCoordinatorData(data);
             case "_handshake":
                 return handleHandshake(data);
+            case "_sendVectorToCoordinator":
+                return handleGatherVector(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -344,7 +380,30 @@ var MathWorkers = {};
         if (allWorkersReported(workersReported[data.tag])) {
             that.emit(data.tag);
         }
-    }
+    };
+
+    var handleGatherVector = function(data) {
+        reductionBuffer[data.id] = MathWorkers.util.copyTypedArray(data.vectorBuffer, data.datatype);
+        workersReported[data.tag][data.id] = 1;
+        if (allWorkersReported(workersReported[data.tag])) {
+            // Collect all arrays in buffer into one
+            var totalLength = 0;
+            var offsets = [0];
+            for (var w = 0; w < that.nWorkers; w++) {
+                offsets.push(reductionBuffer[w].length);
+                totalLength += reductionBuffer[w].length;
+            }
+            objectBuffer = new MathWorkers.Vector(totalLength, data.datatype);
+            for (w = 0; w < that.nWorkers; w++) {
+                var workerArray = reductionBuffer[w];
+                var offset = offsets[w];
+                for (var i = 0; i < workerArray.length; i++) {
+                    objectBuffer.array[offset + i] = workerArray[i];
+                }
+            }
+            that.emit(data.tag);
+        }
+    };
 
 }());
 
@@ -360,54 +419,43 @@ var MathWorkers = {};
      * @param coordinator
      * @param vector
      * @param key
-     * @param eventName
+     * @param emitEventName
      * @constructor
      */
-    MathWorkers.DistributedVector = function(coordinator, vector, key, eventName) {
+    MathWorkers.DistributedVector = function(coordinator, vector, key, emitEventName) {
         this.datatype = vector.datatype || MathWorkers.Datatype.Float32;
         this.length = vector.length || 0;
         this.key = key;
 
         var that = this;
         var tag = "distributeVector:" + key;
-        var maximumRetries = 10000;
+        var gatheredVector = null;
 
-        // Lock for compute readiness
-        var ready = false;
-
-        // Event for unlocking
+        /**
+         * Upon successful distribution, emit event for next event
+         */
         coordinator.on(tag, function() {
-            console.log("It's ready!");
-            ready = true;
-            that.emit(eventName);
+            that.emit(emitEventName);
         });
 
         // Scatter vector data across workers
-        coordinator.scatterVectorToWorkers(vector, key, tag);
+        coordinator.scatterVectorToWorkers(vector, that.key, tag);
 
-        /**
-         * Block until ready
-         *
-         * TODO: not sure if this is really kosher
-         */
-        this.block = function() {
-            var retries = 0;
-            for (; !ready && retries < maximumRetries; retries++) {
-                setTimeout(function() {}, 10);
-            }
-            if (retries >= maximumRetries) {
-                throw new Error("Maximum retries attempted. DistributedVector not ready.");
-            }
+        this.getGatheredVector = function() {
+            return gatheredVector;
         };
 
         /**
          * Gather distributed vector data into the master thread in a new Vector object
-         *
-         * TODO
          */
-        this.gather = function() {
-            this.block();  // must be ready
-
+        this.gather = function(emitEventName) {
+            var responseTag = "gatherVector:" + that.key;
+            coordinator.gatherVectorFromWorkers(that.key, responseTag);
+            coordinator.on(responseTag, function() {
+                // Put gathered vector into object's storage
+                gatheredVector = coordinator.getObjectBuffer();
+                that.emit(emitEventName);
+            });
         };
 
         /**
@@ -416,13 +464,9 @@ var MathWorkers = {};
          * @param func
          */
         this.map = function(func) {
-            ready = false;
             coordinator.broadcastData(func, tag, "DistributedVector:map");
         };
 
-        this.foo = function() {
-            console.log("foo");
-        }
     };
 
     // Set event emitter inheritance

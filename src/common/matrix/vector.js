@@ -10,9 +10,10 @@
     };
 
     MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmpArray = MathWorkers.util.copyTypedArray(array, datatype)
         var tmp = new MathWorkers.Vector(0, datatype);
-        tmp.length = array.length;
-        tmp.array = array;
+        tmp.length = tmpArray.length;
+        tmp.array = tmpArray;
         return tmp;
     };
 

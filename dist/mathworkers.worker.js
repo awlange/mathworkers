@@ -147,9 +147,10 @@ var MathWorkers = {};
     };
 
     MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmpArray = MathWorkers.util.copyTypedArray(array, datatype)
         var tmp = new MathWorkers.Vector(0, datatype);
-        tmp.length = array.length;
-        tmp.array = array;
+        tmp.length = tmpArray.length;
+        tmp.array = tmpArray;
         return tmp;
     };
 
@@ -240,15 +241,19 @@ var MathWorkers = {};
          */
         this.distributedObjectMap = {};
 
-        ///**
-        // * Register an event with a callback to be executed when the coordinator triggers the event
-        // *
-        // * @param {!string} trigger the unique label for the event being registered
-        // * @param {function} callback the callback function to be registered
-        // */
-        //this.on = function(trigger, callback) {
-        //    triggers[trigger] = [callback];
-        //};
+        /**
+         * Send a Vector to the coordinator
+         */
+        this.sendVectorToCoordinator = function(vec, tag) {
+            var buf = vec.array.buffer;
+            MathWorkers.comm.postMessageToCoordinator({
+                handle: "_sendVectorToCoordinator",
+                id: that.id,
+                tag: tag,
+                datatype: vec.datatype,
+                vectorBuffer: buf
+            }, [buf]);
+        };
 
         /**
          * Register triggers
@@ -273,6 +278,8 @@ var MathWorkers = {};
                 return handleBroadcastData(data);
             case "_scatterVector":
                 return handleScatterVector(data);
+            case "_gatherVector":
+                return handleGatherVector(data);
             case "_DistributedVector:map":
                 return handleDistributedVectorMap(data);
             default:
@@ -335,6 +342,13 @@ var MathWorkers = {};
     var handleScatterVector = function(data) {
         that.distributedObjectMap[data.key] = MathWorkers.Vector.fromArray(data.vec, data.datatype);
         handshake(data.tag);
+    };
+
+    /**
+     * Send requested vector to coordinator
+     */
+    var handleGatherVector = function(data) {
+        that.sendVectorToCoordinator(that.distributedObjectMap[data.key], data.tag);
     };
 
 }());
