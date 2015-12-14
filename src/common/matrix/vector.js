@@ -47,6 +47,13 @@
             this.array[i] = func(this.array[i]);
         }
         return this;
-    }
+    };
+
+    MathWorkers.Vector.prototype.scale = function(a) {
+        for (var i = 0; i < this.length; i++) {
+            this.array[i] *= a;
+        }
+        return this;
+    };
 
 }());

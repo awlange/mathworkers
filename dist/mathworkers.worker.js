@@ -186,7 +186,14 @@ var MathWorkers = {};
             this.array[i] = func(this.array[i]);
         }
         return this;
-    }
+    };
+
+    MathWorkers.Vector.prototype.scale = function(a) {
+        for (var i = 0; i < this.length; i++) {
+            this.array[i] *= a;
+        }
+        return this;
+    };
 
 }());
 
@@ -260,9 +267,14 @@ var MathWorkers = {};
         /**
          * Register triggers
          */
-        triggers["DistributedVector:map"] = function(key) {
 
-        };
+        // ------------------------------------------------------------------------------------ //
+        // Vector triggers
+        // ------------------------------------------------------------------------------------ //
+        triggers["_vectorScale"] = function(data) {
+            that.distributedObjectMap[data.key].scale(data.scalar);
+        }
+
     };
 
     var objectBuffer = {};
@@ -282,8 +294,6 @@ var MathWorkers = {};
                 return handleScatterVector(data);
             case "_gatherVector":
                 return handleGatherVector(data);
-            case "_DistributedVector:map":
-                return handleDistributedVectorMap(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -306,17 +316,16 @@ var MathWorkers = {};
         if (triggers[data.trigger]) {
             triggers[data.trigger] = triggers[data.trigger] || [];
             var args = data.data || obj || [];
-            triggers[data.trigger].forEach( function(fn) {
-                fn.call(this, args);
-            });
+            triggers[data.trigger].call(this, args);
         } else {
             console.warn("Unregistered trigger: " + data.trigger);
         }
     };
 
     // Acknowledge something has happened to the Coordinator
-    var handshake = function(tag) {
-        MathWorkers.comm.postMessageToCoordinator({handle: "_handshake", id: that.id, tag: tag});
+    var handshake = function(tag, handle) {
+        handle = handle || "_handshake";
+        MathWorkers.comm.postMessageToCoordinator({handle: handle, id: that.id, tag: tag});
     };
 
     var handleSendWorkerData = function(data) {
@@ -329,11 +338,8 @@ var MathWorkers = {};
     };
 
     var handleBroadcastData = function(data) {
-        handleTrigger(data, data.key);
-    };
-
-    var handleDistributedVectorMap = function(data) {
-        handleTrigger(data, data.key);
+        handleTrigger(data);
+        handshake(data.tag);
     };
 
     /**

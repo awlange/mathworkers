@@ -12,11 +12,11 @@
 
             var dv = mwi.newDistributedVector(new MathWorkers.Vector.ones(8), "a", "1");
             dv.on("1", function() {
-                console.log(dv.length);
-                dv.gather("2");
+                dv.scale(20, "2");
             }).on("2", function() {
-                var g = dv.getGatheredVector();
-                console.log(g);
+                dv.gather("3");
+            }).on("3", function() {
+                console.log(dv.getGatheredVector());
             });
 
         </script>

@@ -48,13 +48,24 @@
             });
         };
 
+        ///**
+        // * Map the distributed vector
+        // *
+        // * @param func
+        // */
+        //this.map = function(func) {
+        //    coordinator.broadcastData(func, tag, "DistributedVector:map");
+        //};
+
         /**
-         * Map the distributed vector
-         *
-         * @param func
+         * Multiply each element in the distributed vector by a scalar
          */
-        this.map = function(func) {
-            coordinator.broadcastData(func, tag, "DistributedVector:map");
+        this.scale = function(a, emitEventName) {
+            var responseTag = "vectorScale:" + that.key;
+            coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
+            coordinator.on(responseTag, function() {
+                that.emit(emitEventName);
+            });
         };
 
     };

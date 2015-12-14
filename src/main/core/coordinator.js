@@ -47,6 +47,7 @@
         };
 
         this.broadcastData = function(data, tag, trigger) {
+            workersReported[tag] = emptyWorkersReportedList();
             this.workerPool.forEach(function(worker) {
                 MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastData",
                     data: data,
@@ -150,7 +151,6 @@
 
     var handleSendCoordinatorData = function(data) {
         objectBuffer = data;
-        console.log("Coordinator got data: " + data.id);
     };
 
     var handleHandshake = function(data) {

@@ -185,7 +185,14 @@ var MathWorkers = {};
             this.array[i] = func(this.array[i]);
         }
         return this;
-    }
+    };
+
+    MathWorkers.Vector.prototype.scale = function(a) {
+        for (var i = 0; i < this.length; i++) {
+            this.array[i] *= a;
+        }
+        return this;
+    };
 
 }());
 
@@ -272,6 +279,7 @@ var MathWorkers = {};
         };
 
         this.broadcastData = function(data, tag, trigger) {
+            workersReported[tag] = emptyWorkersReportedList();
             this.workerPool.forEach(function(worker) {
                 MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastData",
                     data: data,
@@ -375,7 +383,6 @@ var MathWorkers = {};
 
     var handleSendCoordinatorData = function(data) {
         objectBuffer = data;
-        console.log("Coordinator got data: " + data.id);
     };
 
     var handleHandshake = function(data) {
@@ -461,13 +468,24 @@ var MathWorkers = {};
             });
         };
 
+        ///**
+        // * Map the distributed vector
+        // *
+        // * @param func
+        // */
+        //this.map = function(func) {
+        //    coordinator.broadcastData(func, tag, "DistributedVector:map");
+        //};
+
         /**
-         * Map the distributed vector
-         *
-         * @param func
+         * Multiply each element in the distributed vector by a scalar
          */
-        this.map = function(func) {
-            coordinator.broadcastData(func, tag, "DistributedVector:map");
+        this.scale = function(a, emitEventName) {
+            var responseTag = "vectorScale:" + that.key;
+            coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
+            coordinator.on(responseTag, function() {
+                that.emit(emitEventName);
+            });
         };
 
     };
