@@ -24,10 +24,24 @@
          * A map of name to distributed object to be used in calculations
          */
         this.distributedObjectMap = {};
-    };
 
-    // Set event emitter inheritance
-    MathWorkers.Worker.prototype = new MathWorkers.EventEmitter();
+        ///**
+        // * Register an event with a callback to be executed when the coordinator triggers the event
+        // *
+        // * @param {!string} trigger the unique label for the event being registered
+        // * @param {function} callback the callback function to be registered
+        // */
+        //this.on = function(trigger, callback) {
+        //    triggers[trigger] = [callback];
+        //};
+
+        /**
+         * Register triggers
+         */
+        triggers["DistributedVector:map"] = function(key) {
+
+        };
+    };
 
     var objectBuffer = {};
 
@@ -40,8 +54,12 @@
                 return handleSendWorkerData(data);
             case "_broadcastMessage":
                 return handleBroadcastMessage(data);
+            case "_broadcastData":
+                return handleBroadcastData(data);
             case "_scatterVector":
                 return handleScatterVector(data);
+            case "_DistributedVector:map":
+                return handleDistributedVectorMap(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -61,14 +79,14 @@
      * @private
      */
     var handleTrigger = function(data, obj) {
-        if (triggers[data.tag]) {
-            triggers[data.tag] = triggers[data.tag] || [];
+        if (triggers[data.trigger]) {
+            triggers[data.trigger] = triggers[data.trigger] || [];
             var args = data.data || obj || [];
-            triggers[data.tag].forEach( function(fn) {
+            triggers[data.trigger].forEach( function(fn) {
                 fn.call(this, args);
             });
         } else {
-            console.warn("Unregistered trigger tag: " + data.tag);
+            console.warn("Unregistered trigger: " + data.trigger);
         }
     };
 
@@ -86,8 +104,21 @@
         console.log(that.id + ": " + data.message);
     };
 
+    var handleBroadcastData = function(data) {
+        handleTrigger(data, data.key);
+    };
+
+    var handleDistributedVectorMap = function(data) {
+        handleTrigger(data, data.key);
+    };
+
+    /**
+     * Store the scattered array as a Vector value under the provided key
+     *
+     * @param data
+     */
     var handleScatterVector = function(data) {
-        that.distributedObjectMap[data.key] = MathWorkers.util.copyTypedArray(data.vec, data.datatype);
+        that.distributedObjectMap[data.key] = MathWorkers.Vector.fromArray(data.vec, data.datatype);
         handshake(data.tag);
     };
 

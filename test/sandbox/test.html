@@ -10,9 +10,10 @@
         <script>
             var mwi = new MathWorkers.Interface(2, "../../dist/mathworkers.worker.js");
 
-            mwi.broadcastMessage("hey there");
-
-            var dv = mwi.newDistributedVector(new MathWorkers.Vector.ones(8), "a");
+            var dv = mwi.newDistributedVector(new MathWorkers.Vector.ones(8), "a", "next");
+            dv.on("next", function() {
+                console.log(dv.length);
+            });
 
         </script>
     </body>

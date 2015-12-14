@@ -14,9 +14,9 @@ module.exports = function(grunt) {
                     'src/common/core/datatype.js',
                     'src/common/core/event_emitter.js',
                     'src/common/core/util.js',
+                    'src/common/matrix/vector.js',
                     'src/main/core/communication.js',
                     'src/main/core/coordinator.js',
-                    'src/main/matrix/vector.js',
                     'src/main/matrix/distributed_vector.js',
                     'src/main/core/interface.js',
                     'src/main/outro.js'
@@ -29,6 +29,7 @@ module.exports = function(grunt) {
                     'src/common/core/datatype.js',
                     'src/common/core/event_emitter.js',
                     'src/common/core/util.js',
+                    'src/common/matrix/vector.js',
                     'src/worker/core/communication.js',
                     'src/worker/core/mathworker.js',
                     'src/worker/outro.js'

@@ -134,153 +134,6 @@ var MathWorkers = {};
 }());
 
 
-(function(){
-
-    MathWorkers.comm = new function() {
-        this.isNode = false;
-
-        this.postMessageToWorker = function(worker, data, buffer) {
-            if (this.isNode) {
-                worker.send(data);
-            } else {
-                worker.postMessage(data, buffer);
-            }
-        };
-
-        this.setOnMessage = function(worker, handler) {
-            if (this.isNode) {
-                worker.on("message", handler);
-            } else {
-                worker.onmessage = handler;
-            }
-        };
-
-        this.disconnect = function(worker) {
-            if (this.isNode) {
-                worker.disconnect();
-            } else {
-                worker.terminate();
-            }
-        };
-    };
-
-}());
-
-
-(function(){
-
-    var that;
-    var objectBuffer = {};
-    var workersReportedList = [];
-
-    MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
-        this.nWorkers = nWorkersInput;
-        this.workerPool = [];
-        that = this;
-
-        // Set isNode
-        MathWorkers.comm.isNode = isNode || false;
-
-        // Create the worker pool
-        var worker;
-        for (var i = 0; i < nWorkersInput; i++) {
-            if (isNode) {
-                worker = require("child_process").fork(workerFilePath);
-            } else {
-                worker = new Worker(workerFilePath);
-            }
-            MathWorkers.comm.setOnMessage(worker, onmessageHandler);
-            MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
-            this.workerPool.push(worker);
-        }
-
-        // Create empty report list
-        emptyWorkersReportedList();
-
-        this.disconnect = function() {
-            this.workerPool.forEach(function(worker) {
-                MathWorkers.comm.disconnect(worker);
-            });
-            this.nWorkers = 0;
-            this.workerPool = [];
-        };
-
-        this.broadcastMessage = function(message) {
-            this.workerPool.forEach(function(worker) {
-                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage", message: message});
-            });
-        };
-
-        /**
-         * Scatter a Vector into separate pieces to all workers
-         *
-         * @param {!MathWorkers.Vector} vec Vector to be scattered
-         * @param {!string} key to vector in object map
-         * @param {!string} tag message tag
-         */
-        this.scatterVectorToWorkers = function(vec, key, tag) {
-            // Split the vector into equal-ish (load balanced) chunks and send out
-            this.workerPool.forEach(function(worker, i) {
-                var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
-                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito), vec.datatype);
-                var buf = subv.buffer;
-                MathWorkers.comm.postMessageToWorker(worker, {
-                    handle: "_scatterVector",
-                    key: key,
-                    tag: tag,
-                    datatype: vec.datatype,
-                    vec: buf
-                }, [buf]);
-            });
-        };
-    };
-
-    // Set event emitter inheritance
-    MathWorkers.Coordinator.prototype = new MathWorkers.EventEmitter();
-
-    var emptyWorkersReportedList = function() {
-        for (var i = 0; i < that.nWorkers; i++) {
-            workersReportedList[i] = 0;
-        }
-    };
-
-    var allWorkersReported = function() {
-        for (var i = 0; i < that.nWorkers; i++) {
-            if (workersReportedList[i] == 0) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    var onmessageHandler = function(event) {
-        var data = event.data || event;
-        switch (data.handle) {
-            case "_sendCoordinatorData":
-                return handleSendCoordinatorData(data);
-            case "_handshake":
-                return handleHandshake(data);
-            default:
-                console.error("Invalid worker communication handle: " + data);
-        }
-    };
-
-    var handleSendCoordinatorData = function(data) {
-        objectBuffer = data;
-        console.log("Coordinator got data: " + data.id);
-    };
-
-    var handleHandshake = function(data) {
-        workersReportedList[data.id] = 1;
-        if (allWorkersReported()) {
-            emptyWorkersReportedList();
-            that.emit(data.tag);
-        }
-    }
-
-}());
-
-
 (function() {
 
     MathWorkers.Vector = function(length, datatype) {
@@ -290,6 +143,13 @@ var MathWorkers = {};
         if (this.length > 0) {
             this.array = MathWorkers.util.newTypedArray(this.length, this.datatype);
         }
+    };
+
+    MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmp = new MathWorkers.Vector(0, datatype);
+        tmp.length = array.length;
+        tmp.array = array;
+        return tmp;
     };
 
     MathWorkers.Vector.zeros = function(length, datatype) {
@@ -327,6 +187,168 @@ var MathWorkers = {};
 }());
 
 
+(function(){
+
+    MathWorkers.comm = new function() {
+        this.isNode = false;
+
+        this.postMessageToWorker = function(worker, data, buffer) {
+            if (this.isNode) {
+                worker.send(data);
+            } else {
+                worker.postMessage(data, buffer);
+            }
+        };
+
+        this.setOnMessage = function(worker, handler) {
+            if (this.isNode) {
+                worker.on("message", handler);
+            } else {
+                worker.onmessage = handler;
+            }
+        };
+
+        this.disconnect = function(worker) {
+            if (this.isNode) {
+                worker.disconnect();
+            } else {
+                worker.terminate();
+            }
+        };
+    };
+
+}());
+
+
+(function(){
+
+    var that;
+    var objectBuffer = {};
+    var workersReported = {};
+
+    MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
+        this.nWorkers = nWorkersInput;
+        this.workerPool = [];
+        that = this;
+
+        // Set isNode
+        MathWorkers.comm.isNode = isNode || false;
+
+        // Create the worker pool
+        var worker;
+        for (var i = 0; i < nWorkersInput; i++) {
+            if (isNode) {
+                worker = require("child_process").fork(workerFilePath);
+            } else {
+                worker = new Worker(workerFilePath);
+            }
+            MathWorkers.comm.setOnMessage(worker, onmessageHandler);
+            MathWorkers.comm.postMessageToWorker(worker, {handle: "_init", id: i, isNode: isNode});
+            this.workerPool.push(worker);
+        }
+
+        this.disconnect = function() {
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.disconnect(worker);
+            });
+            this.nWorkers = 0;
+            this.workerPool = [];
+        };
+
+        this.broadcastMessage = function(message) {
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage",
+                    message: message
+                });
+            });
+        };
+
+        this.broadcastData = function(data, tag, trigger) {
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastData",
+                    data: data,
+                    trigger: trigger,
+                    tag: tag
+                });
+            });
+        };
+
+        /**
+         * Scatter a Vector into separate pieces to all workers
+         *
+         * @param {!MathWorkers.Vector} vec Vector to be scattered
+         * @param {!string} key to vector in object map
+         * @param {!string} tag message tag
+         */
+        this.scatterVectorToWorkers = function(vec, key, tag) {
+            // Set empty workers reported for tag
+            workersReported[tag] = emptyWorkersReportedList();
+
+            // Split the vector into equal-ish (load balanced) chunks and send out
+            this.workerPool.forEach(function(worker, i) {
+                var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
+                var subv = MathWorkers.util.copyTypedArray(vec.array.subarray(lb.ifrom, lb.ito), vec.datatype);
+                var buf = subv.buffer;
+                MathWorkers.comm.postMessageToWorker(worker, {
+                    handle: "_scatterVector",
+                    key: key,
+                    tag: tag,
+                    datatype: vec.datatype,
+                    vec: buf
+                }, [buf]);
+            });
+        };
+
+
+    };
+
+    // Set event emitter inheritance
+    MathWorkers.Coordinator.prototype = new MathWorkers.EventEmitter();
+
+    var emptyWorkersReportedList = function() {
+        var workersReportedList = [];
+        for (var i = 0; i < that.nWorkers; i++) {
+            workersReportedList[i] = 0;
+        }
+        return workersReportedList;
+    };
+
+    var allWorkersReported = function(workersReportedList) {
+        for (var i = 0; i < that.nWorkers; i++) {
+            if (workersReportedList[i] == 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    var onmessageHandler = function(event) {
+        var data = event.data || event;
+        switch (data.handle) {
+            case "_sendCoordinatorData":
+                return handleSendCoordinatorData(data);
+            case "_handshake":
+                return handleHandshake(data);
+            default:
+                console.error("Invalid worker communication handle: " + data);
+        }
+    };
+
+    var handleSendCoordinatorData = function(data) {
+        objectBuffer = data;
+        console.log("Coordinator got data: " + data.id);
+    };
+
+    var handleHandshake = function(data) {
+        workersReported[data.tag][data.id] = 1;
+        if (allWorkersReported(workersReported[data.tag])) {
+            that.emit(data.tag);
+        }
+    }
+
+}());
+
+
 /**
  * Interface to Vector that is distributed across workers
  */
@@ -338,24 +360,73 @@ var MathWorkers = {};
      * @param coordinator
      * @param vector
      * @param key
+     * @param eventName
      * @constructor
      */
-    MathWorkers.DistributedVector = function(coordinator, vector, key) {
+    MathWorkers.DistributedVector = function(coordinator, vector, key, eventName) {
         this.datatype = vector.datatype || MathWorkers.Datatype.Float32;
         this.length = vector.length || 0;
         this.key = key;
 
+        var that = this;
+        var tag = "distributeVector:" + key;
+        var maximumRetries = 10000;
+
         // Lock for compute readiness
         var ready = false;
 
-        var tag = "distributeVector:" + key;
+        // Event for unlocking
         coordinator.on(tag, function() {
             console.log("It's ready!");
             ready = true;
+            that.emit(eventName);
         });
 
+        // Scatter vector data across workers
         coordinator.scatterVectorToWorkers(vector, key, tag);
+
+        /**
+         * Block until ready
+         *
+         * TODO: not sure if this is really kosher
+         */
+        this.block = function() {
+            var retries = 0;
+            for (; !ready && retries < maximumRetries; retries++) {
+                setTimeout(function() {}, 10);
+            }
+            if (retries >= maximumRetries) {
+                throw new Error("Maximum retries attempted. DistributedVector not ready.");
+            }
+        };
+
+        /**
+         * Gather distributed vector data into the master thread in a new Vector object
+         *
+         * TODO
+         */
+        this.gather = function() {
+            this.block();  // must be ready
+
+        };
+
+        /**
+         * Map the distributed vector
+         *
+         * @param func
+         */
+        this.map = function(func) {
+            ready = false;
+            coordinator.broadcastData(func, tag, "DistributedVector:map");
+        };
+
+        this.foo = function() {
+            console.log("foo");
+        }
     };
+
+    // Set event emitter inheritance
+    MathWorkers.DistributedVector.prototype = new MathWorkers.EventEmitter();
 
 }());
 
@@ -366,6 +437,11 @@ var MathWorkers = {};
 
         var coordinator = new MathWorkers.Coordinator(nWorkersInput, workerFilePath, isNode);
 
+        // Interface to coordinator event emmiter
+        this.on = function(eventName, callBack) {
+            coordinator.on(eventName, callBack);
+        };
+
         // Send a message to the worker pool
         this.broadcastMessage = function(message, callback) {
             coordinator.broadcastMessage(message);
@@ -374,9 +450,8 @@ var MathWorkers = {};
             }
         };
 
-        this.newDistributedVector = function(vector, key) {
-            // TODO: do something on emission of event from coordinator
-            return new MathWorkers.DistributedVector(coordinator, vector, key);
+        this.newDistributedVector = function(vector, key, eventName) {
+            return new MathWorkers.DistributedVector(coordinator, vector, key, eventName);
         }
     };
 

@@ -2,7 +2,7 @@
 
     var that;
     var objectBuffer = {};
-    var workersReportedList = [];
+    var workersReported = {};
 
     MathWorkers.Coordinator = function(nWorkersInput, workerFilePath, isNode) {
         this.nWorkers = nWorkersInput;
@@ -25,9 +25,6 @@
             this.workerPool.push(worker);
         }
 
-        // Create empty report list
-        emptyWorkersReportedList();
-
         this.disconnect = function() {
             this.workerPool.forEach(function(worker) {
                 MathWorkers.comm.disconnect(worker);
@@ -38,7 +35,19 @@
 
         this.broadcastMessage = function(message) {
             this.workerPool.forEach(function(worker) {
-                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage", message: message});
+                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastMessage",
+                    message: message
+                });
+            });
+        };
+
+        this.broadcastData = function(data, tag, trigger) {
+            this.workerPool.forEach(function(worker) {
+                MathWorkers.comm.postMessageToWorker(worker, {handle: "_broadcastData",
+                    data: data,
+                    trigger: trigger,
+                    tag: tag
+                });
             });
         };
 
@@ -50,6 +59,9 @@
          * @param {!string} tag message tag
          */
         this.scatterVectorToWorkers = function(vec, key, tag) {
+            // Set empty workers reported for tag
+            workersReported[tag] = emptyWorkersReportedList();
+
             // Split the vector into equal-ish (load balanced) chunks and send out
             this.workerPool.forEach(function(worker, i) {
                 var lb = MathWorkers.util.loadBalance(vec.length, that.nWorkers, i);
@@ -64,18 +76,22 @@
                 }, [buf]);
             });
         };
+
+
     };
 
     // Set event emitter inheritance
     MathWorkers.Coordinator.prototype = new MathWorkers.EventEmitter();
 
     var emptyWorkersReportedList = function() {
+        var workersReportedList = [];
         for (var i = 0; i < that.nWorkers; i++) {
             workersReportedList[i] = 0;
         }
+        return workersReportedList;
     };
 
-    var allWorkersReported = function() {
+    var allWorkersReported = function(workersReportedList) {
         for (var i = 0; i < that.nWorkers; i++) {
             if (workersReportedList[i] == 0) {
                 return false;
@@ -102,9 +118,8 @@
     };
 
     var handleHandshake = function(data) {
-        workersReportedList[data.id] = 1;
-        if (allWorkersReported()) {
-            emptyWorkersReportedList();
+        workersReported[data.tag][data.id] = 1;
+        if (allWorkersReported(workersReported[data.tag])) {
             that.emit(data.tag);
         }
     }

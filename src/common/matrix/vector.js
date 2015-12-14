@@ -9,6 +9,13 @@
         }
     };
 
+    MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmp = new MathWorkers.Vector(0, datatype);
+        tmp.length = array.length;
+        tmp.array = array;
+        return tmp;
+    };
+
     MathWorkers.Vector.zeros = function(length, datatype) {
         var vec = new MathWorkers.Vector(length, datatype);
         for (var i = 0; i < length; ++i) {

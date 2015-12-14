@@ -137,6 +137,59 @@ var MathWorkers = {};
 
 (function() {
 
+    MathWorkers.Vector = function(length, datatype) {
+        this.datatype = datatype || MathWorkers.Datatype.Float32;
+        this.length = length || 0;
+        this.array = null;
+        if (this.length > 0) {
+            this.array = MathWorkers.util.newTypedArray(this.length, this.datatype);
+        }
+    };
+
+    MathWorkers.Vector.fromArray = function(array, datatype) {
+        var tmp = new MathWorkers.Vector(0, datatype);
+        tmp.length = array.length;
+        tmp.array = array;
+        return tmp;
+    };
+
+    MathWorkers.Vector.zeros = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 0.0;
+        }
+        return vec;
+    };
+
+    MathWorkers.Vector.ones = function(length, datatype) {
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = 1.0;
+        }
+        return vec;
+    };
+
+    MathWorkers.Vector.random = function(length, datatype) {
+        // TODO: fill with different random things depending on datatype
+        var vec = new MathWorkers.Vector(length, datatype);
+        for (var i = 0; i < length; ++i) {
+            vec.array[i] = Math.random();
+        }
+        return vec;
+    };
+
+    MathWorkers.Vector.prototype.map = function(func) {
+        for (var i = 0; i < this.length; i++) {
+            this.array[i] = func(this.array[i]);
+        }
+        return this;
+    }
+
+}());
+
+
+(function() {
+
     MathWorkers.comm = new function() {
         this.isNode = false;
 
@@ -186,10 +239,24 @@ var MathWorkers = {};
          * A map of name to distributed object to be used in calculations
          */
         this.distributedObjectMap = {};
-    };
 
-    // Set event emitter inheritance
-    MathWorkers.Worker.prototype = new MathWorkers.EventEmitter();
+        ///**
+        // * Register an event with a callback to be executed when the coordinator triggers the event
+        // *
+        // * @param {!string} trigger the unique label for the event being registered
+        // * @param {function} callback the callback function to be registered
+        // */
+        //this.on = function(trigger, callback) {
+        //    triggers[trigger] = [callback];
+        //};
+
+        /**
+         * Register triggers
+         */
+        triggers["DistributedVector:map"] = function(key) {
+
+        };
+    };
 
     var objectBuffer = {};
 
@@ -202,8 +269,12 @@ var MathWorkers = {};
                 return handleSendWorkerData(data);
             case "_broadcastMessage":
                 return handleBroadcastMessage(data);
+            case "_broadcastData":
+                return handleBroadcastData(data);
             case "_scatterVector":
                 return handleScatterVector(data);
+            case "_DistributedVector:map":
+                return handleDistributedVectorMap(data);
             default:
                 console.error("Invalid worker communication handle: " + data);
         }
@@ -223,14 +294,14 @@ var MathWorkers = {};
      * @private
      */
     var handleTrigger = function(data, obj) {
-        if (triggers[data.tag]) {
-            triggers[data.tag] = triggers[data.tag] || [];
+        if (triggers[data.trigger]) {
+            triggers[data.trigger] = triggers[data.trigger] || [];
             var args = data.data || obj || [];
-            triggers[data.tag].forEach( function(fn) {
+            triggers[data.trigger].forEach( function(fn) {
                 fn.call(this, args);
             });
         } else {
-            console.warn("Unregistered trigger tag: " + data.tag);
+            console.warn("Unregistered trigger: " + data.trigger);
         }
     };
 
@@ -248,8 +319,21 @@ var MathWorkers = {};
         console.log(that.id + ": " + data.message);
     };
 
+    var handleBroadcastData = function(data) {
+        handleTrigger(data, data.key);
+    };
+
+    var handleDistributedVectorMap = function(data) {
+        handleTrigger(data, data.key);
+    };
+
+    /**
+     * Store the scattered array as a Vector value under the provided key
+     *
+     * @param data
+     */
     var handleScatterVector = function(data) {
-        that.distributedObjectMap[data.key] = MathWorkers.util.copyTypedArray(data.vec, data.datatype);
+        that.distributedObjectMap[data.key] = MathWorkers.Vector.fromArray(data.vec, data.datatype);
         handshake(data.tag);
     };
 
