@@ -26,6 +26,10 @@
                 .end("foo");
             dv.on("foo", function() {
                 console.log(dv.getGatheredVector());
+                dv.scatterGatheredVector().scale(1.0 / 30.0).gather().end("bar");
+            });
+            dv.on("bar", function() {
+                console.log(dv.getGatheredVector());
             });
 
         </script>

@@ -40,7 +40,6 @@ var MathWorkers = {};
          * @param {Array.<Object>} [args] optional array of arguments to be passed on event
          */
         this.on = function(name, callback, args) {
-            //events[name] = [callback];
             args = args || [];
             events[name] = {"callback": callback, "args": args};
             return this;
@@ -53,11 +52,6 @@ var MathWorkers = {};
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
         this.emit = function(name, args) {
-            //events[name] = events[name] || [];
-            //args = args || [];
-            //events[name].forEach(function (fn) {
-            //    fn.call(this, args);
-            //});
             events[name] = events[name] || {};
             args = args || events[name]["args"] || [];
             events[name]["callback"].call(this, args);
@@ -446,33 +440,55 @@ var MathWorkers = {};
         var that = this;
         var tag = "distributeVector:" + key;
         var gatheredVector = null;
-        var eventChain = [];
+        var currentEventChain = ["0:0"];
+        var eventChains = [];
 
-        if (emitEventName != null) {
-            /**
-             * Upon successful distribution, emit event for next event
-             */
-            coordinator.on(tag, function () {
-                that.emit(emitEventName);
+        /**
+         * General pattern for setting event chain methods
+         */
+        var eventChainMethod = function(emitEventName, callback) {
+            if (emitEventName == null) {
+                emitEventName = eventChains.length + ":" + currentEventChain.length;
+                that.on(currentEventChain[currentEventChain.length - 1], callback, [emitEventName]);
+                currentEventChain.push(emitEventName);
+            } else {
+                callback(emitEventName);
+            }
+        };
+
+        /**
+         * Vector scattering function
+         */
+        var scatterVector = function(vec, emitEventName) {
+            eventChainMethod(emitEventName, function(emitEventName) {
+                coordinator.on(tag, function () {
+                    that.emit(emitEventName);
+                });
+                coordinator.scatterVectorToWorkers(vec, that.key, tag);
             });
+        };
 
-            // Scatter vector data across workers
-            coordinator.scatterVectorToWorkers(vector, that.key, tag);
-        } else {
-            // Chain?
-            emitEventName = key + ":0";
-            eventChain.push(emitEventName);
-            coordinator.scatterVectorToWorkers(vector, that.key, tag);
-            coordinator.on(tag, function () {
-                that.emit(emitEventName);
-            });
-        }
+        /**
+         * Constructor scatter call. It is an event chain method too!
+         */
+        scatterVector(vector, emitEventName);
 
+        /**
+         * End of the chain. Trigger the chain to execute by emitting the first event name.
+         */
         this.end = function(emitEventName) {
-            // Chain end?
-            that.on(key + ":" + (eventChain.length - 1), function() {
+            // Chain end
+            that.on(eventChains.length + ":" + (currentEventChain.length - 1), function() {
                 that.emit(emitEventName);
             });
+
+            // Trigger the first event in the chain
+            that.emit(currentEventChain[0]);
+
+            // Reset for next event chain
+            eventChains.push(currentEventChain);
+            currentEventChain = [eventChains.length + ":0"];
+
             return this;
         };
 
@@ -483,14 +499,12 @@ var MathWorkers = {};
             return gatheredVector;
         };
 
-        var eventChainMethod = function(emitEventName, callback) {
-            if (emitEventName == null) {
-                emitEventName = key + ":" + eventChain.length;
-                that.on(key + ":" + (eventChain.length - 1), callback, [emitEventName]);
-                eventChain.push(emitEventName);
-            } else {
-                callback(emitEventName);
-            }
+        /**
+         * Scatter gatheredVector back to the workers
+         */
+        this.scatterGatheredVector = function(emitEventName) {
+            scatterVector(gatheredVector, emitEventName);
+            return this;
         };
 
         /**

@@ -41,7 +41,6 @@ var MathWorkers = {};
          * @param {Array.<Object>} [args] optional array of arguments to be passed on event
          */
         this.on = function(name, callback, args) {
-            //events[name] = [callback];
             args = args || [];
             events[name] = {"callback": callback, "args": args};
             return this;
@@ -54,11 +53,6 @@ var MathWorkers = {};
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
         this.emit = function(name, args) {
-            //events[name] = events[name] || [];
-            //args = args || [];
-            //events[name].forEach(function (fn) {
-            //    fn.call(this, args);
-            //});
             events[name] = events[name] || {};
             args = args || events[name]["args"] || [];
             events[name]["callback"].call(this, args);
