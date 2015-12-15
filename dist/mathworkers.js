@@ -37,9 +37,12 @@ var MathWorkers = {};
          *
          * @param {!string} name the event name
          * @param {function} callback the callback to be executed when the event is emitted
+         * @param {Array.<Object>} [args] optional array of arguments to be passed on event
          */
-        this.on = function(name, callback) {
-            events[name] = [callback];
+        this.on = function(name, callback, args) {
+            //events[name] = [callback];
+            args = args || [];
+            events[name] = {"callback": callback, "args": args};
             return this;
         };
 
@@ -50,11 +53,14 @@ var MathWorkers = {};
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
         this.emit = function(name, args) {
-            events[name] = events[name] || [];
-            args = args || [];
-            events[name].forEach(function (fn) {
-                fn.call(this, args);
-            });
+            //events[name] = events[name] || [];
+            //args = args || [];
+            //events[name].forEach(function (fn) {
+            //    fn.call(this, args);
+            //});
+            events[name] = events[name] || {};
+            args = args || events[name]["args"] || [];
+            events[name]["callback"].call(this, args);
             return this;
         };
     }
@@ -477,11 +483,21 @@ var MathWorkers = {};
             return gatheredVector;
         };
 
+        var eventChainMethod = function(emitEventName, callback) {
+            if (emitEventName == null) {
+                emitEventName = key + ":" + eventChain.length;
+                that.on(key + ":" + (eventChain.length - 1), callback, [emitEventName]);
+                eventChain.push(emitEventName);
+            } else {
+                callback(emitEventName);
+            }
+        };
+
         /**
          * Gather distributed vector data into the master thread in a new Vector object
          */
         this.gather = function(emitEventName) {
-            var func = function() {
+            eventChainMethod(emitEventName, function(emitEventName) {
                 var responseTag = "gatherVector:" + that.key;
                 coordinator.gatherVectorFromWorkers(that.key, responseTag);
                 coordinator.on(responseTag, function() {
@@ -489,16 +505,7 @@ var MathWorkers = {};
                     gatheredVector = coordinator.getObjectBuffer();
                     that.emit(emitEventName);
                 });
-            };
-
-            // chain
-            if (emitEventName == null) {
-                emitEventName = key + ":" + eventChain.length;
-                that.on(key + ":" + (eventChain.length - 1), func);
-                eventChain.push(emitEventName);
-            } else {
-                func();
-            }
+            });
             return this;
         };
 
@@ -506,22 +513,13 @@ var MathWorkers = {};
          * Multiply each element in the distributed vector by a scalar
          */
         this.scale = function(a, emitEventName) {
-            var func = function() {
+            eventChainMethod(emitEventName, function(emitEventName) {
                 var responseTag = "vectorScale:" + that.key;
                 coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
                 coordinator.on(responseTag, function() {
                     that.emit(emitEventName);
                 });
-            };
-
-            // chain
-            if (emitEventName == null) {
-                emitEventName = key + ":" + eventChain.length;
-                that.on(key + ":" + (eventChain.length - 1), func);
-                eventChain.push(emitEventName);
-            } else {
-                func();
-            }
+            });
             return this;
         };
 

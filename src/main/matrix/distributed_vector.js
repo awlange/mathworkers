@@ -57,11 +57,21 @@
             return gatheredVector;
         };
 
+        var eventChainMethod = function(emitEventName, callback) {
+            if (emitEventName == null) {
+                emitEventName = key + ":" + eventChain.length;
+                that.on(key + ":" + (eventChain.length - 1), callback, [emitEventName]);
+                eventChain.push(emitEventName);
+            } else {
+                callback(emitEventName);
+            }
+        };
+
         /**
          * Gather distributed vector data into the master thread in a new Vector object
          */
         this.gather = function(emitEventName) {
-            var callback = function() {
+            eventChainMethod(emitEventName, function(emitEventName) {
                 var responseTag = "gatherVector:" + that.key;
                 coordinator.gatherVectorFromWorkers(that.key, responseTag);
                 coordinator.on(responseTag, function() {
@@ -69,16 +79,7 @@
                     gatheredVector = coordinator.getObjectBuffer();
                     that.emit(emitEventName);
                 });
-            };
-
-            // chain
-            if (emitEventName == null) {
-                emitEventName = key + ":" + eventChain.length;
-                that.on(key + ":" + (eventChain.length - 1), callback);
-                eventChain.push(emitEventName);
-            } else {
-                callback();
-            }
+            });
             return this;
         };
 
@@ -86,22 +87,13 @@
          * Multiply each element in the distributed vector by a scalar
          */
         this.scale = function(a, emitEventName) {
-            var callback = function() {
+            eventChainMethod(emitEventName, function(emitEventName) {
                 var responseTag = "vectorScale:" + that.key;
                 coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
                 coordinator.on(responseTag, function() {
                     that.emit(emitEventName);
                 });
-            };
-
-            // chain
-            if (emitEventName == null) {
-                emitEventName = key + ":" + eventChain.length;
-                that.on(key + ":" + (eventChain.length - 1), callback);
-                eventChain.push(emitEventName);
-            } else {
-                callback();
-            }
+            });
             return this;
         };
 

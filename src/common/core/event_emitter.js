@@ -15,9 +15,11 @@
          *
          * @param {!string} name the event name
          * @param {function} callback the callback to be executed when the event is emitted
+         * @param {Array.<Object>} [args] optional array of arguments to be passed on event
          */
-        this.on = function(name, callback) {
-            events[name] = [callback];
+        this.on = function(name, callback, args) {
+            args = args || [];
+            events[name] = {"callback": callback, "args": args};
             return this;
         };
 
@@ -28,11 +30,9 @@
          * @param {Array.<Object>} [args] an array of arguments to be passed to the callback
          */
         this.emit = function(name, args) {
-            events[name] = events[name] || [];
-            args = args || [];
-            events[name].forEach(function (fn) {
-                fn.call(this, args);
-            });
+            events[name] = events[name] || {};
+            args = args || events[name]["args"] || [];
+            events[name]["callback"].call(this, args);
             return this;
         };
     }

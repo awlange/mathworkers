@@ -19,7 +19,11 @@
 //                console.log(dv.getGatheredVector());
 //            });
 
-            var dv = mwi.newDistributedVector(new MathWorkers.Vector.ones(8), "a").scale(30).gather().end("foo");
+            var dv = mwi.newDistributedVector(new MathWorkers.Vector.ones(8), "a")
+                .scale(30)
+                .scale(40)
+                .gather()
+                .end("foo");
             dv.on("foo", function() {
                 console.log(dv.getGatheredVector());
             });
