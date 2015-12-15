@@ -20,17 +20,39 @@
         var that = this;
         var tag = "distributeVector:" + key;
         var gatheredVector = null;
+        var eventChain = [];
+
+        if (emitEventName != null) {
+            /**
+             * Upon successful distribution, emit event for next event
+             */
+            coordinator.on(tag, function () {
+                that.emit(emitEventName);
+            });
+
+            // Scatter vector data across workers
+            coordinator.scatterVectorToWorkers(vector, that.key, tag);
+        } else {
+            // Chain?
+            emitEventName = key + ":0";
+            eventChain.push(emitEventName);
+            coordinator.scatterVectorToWorkers(vector, that.key, tag);
+            coordinator.on(tag, function () {
+                that.emit(emitEventName);
+            });
+        }
+
+        this.end = function(emitEventName) {
+            // Chain end?
+            that.on(key + ":" + (eventChain.length - 1), function() {
+                that.emit(emitEventName);
+            });
+            return this;
+        };
 
         /**
-         * Upon successful distribution, emit event for next event
+         * Access to the vector buffer
          */
-        coordinator.on(tag, function() {
-            that.emit(emitEventName);
-        });
-
-        // Scatter vector data across workers
-        coordinator.scatterVectorToWorkers(vector, that.key, tag);
-
         this.getGatheredVector = function() {
             return gatheredVector;
         };
@@ -39,33 +61,48 @@
          * Gather distributed vector data into the master thread in a new Vector object
          */
         this.gather = function(emitEventName) {
-            var responseTag = "gatherVector:" + that.key;
-            coordinator.gatherVectorFromWorkers(that.key, responseTag);
-            coordinator.on(responseTag, function() {
-                // Put gathered vector into object's storage
-                gatheredVector = coordinator.getObjectBuffer();
-                that.emit(emitEventName);
-            });
-        };
+            var callback = function() {
+                var responseTag = "gatherVector:" + that.key;
+                coordinator.gatherVectorFromWorkers(that.key, responseTag);
+                coordinator.on(responseTag, function() {
+                    // Put gathered vector into object's storage
+                    gatheredVector = coordinator.getObjectBuffer();
+                    that.emit(emitEventName);
+                });
+            };
 
-        ///**
-        // * Map the distributed vector
-        // *
-        // * @param func
-        // */
-        //this.map = function(func) {
-        //    coordinator.broadcastData(func, tag, "DistributedVector:map");
-        //};
+            // chain
+            if (emitEventName == null) {
+                emitEventName = key + ":" + eventChain.length;
+                that.on(key + ":" + (eventChain.length - 1), callback);
+                eventChain.push(emitEventName);
+            } else {
+                callback();
+            }
+            return this;
+        };
 
         /**
          * Multiply each element in the distributed vector by a scalar
          */
         this.scale = function(a, emitEventName) {
-            var responseTag = "vectorScale:" + that.key;
-            coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
-            coordinator.on(responseTag, function() {
-                that.emit(emitEventName);
-            });
+            var callback = function() {
+                var responseTag = "vectorScale:" + that.key;
+                coordinator.broadcastData({"key": that.key, "scalar": a}, responseTag, "_vectorScale");
+                coordinator.on(responseTag, function() {
+                    that.emit(emitEventName);
+                });
+            };
+
+            // chain
+            if (emitEventName == null) {
+                emitEventName = key + ":" + eventChain.length;
+                that.on(key + ":" + (eventChain.length - 1), callback);
+                eventChain.push(emitEventName);
+            } else {
+                callback();
+            }
+            return this;
         };
 
     };
